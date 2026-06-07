@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, ExternalLink, Check, Clock, Flame, BadgeCheck, Star, Truck, Percent, Gift, Zap } from 'lucide-react';
+import {
+  Copy,
+  ExternalLink,
+  Clock,
+  Flame,
+  BadgeCheck,
+  Star,
+  Truck,
+  Percent,
+  Gift,
+  Zap,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -41,6 +52,22 @@ function getDaysLeft(endDate) {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+function renderDiscountText(voucher) {
+  if (!voucher.discount_value) return null;
+
+  if (voucher.discount_type === 'percent') return `Giảm ${voucher.discount_value}`;
+  if (voucher.discount_type === 'fixed') return `Giảm ${voucher.discount_value}`;
+  if (voucher.discount_type === 'cashback') return `Hoàn ${voucher.discount_value}`;
+  if (voucher.discount_type === 'freeship') return 'Miễn phí vận chuyển';
+  return voucher.discount_value;
+}
+
+function renderCodePreview(code, maxLength = 13) {
+  if (!code) return '';
+  if (code.length <= maxLength) return code;
+  return `${code.slice(0, maxLength)}...`;
+}
+
 export default function VoucherCard({ voucher, variant = 'default' }) {
   const [showModal, setShowModal] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -50,6 +77,8 @@ export default function VoucherCard({ voucher, variant = 'default' }) {
   const daysLeft = getDaysLeft(voucher.end_date);
   const isExpired = daysLeft !== null && daysLeft <= 0;
   const isExpiringSoon = daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
+  const isCompact = variant === 'compact';
+  const discountText = renderDiscountText(voucher);
 
   const trackClick = async (type) => {
     localClient.entities.ClickEvent.create({
@@ -66,147 +95,155 @@ export default function VoucherCard({ voucher, variant = 'default' }) {
     if (voucher.code) {
       setShowModal(true);
       await trackClick('click');
+
       try {
         await navigator.clipboard.writeText(voucher.code);
         setCopied(true);
-        toast.success('Đã copy mã: ' + voucher.code);
+        toast.success(`Đã copy mã: ${voucher.code}`);
         setTimeout(() => setCopied(false), 3000);
       } catch {
         toast.info('Vui lòng copy mã thủ công');
       }
-    } else {
-      await trackClick('click');
-      const url = voucher.tracking_url || voucher.original_url || '#';
-      window.open(url, '_blank', 'noopener');
+
+      return;
     }
+
+    await trackClick('click');
+    const url = voucher.tracking_url || voucher.original_url || '#';
+    window.open(url, '_blank', 'noopener');
   };
 
-  const handleCopyCode = async () => {
-    if (!voucher.code) return;
-    await trackClick('copy');
-    try {
-      await navigator.clipboard.writeText(voucher.code);
-      setCopied(true);
-      toast.success('Đã copy mã: ' + voucher.code);
-      setTimeout(() => setCopied(false), 3000);
-    } catch {
-      toast.info('Vui lòng copy mã thủ công');
-    }
-  };
-
-  const isCompact = variant === 'compact';
   return (
     <>
-      <div className={`group bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden ${isExpired ? 'opacity-60' : ''}`}>
+      <div
+        className={`group overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg ${
+          isExpired ? 'opacity-60' : ''
+        }`}
+      >
         <div className={`p-4 ${isCompact ? '' : 'sm:p-5'}`}>
           <div className="flex gap-3 sm:gap-4">
-            {/* Brand logo */}
             <div className="shrink-0">
-              <div className={`${isCompact ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'} rounded-xl bg-secondary flex items-center justify-center overflow-hidden border border-border`}>
+              <div
+                className={`flex items-center justify-center overflow-hidden rounded-xl border border-border bg-secondary ${
+                  isCompact ? 'h-12 w-12' : 'h-12 w-12 sm:h-16 sm:w-16'
+                }`}
+              >
                 <BrandLogo
                   brand={voucher}
                   alt={voucher.brand_name || voucher.title}
-                  className="w-full h-full object-contain p-1.5"
+                  className="h-full w-full object-contain p-1.5"
                   fallbackClassName="text-lg font-bold text-muted-foreground"
                 />
               </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-start justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {voucher.brand_name && (
                     <span className="text-xs font-medium text-muted-foreground">{voucher.brand_name}</span>
                   )}
                   {voucher.platform && (
-                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${platformColors[voucher.platform]}`} title={platformNames[voucher.platform]} />
+                    <span
+                      className={`inline-block h-1.5 w-1.5 rounded-full ${platformColors[voucher.platform]}`}
+                      title={platformNames[voucher.platform]}
+                    />
                   )}
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  {voucher.is_hot && <Flame className="w-4 h-4 text-red-500" />}
-                  {voucher.is_verified && <BadgeCheck className="w-4 h-4 text-green-500" />}
-                  {voucher.is_exclusive && <Star className="w-4 h-4 text-amber-500" />}
+
+                <div className="flex shrink-0 items-center gap-1">
+                  {voucher.is_hot && <Flame className="h-4 w-4 text-red-500" />}
+                  {voucher.is_verified && <BadgeCheck className="h-4 w-4 text-green-500" />}
+                  {voucher.is_exclusive && <Star className="h-4 w-4 text-amber-500" />}
                 </div>
               </div>
 
               <Link to={`/ma-giam-gia/${voucher.slug || voucher.id}`} className="block">
-                <h3 className={`font-semibold font-heading text-foreground group-hover:text-primary transition-colors line-clamp-2 ${isCompact ? 'text-sm' : 'text-sm sm:text-base'}`}>
+                <h3
+                  className={`line-clamp-2 font-heading font-semibold text-foreground transition-colors group-hover:text-primary ${
+                    isCompact ? 'text-sm' : 'text-sm sm:text-base'
+                  }`}
+                >
                   {voucher.title}
                 </h3>
               </Link>
 
-              {voucher.discount_value && (
-                <p className="text-primary font-bold text-sm mt-1">
-                  {voucher.discount_type === 'percent' && `Giảm ${voucher.discount_value}`}
-                  {voucher.discount_type === 'fixed' && `Giảm ${voucher.discount_value}`}
-                  {voucher.discount_type === 'cashback' && `Hoàn ${voucher.discount_value}`}
-                  {voucher.discount_type === 'freeship' && 'Miễn phí vận chuyển'}
-                  {!['percent', 'fixed', 'cashback', 'freeship'].includes(voucher.discount_type) && voucher.discount_value}
+              {discountText && (
+                <p className="mt-1 text-sm font-bold text-primary">
+                  {discountText}
                   {voucher.max_discount && ` (tối đa ${voucher.max_discount})`}
                 </p>
               )}
 
               {!isCompact && voucher.description && (
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{voucher.description}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground sm:line-clamp-1">
+                  {voucher.description}
+                </p>
               )}
 
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge variant="secondary" className={`text-[10px] px-2 py-0.5 ${config.color}`}>
-                  <TypeIcon className="w-3 h-3 mr-1" />
-                  {config.label}
-                </Badge>
-                {isExpiringSoon && !isExpired && (
-                  <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700">
-                    <Clock className="w-3 h-3 mr-1" />
-                    Còn {daysLeft} ngày
+              <div className="mt-3 flex flex-col gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className={`px-2 py-0.5 text-[10px] ${config.color}`}>
+                    <TypeIcon className="mr-1 h-3 w-3" />
+                    {config.label}
                   </Badge>
-                )}
-                {isExpired && (
-                  <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500">
-                    Hết hạn
-                  </Badge>
-                )}
-                {voucher.min_order_value && (
-                  <span className="text-[10px] text-muted-foreground">Đơn từ {voucher.min_order_value}</span>
-                )}
-              </div>
-            </div>
 
-            {/* CTA */}
-            <div className={`shrink-0 flex flex-col items-end justify-between ${isCompact ? 'gap-2' : 'gap-3'}`}>
-              {voucher.code ? (
-                <div className="text-right">
-                  <div className="border-2 border-dashed border-primary/40 rounded-lg px-3 py-1.5 bg-primary/5 relative group/code cursor-pointer" onClick={handleCopyCode}>
-                    <span className="text-xs font-mono font-bold text-primary tracking-wider">{voucher.code}</span>
-                    <div className="absolute inset-0 bg-primary/90 rounded-lg flex items-center justify-center opacity-0 group-hover/code:opacity-100 transition-opacity">
-                      {copied ? (
-                        <Check className="w-4 h-4 text-primary-foreground" />
-                      ) : (
-                        <Copy className="w-4 h-4 text-primary-foreground" />
-                      )}
-                    </div>
-                  </div>
+                  {isExpiringSoon && !isExpired && (
+                    <Badge variant="secondary" className="bg-red-100 px-2 py-0.5 text-[10px] text-red-700">
+                      <Clock className="mr-1 h-3 w-3" />
+                      Còn {daysLeft} ngày
+                    </Badge>
+                  )}
+
+                  {isExpired && (
+                    <Badge variant="secondary" className="bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500">
+                      Hết hạn
+                    </Badge>
+                  )}
+
+                  {voucher.min_order_value && (
+                    <span className="text-[10px] text-muted-foreground">Đơn từ {voucher.min_order_value}</span>
+                  )}
                 </div>
-              ) : null}
-              <Button
-                onClick={handleGetCode}
-                disabled={isExpired}
-                size="sm"
-                className={`rounded-full text-xs font-semibold whitespace-nowrap ${isCompact ? 'h-8 px-3' : 'h-9 px-4'}`}
-              >
-                {voucher.code ? (
-                  <>
-                    <Copy className="w-3.5 h-3.5 mr-1" />
-                    Lấy mã
-                  </>
-                ) : (
-                  <>
-                    <ExternalLink className="w-3.5 h-3.5 mr-1" />
-                    Xem deal
-                  </>
-                )}
-              </Button>
+
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  {voucher.code ? (
+                    <div className="w-full sm:max-w-[200px]">
+                      <div
+                        className="rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 px-3 py-2"
+                        title={voucher.code}
+                      >
+                        <span className="block truncate text-[11px] font-mono font-bold leading-4 text-primary sm:text-xs sm:tracking-wider">
+                          {renderCodePreview(voucher.code)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="hidden sm:block" />
+                  )}
+
+                  <Button
+                    onClick={handleGetCode}
+                    disabled={isExpired}
+                    size="sm"
+                    className={`w-full justify-center whitespace-nowrap rounded-full text-xs font-semibold sm:w-auto sm:shrink-0 ${
+                      isCompact ? 'h-8 px-3' : 'h-9 px-4'
+                    }`}
+                  >
+                    {voucher.code ? (
+                      <>
+                        <Copy className="mr-1 h-3.5 w-3.5" />
+                        Lấy mã
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                        Xem deal
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

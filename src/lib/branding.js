@@ -1,15 +1,15 @@
 const localBrandLogos = {
-  concung: '/brand-logos/concung.svg',
-  grab: '/brand-logos/grab.svg',
-  lazada: '/brand-logos/lazada.svg',
+  concung: '/brand-logos/concung.png',
+  grab: '/brand-logos/grab.png',
+  lazada: '/brand-logos/lazada.png',
   loreal: '/brand-logos/loreal.svg',
-  nike: '/brand-logos/nike.svg',
-  samsung: '/brand-logos/samsung.svg',
-  shopee: '/brand-logos/shopee.svg',
-  'the-coffee-house': '/brand-logos/the-coffee-house.svg',
-  tiki: '/brand-logos/tiki.svg',
-  'tiktok-shop': '/brand-logos/tiktok-shop.svg',
-  unilever: '/brand-logos/unilever.svg',
+  nike: '/brand-logos/nike.png',
+  samsung: '/brand-logos/samsung.png',
+  shopee: '/brand-logos/shopee.png',
+  'the-coffee-house': '/brand-logos/the-coffee-house.png',
+  tiki: '/brand-logos/tiki.png',
+  'tiktok-shop': '/brand-logos/tiktok-shop.png',
+  unilever: '/brand-logos/unilever.png',
 };
 
 const platformLogoByKey = {
@@ -20,9 +20,12 @@ const platformLogoByKey = {
 };
 
 const aliasByName = {
-  "l'oréal": 'loreal',
-  'loreal': 'loreal',
+  'l-oreal': 'loreal',
+  'loreal-paris': 'loreal',
+  loreal: 'loreal',
+  'the-coffee-house': 'the-coffee-house',
   'the coffee house': 'the-coffee-house',
+  'tiktok-shop': 'tiktok-shop',
   'tiktok shop': 'tiktok-shop',
 };
 

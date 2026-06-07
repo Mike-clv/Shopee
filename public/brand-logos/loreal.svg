@@ -1,4 +1,23 @@
-<svg width="240" height="120" viewBox="0 0 240 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="240" height="120" rx="24" fill="white"/>
-  <text x="28" y="72" fill="#111111" font-size="34" font-family="Arial, Helvetica, sans-serif" font-weight="700">L'Oréal</text>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;">
+<style type="text/css">
+	.favicon-circle {
+    fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    .favicon-circle {
+      fill:#000000;
+    }
+    .favicon-logo {
+      fill:#FFFFFF;
+    }
+  }
+</style>
+<circle class="favicon-circle" cx="256" cy="256" r="256"/>
+<path class="favicon-logo" d="M256,64.5C150.2,64.5,64.5,150.2,64.5,256c0,60.5,28,114.4,71.8,149.5v0.2h0.2
+	c32.8,26.2,74.3,41.9,119.5,41.9c105.8,0,191.5-85.7,191.5-191.5S361.8,64.5,256,64.5z M175.3,394.8v-87.5h111.2l59.4,81.8
+	c-25.7,17.4-56.6,27.5-89.9,27.5C226.6,416.5,199,408.6,175.3,394.8z M175.3,275.3v-92.9h131c30.1,0,47.1,14,53.2,31.8
+	c4,12.2,1.4,28.3-5.2,39.2c-11,18.1-31.8,21.9-52.4,21.9H175.3z M374.6,364.2c-11.1-14.8-26.6-36.1-40.2-56.6
+	c62.1-16.5,68.2-62.6,67.9-79c-3.7-48.3-36.3-78.2-95-78.2H136.3v212.5c-25.4-28.4-40.8-65.9-40.8-106.9
+	c0-88.6,71.9-160.5,160.5-160.5S416.5,167.4,416.5,256C416.5,297.7,400.6,335.7,374.6,364.2z"/>
 </svg>

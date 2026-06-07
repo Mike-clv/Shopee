@@ -1,12 +1,12 @@
-# Cập nhật logo và tốc độ tải trang
+# Cap Nhat Logo Va Toc Do
 
-## Những gì đã được cải tiến
+## Nhung gi da duoc cai tien
 
-- Trang chủ đã dùng API gộp `/api/homepage` để giảm số request khi mở web.
-- Public site không còn bị chặn toàn màn hình chỉ vì đang kiểm tra đăng nhập admin.
-- Các logo thương hiệu quan trọng đã có fallback nội bộ để không bị trống trên Vercel nếu ảnh ngoài lỗi.
+- Trang chu da dung API gop `/api/homepage` de giam so request khi mo web.
+- Public site khong con bi chan toan man hinh chi vi dang kiem tra dang nhap admin.
+- Cac thuong hieu chinh da co bo logo noi bo de tranh bi trong logo tren production.
 
-## Các logo đã có fallback nội bộ
+## Cac logo da co san
 
 - `Shopee`
 - `Lazada`
@@ -15,29 +15,38 @@
 - `Samsung`
 - `Nike`
 - `Unilever`
-- `L'Oréal`
+- `L'Oreal`
 - `Grab`
 - `The Coffee House`
 - `concung`
 
-## Khi nào web sẽ tự dùng logo fallback
+## Vi tri file logo
 
-Web và trang admin sẽ tự chuyển sang logo fallback nếu:
+- Logo assets: `public/brand-logos/`
+- Mapping logo: `src/lib/branding.js`
 
-- `logo` trong database bị trống
-- URL logo bên ngoài bị lỗi
-- host ảnh ngoài phản hồi chậm hoặc chặn truy cập từ production
+## Cach thay logo sau nay
 
-## Khi deploy lại lên Vercel
+1. Thay file logo trong `public/brand-logos/`
+2. Neu can, cap nhat mapping trong `src/lib/branding.js`
+3. Chay:
 
-Nên để build command là:
+```bash
+npm run build
+```
+
+4. Day code len GitHub hoac redeploy Vercel de production nhan file moi
+
+## Build command tren Vercel
+
+Nen de build command la:
 
 ```bash
 npx prisma generate && npx prisma migrate deploy && npm run build
 ```
 
-Sau khi push code mới:
+## Kiem tra sau khi deploy
 
-1. vào project trên Vercel
-2. redeploy production
-3. hard refresh trình duyệt để kiểm tra lại logo và dữ liệu mới
+1. Mo trang chu va trang admin
+2. Hard refresh trinh duyet
+3. Kiem tra lai logo thuong hieu, voucher va du lieu moi

@@ -1,0 +1,33 @@
+{
+  "name": "ClickEvent",
+  "type": "object",
+  "properties": {
+    "voucher_id": {
+      "type": "string"
+    },
+    "brand_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "click",
+        "copy"
+      ],
+      "default": "click"
+    },
+    "source_page": {
+      "type": "string"
+    },
+    "voucher_title": {
+      "type": "string"
+    },
+    "brand_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "voucher_id",
+    "event_type"
+  ]
+}

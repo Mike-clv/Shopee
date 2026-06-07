@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: shopee_magiamgia_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: magiamgia
+      POSTGRES_PASSWORD: magiamgia_password
+      POSTGRES_DB: magiamgia_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: shopee_magiamgia_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

@@ -1,0 +1,15 @@
+{
+  "name": "Mã Giảm Giá Pro",
+  "short_name": "Mã Giảm Giá",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f15a24",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    }
+  ]
+}

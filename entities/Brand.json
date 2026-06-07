@@ -1,0 +1,76 @@
+{
+  "name": "Brand",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "T\u00ean th\u01b0\u01a1ng hi\u1ec7u/shop"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug"
+    },
+    "logo": {
+      "type": "string",
+      "description": "URL logo"
+    },
+    "banner": {
+      "type": "string",
+      "description": "URL banner"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "shopee",
+        "lazada",
+        "tiki",
+        "tiktok_shop",
+        "sendo",
+        "other"
+      ],
+      "description": "S\u00e0n TM\u0110T"
+    },
+    "description": {
+      "type": "string",
+      "description": "M\u00f4 t\u1ea3 th\u01b0\u01a1ng hi\u1ec7u"
+    },
+    "website_url": {
+      "type": "string",
+      "description": "Website ch\u00ednh th\u1ee9c"
+    },
+    "accesstrade_campaign_id": {
+      "type": "string",
+      "description": "ID campaign AccessTrade"
+    },
+    "seo_title": {
+      "type": "string"
+    },
+    "seo_description": {
+      "type": "string"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "voucher_count": {
+      "type": "number",
+      "default": 0
+    },
+    "click_count": {
+      "type": "number",
+      "default": 0
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ]
+}

@@ -1,0 +1,500 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 15 90% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 10%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 352 83% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 15 90% 55%;
+    --chart-1: 15 90% 55%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 220 70% 50%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 352 83% 55%;
+    --radius: 0.75rem;
+    --font-heading: 'Be Vietnam Pro', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Be Vietnam Pro', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 15 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 15 90% 55%;
+  }
+
+  .dark {
+    --background: 222 20% 7%;
+    --foreground: 210 20% 95%;
+    --card: 222 18% 10%;
+    --card-foreground: 210 20% 95%;
+    --popover: 222 18% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 15 90% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 15% 15%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 222 15% 15%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 352 83% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 15% 18%;
+    --input: 222 15% 18%;
+    --ring: 15 90% 55%;
+    --chart-1: 15 90% 55%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 220 70% 55%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 352 83% 55%;
+    --sidebar-background: 222 20% 7%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 15 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 15% 15%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 222 15% 18%;
+    --sidebar-ring: 15 90% 55%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+}
+
+@layer components {
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(115deg, hsl(var(--primary) / 0.08), transparent 34%),
+      linear-gradient(245deg, hsl(200 80% 50% / 0.08), transparent 36%),
+      repeating-linear-gradient(90deg, transparent 0 32px, hsl(var(--border) / 0.45) 32px 33px);
+  }
+
+  .hero-scanline {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.08), transparent);
+    transform: translateX(-65%);
+    animation: scanlineMove 7s ease-in-out infinite;
+  }
+
+  .hero-title-pro,
+  .section-heading-pro {
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .hero-highlight,
+  .brand-title {
+    background: linear-gradient(90deg, hsl(var(--foreground)), hsl(var(--primary)), hsl(200 80% 45%), hsl(var(--foreground)));
+    background-size: 240% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    letter-spacing: 0;
+    animation: titleShimmer 5.5s ease-in-out infinite;
+  }
+
+  .hero-subtitle,
+  .topbar-announcement {
+    letter-spacing: 0;
+  }
+
+  .topbar-marquee {
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .topbar-announcement {
+    display: inline-block;
+    min-width: max-content;
+    white-space: nowrap;
+    animation: titleMarquee 15s linear infinite;
+  }
+
+  .hero-subtitle {
+    animation: softRise 4.8s ease-in-out infinite;
+  }
+
+  .brand-mark {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 24px hsl(var(--primary) / 0.18);
+    animation: brandPulse 4.8s ease-in-out infinite;
+  }
+
+  .brand-mark::after {
+    content: '';
+    position: absolute;
+    inset: -35%;
+    background: linear-gradient(120deg, transparent 35%, hsl(var(--primary-foreground) / 0.55), transparent 65%);
+    transform: translateX(-120%) rotate(16deg);
+    animation: markSweep 4.8s ease-in-out infinite;
+  }
+
+  .brand-pro {
+    letter-spacing: 0;
+    animation: proBlink 4.2s ease-in-out infinite;
+  }
+
+  .topbar-platform-link,
+  .hero-platform-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    letter-spacing: 0;
+    transition: color 180ms ease, transform 180ms ease;
+  }
+
+  .topbar-platform-link::after,
+  .hero-platform-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(200 80% 45%));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms ease;
+  }
+
+  .topbar-platform-link:hover,
+  .hero-platform-link:hover {
+    transform: translateY(-1px);
+  }
+
+  .topbar-platform-link:hover::after,
+  .hero-platform-link:hover::after {
+    transform: scaleX(1);
+  }
+
+  .flame-pop {
+    display: inline-block;
+    transform-origin: 50% 80%;
+    filter: drop-shadow(0 4px 8px hsl(var(--accent) / 0.28));
+    animation: flamePop 900ms ease-in-out infinite;
+  }
+
+  .flame-svg {
+    color: hsl(var(--accent));
+    filter: drop-shadow(0 3px 6px hsl(var(--accent) / 0.28));
+    animation: flameSvg 950ms ease-in-out infinite;
+  }
+
+  .deal-chip,
+  .platform-card-lift {
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .deal-chip:hover,
+  .platform-card-lift:hover {
+    transform: translateY(-3px);
+  }
+
+  .brand-logo-float {
+    animation: logoFloat 5s ease-in-out infinite;
+  }
+
+  .ad-flow-line,
+  .footer-finish-line {
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(200 80% 45%), hsl(var(--accent)), hsl(var(--primary)));
+    background-size: 240% 100%;
+    animation: lineFlow 4.5s linear infinite;
+  }
+
+  .footer-finish-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .footer-glow::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 44px;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent, hsl(var(--primary) / 0.06));
+  }
+
+  .promo-banner-card,
+  .content-card {
+    position: relative;
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  }
+
+  .promo-banner-stage {
+    perspective: 1200px;
+  }
+
+  .promo-banner-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 35%, hsl(0 0% 100% / 0.32), transparent 65%);
+    transform: translateX(-130%);
+    transition: transform 650ms ease;
+  }
+
+  .promo-banner-card::before {
+    content: '';
+    position: absolute;
+    inset: auto 8% 6% 8%;
+    height: 22%;
+    border-radius: 999px;
+    background: radial-gradient(circle, hsl(var(--primary) / 0.22), transparent 72%);
+    filter: blur(22px);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .promo-banner-card:hover,
+  .content-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px hsl(220 30% 10% / 0.12);
+  }
+
+  .promo-banner-card:hover::after {
+    transform: translateX(130%);
+  }
+
+  .promo-banner-image {
+    transform: translateZ(0);
+    transform-origin: center;
+    animation: bannerFloat 6.4s ease-in-out infinite;
+  }
+
+  .promo-banner-glow {
+    animation: bannerBreath 5.8s ease-in-out infinite;
+  }
+
+  .promo-banner-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: hsl(0 0% 100% / 0.9);
+    color: hsl(var(--foreground));
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 8px 20px hsl(220 30% 10% / 0.12);
+    backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes scanlineMove {
+  0%, 18% {
+    transform: translateX(-65%);
+    opacity: 0;
+  }
+
+  35%, 70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(65%);
+    opacity: 0;
+  }
+}
+
+@keyframes titleShimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes softRise {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes titleMarquee {
+  0% {
+    transform: translateX(-8%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes brandPulse {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 10px 24px hsl(var(--primary) / 0.18);
+  }
+
+  50% {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px hsl(var(--primary) / 0.24);
+  }
+}
+
+@keyframes markSweep {
+  0%, 58%, 100% {
+    transform: translateX(-120%) rotate(16deg);
+  }
+
+  78% {
+    transform: translateX(120%) rotate(16deg);
+  }
+}
+
+@keyframes proBlink {
+  0%, 100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes flamePop {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(-4deg);
+  }
+
+  45% {
+    transform: translateY(-2px) scale(1.13) rotate(5deg);
+  }
+}
+
+@keyframes flameSvg {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-2px) scale(1.12);
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes lineFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 240% 50%;
+  }
+}
+
+@keyframes bannerFloat {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+
+  50% {
+    transform: scale(1.012) translateY(-4px);
+  }
+}
+
+@keyframes bannerBreath {
+  0%, 100% {
+    box-shadow: 0 14px 32px hsl(220 30% 10% / 0.08);
+  }
+
+  50% {
+    box-shadow: 0 22px 42px hsl(var(--primary) / 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-scanline,
+  .hero-highlight,
+  .brand-title,
+  .hero-subtitle,
+  .topbar-announcement,
+  .brand-mark,
+  .brand-mark::after,
+  .brand-pro,
+  .flame-pop,
+  .flame-svg,
+  .brand-logo-float,
+  .ad-flow-line,
+  .footer-finish-line {
+    animation: none;
+  }
+
+  .deal-chip:hover,
+  .platform-card-lift:hover,
+  .promo-banner-card:hover,
+  .content-card:hover,
+  .topbar-platform-link:hover,
+  .hero-platform-link:hover {
+    transform: none;
+  }
+
+  .promo-banner-image,
+  .promo-banner-glow {
+    animation: none;
+  }
+}

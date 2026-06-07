@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  role         String   @default("admin")
+  created_date DateTime @default(now())
+  updated_date DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Voucher {
+  id                String    @id @default(cuid())
+  title             String
+  slug              String    @unique
+  code              String?
+  description       String?   @db.Text
+  terms             String?   @db.Text
+  discount_type     String?
+  discount_value    String?
+  min_order_value   String?
+  max_discount      String?
+  start_date        DateTime?
+  end_date          DateTime?
+  status            String    @default("active")
+  voucher_type      String    @default("coupon")
+  platform          String?
+  brand_id          String?
+  brand_name        String?
+  brand_logo        String?
+  category_id       String?
+  category_name     String?
+  original_url      String?   @db.Text
+  tracking_url      String?   @db.Text
+  image             String?
+  is_hot            Boolean   @default(false)
+  is_verified       Boolean   @default(false)
+  is_exclusive      Boolean   @default(false)
+  is_featured       Boolean   @default(false)
+  click_count       Int       @default(0)
+  copy_count        Int       @default(0)
+  sort_order        Int       @default(0)
+  accesstrade_id    String?
+  last_synced_at    DateTime?
+  created_date      DateTime  @default(now())
+  updated_date      DateTime  @updatedAt
+
+  @@map("vouchers")
+}
+
+model Brand {
+  id                      String   @id @default(cuid())
+  name                    String
+  slug                    String   @unique
+  logo                    String?
+  banner                  String?
+  platform                String?
+  description             String?  @db.Text
+  website_url             String?
+  accesstrade_campaign_id String?
+  seo_title               String?
+  seo_description         String?  @db.Text
+  is_featured             Boolean  @default(false)
+  is_active               Boolean  @default(true)
+  voucher_count           Int      @default(0)
+  click_count             Int      @default(0)
+  sort_order              Int      @default(0)
+  created_date            DateTime @default(now())
+  updated_date            DateTime @updatedAt
+
+  @@map("brands")
+}
+
+model Category {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  icon            String?
+  description     String?  @db.Text
+  seo_title       String?
+  seo_description String?  @db.Text
+  banner          String?
+  is_active       Boolean  @default(true)
+  sort_order      Int      @default(0)
+  voucher_count   Int      @default(0)
+  created_date    DateTime @default(now())
+  updated_date    DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  excerpt         String?   @db.Text
+  content         String?   @db.Text
+  cover_image     String?
+  category        String?
+  seo_title       String?
+  seo_description String?   @db.Text
+  status          String    @default("draft")
+  published_at    DateTime?
+  view_count      Int       @default(0)
+  created_date    DateTime  @default(now())
+  updated_date    DateTime  @updatedAt
+
+  @@map("blog_posts")
+}
+
+model InterestPost {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  excerpt         String?   @db.Text
+  content         String?   @db.Text
+  thumbnail_image String?
+  target_url      String?   @db.Text
+  status          String    @default("draft")
+  sort_order      Int       @default(0)
+  published_at    DateTime?
+  view_count      Int       @default(0)
+  created_date    DateTime  @default(now())
+  updated_date    DateTime  @updatedAt
+
+  @@map("interest_posts")
+}
+
+model ClickEvent {
+  id            String   @id @default(cuid())
+  voucher_id    String
+  brand_id      String?
+  event_type    String   @default("click")
+  source_page   String?
+  voucher_title String?
+  brand_name    String?
+  created_date  DateTime @default(now())
+
+  @@map("click_events")
+}
+
+model CopyEvent {
+  id            String   @id @default(cuid())
+  voucher_id    String
+  brand_id      String?
+  source_page   String?
+  voucher_title String?
+  brand_name    String?
+  created_date  DateTime @default(now())
+
+  @@map("copy_events")
+}
+
+model SyncLog {
+  id            String    @id @default(cuid())
+  sync_type     String
+  status        String    @default("running")
+  message       String?   @db.Text
+  items_synced  Int       @default(0)
+  error_detail  String?   @db.Text
+  started_at    DateTime?
+  finished_at   DateTime?
+  created_date  DateTime  @default(now())
+  updated_date  DateTime  @updatedAt
+
+  @@map("sync_logs")
+}
+
+model Campaign {
+  id             String   @id @default(cuid())
+  name           String
+  platform       String?
+  external_id    String?
+  tracking_url   String?  @db.Text
+  is_active      Boolean  @default(true)
+  created_date   DateTime @default(now())
+  updated_date   DateTime @updatedAt
+
+  @@map("campaigns")
+}
+
+model Banner {
+  id            String   @id @default(cuid())
+  title         String
+  image_url     String?
+  target_url    String?  @db.Text
+  placement     String?
+  is_active     Boolean  @default(true)
+  sort_order    Int      @default(0)
+  created_date  DateTime @default(now())
+  updated_date  DateTime @updatedAt
+
+  @@map("banners")
+}
+
+model SiteSetting {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  value         Json
+  created_date  DateTime @default(now())
+  updated_date  DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model HomepageSection {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  title         String?
+  config        Json?
+  is_active     Boolean  @default(true)
+  sort_order    Int      @default(0)
+  created_date  DateTime @default(now())
+  updated_date  DateTime @updatedAt
+
+  @@map("homepage_sections")
+}
+
+model AffiliateTransaction {
+  id            String    @id @default(cuid())
+  external_id   String?   @unique
+  order_code    String?
+  campaign_id   String?
+  amount        Decimal?  @db.Decimal(12, 2)
+  commission    Decimal?  @db.Decimal(12, 2)
+  status        String?
+  occurred_at   DateTime?
+  raw_payload   Json?
+  created_date  DateTime  @default(now())
+  updated_date  DateTime  @updatedAt
+
+  @@map("affiliate_transactions")
+}

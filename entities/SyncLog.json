@@ -1,0 +1,46 @@
+{
+  "name": "SyncLog",
+  "type": "object",
+  "properties": {
+    "sync_type": {
+      "type": "string",
+      "enum": [
+        "campaigns",
+        "vouchers",
+        "transactions"
+      ],
+      "description": "Lo\u1ea1i sync"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "success",
+        "failed"
+      ],
+      "default": "running"
+    },
+    "message": {
+      "type": "string"
+    },
+    "items_synced": {
+      "type": "number",
+      "default": 0
+    },
+    "error_detail": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "sync_type",
+    "status"
+  ]
+}

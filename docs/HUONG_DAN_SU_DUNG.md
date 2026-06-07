@@ -1,17 +1,26 @@
 # Hướng Dẫn Sử Dụng Mã Giảm Giá Pro
 
-Tài liệu này hướng dẫn chạy website độc lập sau khi tách khỏi Base44, refresh dữ liệu mẫu giống giao diện gốc và quản trị nội dung.
+Tài liệu này hướng dẫn cài đặt, chạy local, quản trị nội dung, đồng bộ AccessTrade, deploy lên Vercel và xử lý các lỗi thường gặp cho dự án `Mã Giảm Giá Pro`.
 
-## 1. Chạy Lần Đầu
+## 1. Yêu cầu môi trường
 
-Yêu cầu máy đã có Node.js LTS và Docker Desktop.
+Máy cần có:
+
+- Node.js LTS
+- npm
+- Docker Desktop
+- Git
+
+## 2. Cài đặt lần đầu
+
+Trong thư mục dự án:
 
 ```powershell
 npm install
 copy .env.example .env
 ```
 
-Mở `.env` và đổi ít nhất các biến sau:
+Mở file `.env` và chỉnh tối thiểu:
 
 ```env
 AUTH_SECRET=change-me
@@ -20,27 +29,30 @@ ADMIN_PASSWORD=change-me
 DATABASE_URL=postgresql://shopee:shopee@localhost:5432/shopee_magiamgia?schema=public
 ```
 
-Không đưa `.env` lên Git hoặc hosting công khai.
+Lưu ý:
 
-## 2. Bật Database
+- Không đưa file `.env` lên GitHub.
+- Không dùng `localhost` trong `DATABASE_URL` khi deploy lên Vercel.
+
+## 3. Bật database local
 
 ```powershell
 npm run db:up
 ```
 
-Các service local:
+Sau khi chạy:
 
 - PostgreSQL: `localhost:5432`
 - PgAdmin: `http://localhost:5050`
 
-## 3. Migrate Và Seed Dữ Liệu
+## 4. Tạo bảng và seed dữ liệu
 
 ```powershell
 npm run db:migrate
 npm run db:seed
 ```
 
-Seed thường chỉ thêm dữ liệu khi bảng còn trống. Nếu muốn đưa dữ liệu mẫu về đúng baseline đang dùng để khớp giao diện gốc, chạy:
+Nếu muốn reset lại bộ dữ liệu mẫu cho giao diện:
 
 ```powershell
 $env:SEED_FORCE_BASELINE='true'
@@ -48,59 +60,13 @@ npm run db:seed
 Remove-Item Env:\SEED_FORCE_BASELINE
 ```
 
-Baseline blog hiện gồm 5 bài giống trang `https://sansaleshopee.base44.app/blog`:
-
-- `Cách sử dụng mã giảm giá TikTok Shop cho người mới` - 5/6/2026
-- `Top 10 mã giảm giá Lazada không thể bỏ lỡ tháng 6/2026` - 3/6/2026
-- `Hướng dẫn săn mã giảm giá Shopee hiệu quả nhất 2026` - 1/6/2026
-- `So sánh giá giữa Shopee, Lazada và Tiki - Sàn nào rẻ hơn?` - 28/5/2026
-- `5 mẹo tiết kiệm khi mua sắm online mùa sale` - 25/5/2026
-
-Dữ liệu mẫu nằm ở `prisma/seed-data.js`. Khi chạy force baseline, các bài blog mẫu cũ không còn khớp giao diện gốc sẽ được chuyển về `draft`.
-
-## 3.1. Đồng Bộ Dữ Liệu Thật Từ AccessTrade
-
-Khi đã có API key thật, cấu hình `.env`:
-
-```env
-ACCESSTRADE_API_BASE_URL=https://api.accesstrade.vn/v1
-ACCESSTRADE_API_KEY=access_key_cua_anh
-ACCESSTRADE_AUTH_SCHEME=Token
-ACCESSTRADE_SYNC_ENABLED=true
-```
-
-Chạy sync toàn bộ campaign và voucher/coupon/deal:
+Ngoài ra có thể seed lại riêng dữ liệu trang chủ:
 
 ```powershell
-npm run sync:accesstrade
+npm run seed:homepage
 ```
 
-Chạy riêng từng phần:
-
-```powershell
-npm run sync:accesstrade -- campaigns
-npm run sync:accesstrade -- vouchers
-```
-
-Sau khi sync voucher thành công, hệ thống sẽ:
-
-- Tạo/cập nhật voucher thật từ AccessTrade và chỉ giữ các voucher toàn sàn/toàn nền tảng.
-- Tự chuyển voucher shop riêng, voucher sample hoặc voucher không đạt điều kiện về `draft`.
-- Tạo/cập nhật brand và category dựa trên dữ liệu thật.
-- Cập nhật số lượng voucher active cho brand/category.
-- Chuyển voucher AccessTrade cũ không còn đạt bộ lọc về `draft`.
-- Ẩn brand/category sample không còn voucher thật.
-- Giữ logo 4 sàn Shopee, Lazada, Tiki, TikTok Shop trong khu vực thương hiệu nổi bật.
-
-Nếu muốn giới hạn số trang hoặc số bản ghi khi test:
-
-```env
-ACCESSTRADE_SYNC_PAGE_SIZE=50
-ACCESSTRADE_SYNC_MAX_PAGES=5
-ACCESSTRADE_SYNC_MAX_ITEMS=500
-```
-
-## 4. Chạy Website
+## 5. Chạy website local
 
 ```powershell
 npm run dev
@@ -108,369 +74,388 @@ npm run dev
 
 Lệnh này chạy đồng thời:
 
-- API: `http://localhost:3001`
-- Website: `http://localhost:5173`
+- API/backend: `http://localhost:3001`
+- Website/frontend: `http://localhost:5173`
 
-Để truy cập website từ điện thoại trong cùng Wi-Fi, dùng địa chỉ IP LAN của máy đang chạy web:
-
-```txt
-http://192.168.1.47:5173/
-```
-
-Lưu ý: port `3001` chỉ là API/backend, không phải giao diện website. Nếu điện thoại vào được `3001` nhưng không vào được `5173`, kiểm tra `vite.config.js` phải có `server.host = '0.0.0.0'` và khởi động lại bằng `npm run dev`.
-
-Các trang nên kiểm tra sau khi chạy:
+Các trang chính:
 
 - Trang chủ: `http://localhost:5173/`
 - Blog: `http://localhost:5173/blog`
 - Admin: `http://localhost:5173/admin`
 
-## 4.1. Bảng Mã Nhúng Và Banner AccessTrade
+## 6. Truy cập từ điện thoại trong cùng Wi-Fi
 
-- Khi bấm biểu tượng kính lúp mà chưa nhập từ khóa, website mở `/tim-kiem?embed=1` và hiển thị bảng mã giảm giá nhúng từ AccessTrade.
-- Trên trang chủ, bấm vào ô tìm kiếm lớn trong hero sẽ mở popup bảng mã AccessTrade ngay trên trang chủ.
-- Nếu nhập từ khóa rồi bấm tìm, website vẫn tìm trong database voucher local đã sync.
-- Khung banner/campaign nằm ngay dưới hero trang chủ. Nếu chưa có banner active trong database, website hiển thị 2 banner Shopee mặc định từ `/uploads/66.jpg` và `/uploads/661.png`, cùng trỏ về link campaign Shopee đã cấu hình trong `src/components/home/AdBannerSlot.jsx`.
-
-Thêm banner active qua database:
-
-```sql
-INSERT INTO banners (id, title, image_url, target_url, placement, is_active, sort_order, created_date, updated_date)
-VALUES (
-  'banner_homepage_top_1',
-  'Tên chiến dịch',
-  'https://link-anh-banner.jpg',
-  'https://link-chien-dich-accesstrade',
-  'homepage_top',
-  true,
-  1,
-  NOW(),
-  NOW()
-);
-```
-
-Hoặc vào Admin:
-
-- `Admin > Banner đầu trang`: đổi ảnh/link banner nằm dưới hero trang chủ.
-- `Admin > Banner mã hot`: đổi ảnh/link banner nằm trong mục `Mã Giảm Giá Hot Hôm Nay` khi chưa có mã hot.
-- `Admin > Có Thể Bạn Quan Tâm`: tạo card bài viết/gợi ý sản phẩm có thumbnail và link affiliate AccessTrade.
-
-Nếu cần khôi phục bộ danh mục/thương hiệu/banner mẫu cho trang chủ:
-
-```powershell
-npm run seed:homepage
-```
-
-## 5. Đăng Nhập Admin
-
-Vào `http://localhost:5173/login`, dùng tài khoản trong `.env`:
+Frontend local cần mở bằng IP LAN của máy:
 
 ```txt
+http://192.168.1.47:5173/
+```
+
+Lưu ý:
+
+- Port `3001` là API, không phải giao diện website.
+- Frontend chỉ truy cập được từ điện thoại nếu `vite.config.js` dùng:
+
+```js
+server: {
+  host: '0.0.0.0'
+}
+```
+
+## 7. Restart server sau khi sửa `.env`
+
+Nếu `npm run dev` đang chạy trong cửa sổ terminal, bấm:
+
+```powershell
+Ctrl + C
+npm run dev
+```
+
+Nếu không có cửa sổ terminal nhưng web vẫn chạy, thường là server đang chạy nền. Khi đó kiểm tra PID:
+
+```powershell
+Get-NetTCPConnection -LocalPort 3001,5173 -ErrorAction SilentlyContinue | Select-Object LocalPort,State,OwningProcess
+```
+
+Sau đó tắt tiến trình và chạy lại:
+
+```powershell
+Stop-Process -Id PID_3001,PID_5173 -Force
+cd D:\Shopee
+npm run dev
+```
+
+## 8. Đăng nhập admin
+
+Trang đăng nhập:
+
+```txt
+http://localhost:5173/login
+```
+
+Tài khoản admin local lấy từ `.env`:
+
+```env
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-me
 ```
 
-Sau khi đăng nhập, vào `http://localhost:5173/admin` để quản trị voucher, thương hiệu, danh mục, blog và thống kê.
+Sau khi đăng nhập:
 
-## 6. Quản Trị Blog
+```txt
+http://localhost:5173/admin
+```
 
-Vào `http://localhost:5173/admin/blog`.
+## 9. Đồng bộ dữ liệu thật từ AccessTrade
+
+Khai báo trong `.env`:
+
+```env
+ACCESSTRADE_API_BASE_URL=https://api.accesstrade.vn/v1
+ACCESSTRADE_API_KEY=api_key_that_cua_anh
+ACCESSTRADE_PUBLISHER_ID=publisher_id_cua_anh
+ACCESSTRADE_AUTH_SCHEME=Token
+ACCESSTRADE_SYNC_ENABLED=true
+```
+
+Chạy sync:
+
+```powershell
+npm run sync:accesstrade
+```
+
+Hoặc chạy riêng:
+
+```powershell
+npm run sync:accesstrade -- campaigns
+npm run sync:accesstrade -- vouchers
+```
+
+Sau khi sync thành công, hệ thống sẽ:
+
+- Tạo hoặc cập nhật voucher thật từ AccessTrade
+- Chuyển voucher sample hoặc voucher không đạt điều kiện về `draft`
+- Cập nhật brand, category và số lượng voucher active
+- Ẩn các brand hoặc category sample không còn dữ liệu thật
+
+Nếu muốn giới hạn khi test:
+
+```env
+ACCESSTRADE_SYNC_PAGE_SIZE=50
+ACCESSTRADE_SYNC_MAX_PAGES=5
+ACCESSTRADE_SYNC_MAX_ITEMS=500
+```
+
+## 10. Bảng mã nhúng AccessTrade và banner
+
+- Bấm biểu tượng kính lúp hoặc ô tìm kiếm lớn ở hero sẽ mở bảng mã giảm giá nhúng AccessTrade.
+- Nếu nhập từ khóa rồi tìm kiếm, website sẽ tìm trong dữ liệu voucher local đã sync.
+
+### Banner đầu trang
+
+Quản lý tại:
+
+- `Admin > Banner đầu trang`
+
+### Banner mục “Mã Giảm Giá Hot Hôm Nay”
+
+Quản lý riêng tại:
+
+- `Admin > Banner mã hot`
+
+Đây là khu vực độc lập với banner đầu trang.
+
+### Bài viết “Có Thể Bạn Quan Tâm”
+
+Quản lý tại:
+
+- `Admin > Có Thể Bạn Quan Tâm`
+
+## 11. Quản trị blog
+
+Trang quản trị blog:
+
+```txt
+http://localhost:5173/admin/blog
+```
 
 Các trường chính:
 
-- `Tiêu đề`: tên bài viết hiển thị trên card và trang chi tiết.
-- `Slug`: đoạn cuối trong đường link bài viết, ví dụ `/blog/cach-su-dung-ma-giam-gia-tiktok-shop`.
-- `Ảnh bìa URL`: ảnh hiển thị trên card blog.
-- `Danh mục`: nhãn nhỏ màu cam trên card.
-- `Trạng thái`:
-  - `draft`: bài nháp, chưa hiển thị ngoài website
-  - `published`: xuất bản ngay
-  - `scheduled`: hẹn giờ đăng tự động
-- `Thời gian đăng`: dùng để sắp xếp bài mới trước. Nếu chọn `scheduled`, đây là thời điểm bài tự chuyển sang `published`.
+- `Tiêu đề`: tên bài viết
+- `Slug`: phần cuối của URL, ví dụ `meo-san-sale-shopee`
+- `Ảnh bìa URL`: ảnh thumbnail của bài
+- `Nội dung`: nội dung bài viết
+- `Trạng thái`: `draft`, `published`, `scheduled`
+- `Hẹn giờ đăng`: thời điểm tự động publish
 
-Các tính năng mới trong trình viết bài:
+### Slug là gì?
 
-- `Upload ảnh bìa`: tải ảnh trực tiếp từ máy, không cần dán URL thủ công.
-- `Chèn ảnh` trong editor: upload ảnh vào nội dung bài viết và chèn ngay vào markdown.
-- `Preview`: xem trước nội dung bài viết ngay trong admin.
+`Slug` là phần cuối của đường dẫn bài viết.
 
-Ghi chú:
+Ví dụ:
 
-- Trang `/blog` chỉ hiển thị bài có `status = published`.
-- Bài `scheduled` sẽ tự được publish khi tới thời gian hẹn.
-- Ở môi trường local, bài scheduled sẽ được publish khi website/API gọi tới danh sách bài viết.
-- Trên Vercel, có thể bật thêm cron job để việc publish chạy tự động theo chu kỳ, xem mục deploy bên dưới.
-
-## 6.1. Quản Trị Mục "Có Thể Bạn Quan Tâm"
-
-Vào `http://localhost:5173/admin/interests` hoặc menu `Quan tâm` trong admin.
-
-Các bài ở đây cũng hỗ trợ:
-
-- `draft`, `published`, `scheduled`
-- upload thumbnail
-- slug thân thiện
-- link sản phẩm / affiliate
-
-Giao diện ngoài trang chủ sẽ hiển thị thumbnail và tiêu đề giống nhóm bài blog.
-
-## 7. Build Và Chạy Production Local
-
-```powershell
-npm run build
-npm run start
+```txt
+/blog/meo-san-sale-shopee
 ```
 
-`npm run start` chạy Express API và phục vụ thư mục `dist` sau khi build.
+Thì slug là:
 
-## 8. Deploy Lên Vercel
+```txt
+meo-san-sale-shopee
+```
 
-Repo hiện đã sẵn sàng để deploy frontend + API chung trên Vercel theo kiểu:
+Slug nên:
 
-- frontend Vite build ra thư mục `dist`
-- backend Express chạy qua `api/index.js`
-- upload ảnh runtime dùng `Vercel Blob`
+- ngắn gọn
+- không dấu
+- dùng dấu `-`
+- không trùng bài khác
 
-### 8.1. Những gì cần chuẩn bị
+## 12. Upload ảnh bài viết và banner
 
-1. Database PostgreSQL public để Vercel truy cập được.
-   Ví dụ: Neon, Supabase, Railway, Render Postgres, hoặc VPS PostgreSQL của anh.
-   Database Docker local `localhost:5432` sẽ không dùng được trên Vercel.
-2. Tài khoản Vercel.
-3. Nếu muốn upload ảnh bài viết/banner trên production: cần tạo Blob store và lấy `BLOB_READ_WRITE_TOKEN`.
+### Local
 
-### 8.2. Biến môi trường cần có trên Vercel
+Có thể dùng URL ảnh trong `/uploads/...` hoặc URL ngoài.
 
-Tối thiểu:
+### Production trên Vercel
+
+Nếu muốn upload ảnh trực tiếp trong admin khi chạy production, cần:
+
+```env
+BLOB_READ_WRITE_TOKEN=...
+```
+
+Không có biến này thì upload ảnh production sẽ lỗi.
+
+## 13. Các thay đổi giao diện đã có
+
+Hiện tại website đã có các cải tiến sau:
+
+- Logo thương hiệu thật cho các brand chính
+- Bảng mã nhúng AccessTrade mở bằng popup
+- Banner quảng cáo/campaign tách riêng từng khu vực
+- Admin mobile gọn hơn
+- Card voucher mobile hiển thị gọn hơn
+- Mã voucher trên card chỉ xem trước, copy qua nút `Lấy mã`
+- Khi bấm vào voucher để vào trang chi tiết, trang sẽ mở ở đầu trang
+
+## 14. SEO và Google Search Console
+
+Hệ thống đã có:
+
+- Meta title, description, canonical
+- Open Graph và Twitter meta
+- `robots.txt`
+- `sitemap.xml`
+- `noindex` cho trang admin, login và search
+
+### Domain production hiện dùng
+
+```txt
+https://sansaleshopee.vercel.app/
+```
+
+### Xác minh Google Search Console
+
+Meta verify đã được chèn trong `index.html`.
+
+### Sitemap
+
+Sitemap production:
+
+```txt
+https://sansaleshopee.vercel.app/sitemap.xml
+```
+
+### Robots
+
+Robots production:
+
+```txt
+https://sansaleshopee.vercel.app/robots.txt
+```
+
+### Nếu Search Console báo “Couldn't fetch”
+
+Nguyên nhân thường là Google đã đọc sitemap ở thời điểm cũ khi route trên Vercel còn lỗi.
+
+Cách xử lý:
+
+1. Kiểm tra trực tiếp `robots.txt` và `sitemap.xml` có mở được không
+2. Chờ Google đọc lại
+3. Nếu cần:
+   - vào `Sitemaps`
+   - xóa entry cũ
+   - submit lại `sitemap.xml`
+
+## 15. Deploy lên Vercel
+
+Repo GitHub:
+
+```txt
+https://github.com/Mike-clv/Shopee
+```
+
+### Build command nên dùng
+
+```bash
+npx prisma generate && npx prisma migrate deploy && npm run build
+```
+
+### Biến môi trường tối thiểu trên Vercel
 
 ```env
 DATABASE_URL=postgresql://...
-AUTH_SECRET=mot_chuoi_bi_mat_rat_dai
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=change-me
+AUTH_SECRET=...
+ADMIN_EMAIL=...
+ADMIN_PASSWORD=...
 ```
 
 Nếu dùng AccessTrade:
 
 ```env
 ACCESSTRADE_API_BASE_URL=https://api.accesstrade.vn/v1
-ACCESSTRADE_API_KEY=
-ACCESSTRADE_PUBLISHER_ID=
+ACCESSTRADE_API_KEY=...
+ACCESSTRADE_PUBLISHER_ID=...
 ACCESSTRADE_AUTH_SCHEME=Token
 ACCESSTRADE_SYNC_ENABLED=true
+CRON_SECRET=...
 ```
 
-Nếu muốn upload ảnh trong admin trên production:
+Nếu upload ảnh:
 
 ```env
-BLOB_READ_WRITE_TOKEN=
+BLOB_READ_WRITE_TOKEN=...
 ```
 
-Khuyến nghị thêm:
-
-```env
-CRON_SECRET=mot_chuoi_ngau_nhien_dai_toi_thieu_16_ky_tu
-MAX_UPLOAD_IMAGE_SIZE=4194304
-```
-
-### 8.3. Deploy bằng Vercel CLI
-
-Theo tài liệu chính thức của Vercel cho Vite, có thể deploy ngay từ thư mục project bằng CLI:
+### Deploy bằng CLI
 
 ```powershell
-npm i -g vercel
-vercel login
-vercel
+npx vercel
+npx vercel --prod
 ```
 
-Lần đầu Vercel sẽ hỏi:
+### Deploy qua GitHub
 
-- link project hay tạo project mới
-- framework: Vite
-- build command: `npm run build`
-- output directory: `dist`
-
-Deploy production:
+Khi repo đã connect với Vercel, chỉ cần:
 
 ```powershell
-vercel --prod
-```
-
-### 8.3.1. Đẩy code lên GitHub trước khi import vào Vercel
-
-Repo GitHub hiện dùng:
-
-```txt
-https://github.com/Mike-clv/Shopee
-```
-
-Nếu máy local chưa có `.git`, chạy:
-
-```powershell
-cd D:\Shopee
-git init
 git add .
-git commit -m "Initial deploy"
-git branch -M main
-git remote add origin https://github.com/Mike-clv/Shopee.git
-git push -u origin main
+git commit -m "Noi dung thay doi"
+git push origin main
 ```
 
-Lưu ý:
+Vercel sẽ tự deploy lại từ branch `main`.
 
-- `.env` đã được ignore nên sẽ không bị đẩy lên GitHub.
-- file log local của Codex và thư mục `.codex-remote-attachments` cũng đã được ignore.
-- nếu lần đầu push mà GitHub/Git Credential Manager yêu cầu đăng nhập, chỉ cần đăng nhập tài khoản GitHub của anh rồi chạy lại:
+Nếu Vercel chưa tự nhận commit mới, có thể đẩy một commit rỗng để kích redeploy:
 
 ```powershell
-git push -u origin main
+git commit --allow-empty -m "Trigger Vercel redeploy"
+git push origin main
 ```
 
-Sau khi repo đã lên GitHub, vào Vercel Dashboard:
+## 16. Cron và hẹn giờ đăng bài trên Vercel
 
-1. `Add New`
-2. `Project`
-3. `Import Git Repository`
-4. chọn repo `Mike-clv/Shopee`
-
-Vercel sẽ tự nhận:
-
-- Framework: `Vite`
-- Build Command: `npm run build`
-- Output Directory: `dist`
-
-### 8.4. Kiểm tra sau khi deploy
-
-Nên test lần lượt:
-
-1. Trang chủ
-2. `/blog`
-3. `/admin`
-4. đăng nhập admin
-5. tạo bài viết mới
-6. upload ảnh bìa
-7. sync AccessTrade
-8. mở banner và link affiliate
-
-### 8.5. Hẹn giờ đăng trên Vercel
-
-Code đã có sẵn endpoint:
+Project đã có endpoint:
 
 ```txt
 /api/cron/publish
 ```
 
-Endpoint này dùng để publish các bài `scheduled`.
-
-Lưu ý rất quan trọng theo tài liệu Vercel:
-
-- cron trên Vercel Hobby bị giới hạn rất mạnh, không chạy được kiểu mỗi 5 phút
-- nếu anh đang dùng gói Hobby, nên dùng cách publish "khi có truy cập" như hiện tại, hoặc tự gắn cron ngoài
-- nếu anh dùng Pro, có thể thêm cron job trong `vercel.json` hoặc dashboard
-
-Ví dụ cấu hình cron cho gói Pro:
-
-```json
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "crons": [
-    {
-      "path": "/api/cron/publish",
-      "schedule": "*/5 * * * *"
-    }
-  ]
-}
-```
-
-Khi đã đặt `CRON_SECRET`, Vercel sẽ tự gửi header `Authorization: Bearer <CRON_SECRET>` tới endpoint cron.
-
-## 9. Kiểm Tra Trước Khi Bàn Giao
-
-```powershell
-npm run lint
-npm run typecheck
-npm run build
-```
-
-Kiểm tra không còn phụ thuộc Base44 runtime:
-
-```powershell
-rg -n "base44|Base44|BASE44|app\.base44\.com|VITE_BASE44|base44Client|@base44" -S -g '!node_modules' -g '!dist' .
-```
-
-Kết quả kỳ vọng: chỉ còn nhắc tới Base44 trong tài liệu hướng dẫn hoặc migration, không còn trong code runtime.
-
-## 10. Ghi Chú AccessTrade
-
-Website vẫn chạy bình thường bằng database local nếu chưa có key AccessTrade. Khi có key thật, cấu hình trong `.env`:
+Nếu bật cron trên production, cần có:
 
 ```env
-ACCESSTRADE_API_BASE_URL=https://api.accesstrade.vn/v1
-ACCESSTRADE_API_KEY=
-ACCESSTRADE_PUBLISHER_ID=
-ACCESSTRADE_AUTH_SCHEME=Token
-ACCESSTRADE_SYNC_ENABLED=true
+CRON_SECRET=...
 ```
 
-Sau đó chạy `npm run sync:accesstrade` hoặc dùng khu vực admin sync để đồng bộ chiến dịch và voucher theo logic trong `server/services/accesstrade`.
+Lưu ý:
 
-## 11. Lỗi Thường Gặp
+- gói Hobby của Vercel bị giới hạn cron
+- không nên đặt lịch quá dày kiểu mỗi 5 phút
 
-Nếu trang trắng hoặc dữ liệu không tải:
+## 17. Xử lý lỗi thường gặp
 
-```powershell
-Get-NetTCPConnection -LocalPort 3001,5173
+### 17.1. Điện thoại vào được port 3001 nhưng không vào được 5173
+
+Kiểm tra `vite.config.js` có:
+
+```js
+host: '0.0.0.0'
 ```
 
-Nếu anh đã sửa `.env` trên máy local mà website vẫn đang chạy nền do lần trước Codex đã bật sẵn, làm như sau để restart:
+Sau đó restart `npm run dev`.
 
-1. Xem PID tiến trình đang chiếm port:
+### 17.2. Sync AccessTrade không chạy trên Vercel
 
-```powershell
-Get-NetTCPConnection -LocalPort 3001,5173 -ErrorAction SilentlyContinue | Select-Object LocalPort,State,OwningProcess
-```
+Cần kiểm tra:
 
-2. Tắt tiến trình đang chạy nền:
+- đã có `DATABASE_URL`
+- đã redeploy sau khi thêm env
+- build command có `prisma migrate deploy`
+- vào `admin/sync` để bấm sync
 
-```powershell
-Stop-Process -Id PID_3001,PID_5173 -Force
-```
+### 17.3. Upload ảnh production lỗi
 
-Ví dụ:
+Kiểm tra:
 
-```powershell
-Stop-Process -Id 8924,2248 -Force
-```
+- `BLOB_READ_WRITE_TOKEN`
+- project đã kết nối Blob trên Vercel chưa
 
-3. Chạy lại website để nhận cấu hình `.env` mới:
+### 17.4. Mở trang chi tiết voucher nhưng bị giữ vị trí scroll cũ
 
-```powershell
-cd D:\Shopee
-npm run dev
-```
+Đã được sửa bằng:
 
-Ghi chú:
+- `src/components/ScrollToTop.jsx`
+- `src/page/VoucherDetail.jsx`
 
-- Nếu anh không thấy cửa sổ terminal nào nhưng vẫn vào được `http://localhost:5173`, nghĩa là dev server đang chạy nền.
-- Khi đổi các biến như `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`, `DATABASE_URL`, `ACCESSTRADE_*`, `BLOB_READ_WRITE_TOKEN`, anh nên restart lại dev server.
+Nếu production chưa nhận fix:
 
-Nếu database chưa có dữ liệu:
+- kiểm tra commit mới đã lên GitHub chưa
+- chờ Vercel deploy lại
+- nếu cần, đẩy một empty commit để kích deploy mới
 
-```powershell
-$env:SEED_FORCE_BASELINE='true'
-npm run db:seed
-Remove-Item Env:\SEED_FORCE_BASELINE
-```
+## 18. Tài liệu liên quan
 
-Nếu build lỗi do Prisma client cũ:
-
-```powershell
-npx prisma generate
-npm run build
-```
-
-Nếu upload ảnh trên Vercel bị lỗi:
-
-- kiểm tra đã tạo Blob store chưa
-- kiểm tra `BLOB_READ_WRITE_TOKEN` đã add vào Project Settings > Environment Variables chưa
-- hệ thống hiện sẽ báo lỗi rõ ràng nếu deploy trên Vercel mà chưa có token Blob
+- Hướng dẫn chính: `docs/HUONG_DAN_SU_DUNG.md`
+- Ghi chú cập nhật giao diện/logo/tốc độ: `docs/CAP_NHAT_LOGO_VA_TOC_DO.md`
+- Tài liệu tách khỏi Base44: `docs/BASE44_TO_OWNERSHIP_MIGRATION.md`

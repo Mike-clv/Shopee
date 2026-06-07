@@ -64,5 +64,6 @@ npx prisma generate && npx prisma migrate deploy && npm run build
 
 - Meta title, description, canonical, Open Graph va Twitter tags da duoc them theo tung trang
 - `robots.txt` va `sitemap.xml` da duoc bo sung trong server
+- Vercel can rewrite rieng `robots.txt` va `sitemap.xml` vao backend, neu khong 2 duong dan nay se bi tra ve `index.html`
 - Cac trang admin, login va tim kiem duoc de `noindex`
 - Sau khi deploy, anh nen submit `https://ten-domain-cua-anh/sitemap.xml` len Google Search Console

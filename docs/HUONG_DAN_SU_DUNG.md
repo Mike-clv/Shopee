@@ -454,8 +454,92 @@ Nếu production chưa nhận fix:
 - chờ Vercel deploy lại
 - nếu cần, đẩy một empty commit để kích deploy mới
 
-## 18. Tài liệu liên quan
+## 18. Logo, tốc độ và theo dõi production
 
-- Hướng dẫn chính: `docs/HUONG_DAN_SU_DUNG.md`
-- Ghi chú cập nhật giao diện/logo/tốc độ: `docs/CAP_NHAT_LOGO_VA_TOC_DO.md`
+### 18.1. Những gì đã được tối ưu
+
+- Trang chủ dùng API gộp `/api/homepage` để giảm số request khi mở web
+- Public site không bị chặn bởi kiểm tra đăng nhập admin
+- Các thương hiệu chính có mapping logo thật trong `public/brand-logos/` và `src/lib/branding.js`
+- Đã bật `Vercel Analytics` và `Vercel Speed Insights`
+- Đã bổ sung `robots.txt`, `sitemap.xml`, canonical và meta SEO
+- Đã sửa điều hướng để trang chi tiết voucher mở ở đầu trang
+
+### 18.2. Các logo đã có sẵn
+
+- `Shopee`
+- `Lazada`
+- `Tiki`
+- `TikTok Shop`
+- `Samsung`
+- `Nike`
+- `Unilever`
+- `L'Oréal`
+- `Grab`
+- `The Coffee House`
+- `concung`
+
+### 18.3. Cách thay logo sau này
+
+1. Thay file logo trong `public/brand-logos/`
+2. Nếu cần, cập nhật mapping trong `src/lib/branding.js`
+3. Chạy:
+
+```powershell
+npm run build
+```
+
+4. Đẩy code lên GitHub hoặc redeploy Vercel
+
+### 18.4. Build command nên dùng trên Vercel
+
+```powershell
+npx prisma generate && npx prisma migrate deploy && npm run build
+```
+
+### 18.5. Kiểm tra sau khi deploy
+
+1. Mở trang chủ
+2. Mở trang admin
+3. Hard refresh trình duyệt
+4. Kiểm tra lại logo thương hiệu, voucher và dữ liệu mới
+5. Kiểm tra trang chi tiết voucher có mở đúng đầu trang hay không
+
+### 18.6. Vercel Analytics và Speed Insights
+
+- `Analytics` dùng để đếm lượt truy cập, page views và visitor
+- `Speed Insights` dùng để đo tốc độ tải trang và Core Web Vitals
+- Sau khi deploy, cần mở web và điều hướng qua vài trang để Vercel bắt đầu có dữ liệu
+- Hai package này đã được gắn ở `src/App.jsx`
+
+### 18.7. Google Search Console
+
+- Đã xác minh bằng HTML tag
+- Sitemap cần submit là:
+
+```txt
+https://sansaleshopee.vercel.app/sitemap.xml
+```
+
+- Nếu Search Console báo `Couldn't fetch`, cần kiểm tra lại:
+  - `https://sansaleshopee.vercel.app/robots.txt`
+  - `https://sansaleshopee.vercel.app/sitemap.xml`
+  - sau đó chờ Google đọc lại hoặc submit lại sitemap
+
+### 18.8. Ghi chú production
+
+Nếu production trên Vercel chưa nhận fix mới nhất dù GitHub đã có commit:
+
+1. Kiểm tra deployment mới nhất trên Vercel
+2. Hard refresh trình duyệt
+3. Nếu cần, tạo empty commit để kích redeploy:
+
+```powershell
+git commit --allow-empty -m "Trigger Vercel redeploy"
+git push origin main
+```
+
+## 19. Tài liệu liên quan
+
+- Hướng dẫn tổng hợp chính: `docs/HUONG_DAN_SU_DUNG.md`
 - Tài liệu tách khỏi Base44: `docs/BASE44_TO_OWNERSHIP_MIGRATION.md`

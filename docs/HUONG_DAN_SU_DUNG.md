@@ -422,6 +422,38 @@ Nếu trang trắng hoặc dữ liệu không tải:
 Get-NetTCPConnection -LocalPort 3001,5173
 ```
 
+Nếu anh đã sửa `.env` trên máy local mà website vẫn đang chạy nền do lần trước Codex đã bật sẵn, làm như sau để restart:
+
+1. Xem PID tiến trình đang chiếm port:
+
+```powershell
+Get-NetTCPConnection -LocalPort 3001,5173 -ErrorAction SilentlyContinue | Select-Object LocalPort,State,OwningProcess
+```
+
+2. Tắt tiến trình đang chạy nền:
+
+```powershell
+Stop-Process -Id PID_3001,PID_5173 -Force
+```
+
+Ví dụ:
+
+```powershell
+Stop-Process -Id 8924,2248 -Force
+```
+
+3. Chạy lại website để nhận cấu hình `.env` mới:
+
+```powershell
+cd D:\Shopee
+npm run dev
+```
+
+Ghi chú:
+
+- Nếu anh không thấy cửa sổ terminal nào nhưng vẫn vào được `http://localhost:5173`, nghĩa là dev server đang chạy nền.
+- Khi đổi các biến như `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`, `DATABASE_URL`, `ACCESSTRADE_*`, `BLOB_READ_WRITE_TOKEN`, anh nên restart lại dev server.
+
 Nếu database chưa có dữ liệu:
 
 ```powershell

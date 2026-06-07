@@ -18,7 +18,7 @@ export default function InterestSection({ posts: providedPosts }) {
     <section className="py-10">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="section-heading-pro text-xl sm:text-2xl font-bold font-heading">CÃ³ Thá»ƒ Báº¡n Quan TÃ¢m</h2>
+          <h2 className="section-heading-pro text-xl sm:text-2xl font-bold font-heading">Có Thể Bạn Quan Tâm</h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {visiblePosts.map((post) => {
@@ -31,7 +31,7 @@ export default function InterestSection({ posts: providedPosts }) {
                 )}
                 <div className="p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[11px] font-semibold uppercase text-primary">Gá»£i Ã½ mua sáº¯m</span>
+                    <span className="text-[11px] font-semibold uppercase text-primary">Gợi ý mua sắm</span>
                     {post.target_url && <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />}
                   </div>
                   <h3 className="font-bold font-heading mt-1 line-clamp-2 group-hover:text-primary transition-colors">{post.title}</h3>

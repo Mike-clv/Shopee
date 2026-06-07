@@ -39,7 +39,7 @@ export default function PromoBannerGrid({ banners = [], className = '' }) {
             className="promo-banner-card promo-banner-glow overflow-hidden rounded-lg border border-border bg-card shadow-sm"
             style={{ animationDelay: `${index * 0.45}s` }}
           >
-            <span className="promo-banner-badge">Æ¯u Ä‘Ã£i ná»•i báº­t</span>
+            <span className="promo-banner-badge">Ưu đãi nổi bật</span>
             {banner.target_url ? (
               <a href={banner.target_url} target="_blank" rel="noopener noreferrer" aria-label={banner.title}>
                 {image}

@@ -42,15 +42,15 @@ export default function AdBannerSlot({ placement = 'homepage_top', banners: prov
                   <Sparkles className="w-4 h-4 text-primary" />
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">AccessTrade Campaign</p>
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold font-heading">Æ¯u Ä‘Ã£i ná»•i báº­t Ä‘ang cáº­p nháº­t</h2>
+                <h2 className="text-lg sm:text-xl font-bold font-heading">Ưu đãi nổi bật đang cập nhật</h2>
                 <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-                  Chiáº¿n dá»‹ch thÆ°Æ¡ng máº¡i Ä‘iá»‡n tá»­, voucher toÃ n sÃ n vÃ  deal ná»•i báº­t tá»« AccessTrade.
+                  Chiến dịch thương mại điện tử, voucher toàn sàn và deal nổi bật từ AccessTrade.
                 </p>
               </div>
             </div>
             <Button asChild className="rounded-full shrink-0 gap-2">
               <Link to="/tim-kiem?embed=1">
-                Xem báº£ng mÃ£
+                Xem bảng mã
                 <ExternalLink className="w-4 h-4" />
               </Link>
             </Button>

@@ -19,8 +19,8 @@ export default function BlogTipsSection({ posts: providedPosts }) {
     <section className="py-10 bg-secondary/40">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="section-heading-pro text-xl sm:text-2xl font-bold font-heading">Máº¹o SÄƒn MÃ£</h2>
-          <Link to="/blog" className="text-sm font-medium text-primary hover:underline">Xem táº¥t cáº£ â†’</Link>
+          <h2 className="section-heading-pro text-xl sm:text-2xl font-bold font-heading">Mẹo Săn Mã</h2>
+          <Link to="/blog" className="text-sm font-medium text-primary hover:underline">Xem tất cả →</Link>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {visiblePosts.map((post) => (

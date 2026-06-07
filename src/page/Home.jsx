@@ -32,18 +32,18 @@ export default function Home() {
       <AdBannerSlot banners={topBanners} />
 
       <VoucherSection
-        title="ðŸ”¥ MÃ£ Giáº£m GiÃ¡ Hot HÃ´m Nay"
+        title="🔥 Mã Giảm Giá Hot Hôm Nay"
         vouchers={hotVouchers}
         loading={isLoading}
         linkTo="/ma-giam-gia?filter=hot"
-        emptyMessage="ChÆ°a cÃ³ mÃ£ hot nÃ o hÃ´m nay"
+        emptyMessage="Chưa có mã hot nào hôm nay"
         emptyFallback={<HotVoucherBannerSlot banners={hotEmptyBanners} />}
       />
 
       <CategoryGrid categories={categories} />
 
       <VoucherSection
-        title="ðŸ†• MÃ£ Má»›i Nháº¥t"
+        title="🆕 Mã Mới Nhất"
         vouchers={newVouchers}
         loading={isLoading}
         linkTo="/ma-giam-gia?filter=newest"

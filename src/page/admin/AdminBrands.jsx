@@ -111,7 +111,7 @@ export default function AdminBrands() {
                     />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Náº¿u Logo URL bá»‹ lá»—i, web sáº½ tá»± dÃ¹ng logo ná»™i bá»™ hoáº·c fallback á»•n Ä‘á»‹nh.
+                    Nếu Logo URL bị lỗi, web sẽ tự dùng logo nội bộ hoặc fallback ổn định.
                   </p>
                 </div>
               </div>

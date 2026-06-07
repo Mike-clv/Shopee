@@ -50,3 +50,12 @@ npx prisma generate && npx prisma migrate deploy && npm run build
 1. Mo trang chu va trang admin
 2. Hard refresh trinh duyet
 3. Kiem tra lai logo thuong hieu, voucher va du lieu moi
+
+## Vercel Analytics va Speed Insights
+
+- Package da duoc gan vao app root trong `src/App.jsx`
+- `Analytics` dung de dem luot truy cap, page views va visitor
+- `Speed Insights` dung de do toc do tai trang va Core Web Vitals
+- Sau khi deploy, can mo web va dieu huong qua vai trang de Vercel bat dau co du lieu
+- Neu dashboard chua co so lieu ngay, thu cho 30-60 giay va refresh lai
+- Mot so ad blocker co the lam giam du lieu Analytics/Speed Insights

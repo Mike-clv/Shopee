@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { localClient } from '@/api/localClient';
 import { Link } from 'react-router-dom';
@@ -34,6 +34,23 @@ export default function VoucherDetail() {
   });
 
   const voucher = vouchers[0];
+
+  useLayoutEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    resetScroll();
+    const frame = window.requestAnimationFrame(resetScroll);
+    const timer = window.setTimeout(resetScroll, 120);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [slug, voucher?.id]);
 
   const { data: relatedVouchers = [] } = useQuery({
     queryKey: ['related-vouchers', voucher?.brand_id, voucher?.category_id],

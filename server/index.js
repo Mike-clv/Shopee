@@ -27,7 +27,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const app = express();
 const port = Number.parseInt(process.env.PORT, 10) || 3001;
-const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://shopee-six-zeta.vercel.app').replace(/\/+$/, '');
+const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansaleshopee.vercel.app').replace(/\/+$/, '');
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {

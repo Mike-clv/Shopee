@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import VoucherGrid from '../components/voucher/VoucherGrid';
 import CopyModal from '../components/voucher/CopyModal';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const typeLabels = {
   coupon: 'Mã giảm giá', deal: 'Deal', cashback: 'Hoàn tiền',
@@ -113,11 +114,13 @@ export default function VoucherDetail() {
       <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 mb-8">
         <div className="flex items-start gap-4 mb-6">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-secondary flex items-center justify-center overflow-hidden border border-border shrink-0">
-            {voucher.brand_logo ? (
-              <img src={voucher.brand_logo} alt={voucher.brand_name} className="w-full h-full object-contain p-2" />
-            ) : (
-              <span className="text-2xl font-bold text-muted-foreground">{(voucher.brand_name || voucher.title)[0]}</span>
-            )}
+            <BrandLogo
+              brand={voucher}
+              alt={voucher.brand_name || voucher.title}
+              className="w-full h-full object-contain p-2"
+              fallbackClassName="text-2xl font-bold text-muted-foreground"
+              loading="eager"
+            />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import VoucherGrid from '../components/voucher/VoucherGrid';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const platformNames = {
   shopee: 'Shopee', lazada: 'Lazada', tiki: 'Tiki',
@@ -63,11 +64,14 @@ export default function BrandDetail() {
       <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 mb-8">
         <div className="flex items-center gap-4 sm:gap-6">
           <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-secondary flex items-center justify-center overflow-hidden border border-border shrink-0">
-            {brand.logo ? (
-              <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain p-2" />
-            ) : (
-              <span className="text-3xl font-bold text-muted-foreground">{brand.name[0]}</span>
-            )}
+            <BrandLogo
+              brand={brand}
+              alt={brand.name}
+              className="w-full h-full object-contain p-2"
+              fallbackClassName="text-3xl font-bold text-muted-foreground"
+              loading="eager"
+              fetchPriority="high"
+            />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold font-heading mb-1">{brand.name}</h1>

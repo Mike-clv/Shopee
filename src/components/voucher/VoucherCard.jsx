@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
 import CopyModal from './CopyModal';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const typeConfig = {
   coupon: { label: 'Mã giảm giá', icon: Percent, color: 'bg-orange-100 text-orange-700' },
@@ -32,22 +33,6 @@ const platformNames = {
   tiktok_shop: 'TikTok Shop',
   sendo: 'Sendo',
   other: 'Khác',
-};
-
-const platformLogos = {
-  shopee: 'https://cdn.simpleicons.org/shopee/EE4D2D',
-  lazada: 'https://logo.clearbit.com/lazada.vn',
-  tiki: 'https://logo.clearbit.com/tiki.vn',
-  tiktok_shop: 'https://cdn.simpleicons.org/tiktok/111111',
-  sendo: 'https://logo.clearbit.com/sendo.vn',
-};
-
-const platformDomains = {
-  shopee: 'shopee.vn',
-  lazada: 'lazada.vn',
-  tiki: 'tiki.vn',
-  tiktok_shop: 'tiktok.com',
-  sendo: 'sendo.vn',
 };
 
 function getDaysLeft(endDate) {
@@ -110,8 +95,6 @@ export default function VoucherCard({ voucher, variant = 'default' }) {
   };
 
   const isCompact = variant === 'compact';
-  const displayLogo = voucher.brand_logo || platformLogos[voucher.platform];
-
   return (
     <>
       <div className={`group bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden ${isExpired ? 'opacity-60' : ''}`}>
@@ -120,24 +103,12 @@ export default function VoucherCard({ voucher, variant = 'default' }) {
             {/* Brand logo */}
             <div className="shrink-0">
               <div className={`${isCompact ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'} rounded-xl bg-secondary flex items-center justify-center overflow-hidden border border-border`}>
-                {displayLogo ? (
-                  <img
-                    src={displayLogo}
-                    alt={voucher.brand_name || voucher.title}
-                    className="w-full h-full object-contain p-1.5"
-                    onError={(event) => {
-                      const domain = platformDomains[voucher.platform];
-                      if (!domain) return;
-                      const fallback = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-                      if (event.currentTarget.src === fallback) return;
-                      event.currentTarget.src = fallback;
-                    }}
-                  />
-                ) : (
-                  <span className="text-lg font-bold text-muted-foreground">
-                    {(voucher.brand_name || voucher.title || '?')[0]}
-                  </span>
-                )}
+                <BrandLogo
+                  brand={voucher}
+                  alt={voucher.brand_name || voucher.title}
+                  className="w-full h-full object-contain p-1.5"
+                  fallbackClassName="text-lg font-bold text-muted-foreground"
+                />
               </div>
             </div>
 

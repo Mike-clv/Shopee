@@ -1,0 +1,7 @@
+<svg width="240" height="120" viewBox="0 0 240 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="240" height="120" rx="24" fill="#3B2417"/>
+  <path d="M58 42H110V80C110 88.8366 102.837 96 94 96H74C65.1634 96 58 88.8366 58 80V42Z" fill="#F5E6D3"/>
+  <path d="M110 48H120C127.732 48 134 54.268 134 62C134 69.732 127.732 76 120 76H110" stroke="#F5E6D3" stroke-width="8" stroke-linecap="round"/>
+  <text x="144" y="62" fill="#F5E6D3" font-size="16" font-family="Arial, Helvetica, sans-serif" font-weight="700">The Coffee</text>
+  <text x="144" y="82" fill="#F5E6D3" font-size="16" font-family="Arial, Helvetica, sans-serif" font-weight="700">House</text>
+</svg>

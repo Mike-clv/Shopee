@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import VoucherGrid from '../components/voucher/VoucherGrid';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const platformConfig = {
   'shopee': { name: 'Shopee', key: 'shopee', color: 'from-orange-500 to-orange-600', desc: 'Tổng hợp mã giảm giá Shopee, voucher Shopee, deal hot Shopee mỗi ngày' },
@@ -62,7 +63,12 @@ export default function PlatformPage() {
               {brands.slice(0, 6).map(b => (
                 <Link key={b.id} to={`/thuong-hieu/${b.slug}`} className="bg-card rounded-xl border border-border hover:border-primary/30 p-3 text-center group transition-all">
                   <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center overflow-hidden mx-auto mb-2">
-                    {b.logo ? <img src={b.logo} alt={b.name} className="w-full h-full object-contain p-1" /> : <span className="font-bold text-muted-foreground">{b.name[0]}</span>}
+                    <BrandLogo
+                      brand={b}
+                      alt={b.name}
+                      className="w-full h-full object-contain p-1"
+                      fallbackClassName="font-bold text-muted-foreground"
+                    />
                   </div>
                   <p className="text-xs font-medium group-hover:text-primary transition-colors line-clamp-1">{b.name}</p>
                 </Link>

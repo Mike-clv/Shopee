@@ -4,27 +4,30 @@ import { Link } from 'react-router-dom';
 import { CalendarDays } from 'lucide-react';
 import { localClient } from '@/api/localClient';
 
-export default function BlogTipsSection() {
+export default function BlogTipsSection({ posts: providedPosts }) {
   const { data: posts = [] } = useQuery({
     queryKey: ['home-blog-tips'],
     queryFn: () => localClient.entities.BlogPost.filter({ status: 'published' }, '-published_at', 100),
+    enabled: !providedPosts,
   });
 
-  if (!posts.length) return null;
+  const visiblePosts = providedPosts || posts;
+
+  if (!visiblePosts.length) return null;
 
   return (
     <section className="py-10 bg-secondary/40">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="section-heading-pro text-xl sm:text-2xl font-bold font-heading">Mẹo Săn Mã</h2>
-          <Link to="/blog" className="text-sm font-medium text-primary hover:underline">Xem tất cả →</Link>
+          <h2 className="section-heading-pro text-xl sm:text-2xl font-bold font-heading">Máº¹o SÄƒn MÃ£</h2>
+          <Link to="/blog" className="text-sm font-medium text-primary hover:underline">Xem táº¥t cáº£ â†’</Link>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {posts.map(post => (
+          {visiblePosts.map((post) => (
             <Link key={post.id} to={`/blog/${post.slug || post.id}`} className="content-card group bg-card border border-border rounded-lg overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all">
               {post.cover_image && (
                 <div className="aspect-[16/9] overflow-hidden bg-secondary">
-                  <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
                 </div>
               )}
               <div className="p-4">

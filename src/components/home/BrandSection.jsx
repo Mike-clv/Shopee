@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const platformRoutes = {
   shopee: '/san/shopee',
@@ -8,18 +9,6 @@ const platformRoutes = {
   tiki: '/san/tiki',
   tiktok_shop: '/san/tiktok-shop',
 };
-
-const fallbackDomains = {
-  shopee: 'shopee.vn',
-  lazada: 'lazada.vn',
-  tiki: 'tiki.vn',
-  tiktok_shop: 'tiktok.com',
-};
-
-function getFallbackLogo(brand) {
-  const domain = fallbackDomains[brand.platform] || brand.website_url?.replace(/^https?:\/\//, '').split('/')[0];
-  return domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : '';
-}
 
 export default function BrandSection({ brands }) {
   if (!brands?.length) return null;
@@ -46,20 +35,12 @@ export default function BrandSection({ brands }) {
                 className="platform-card-lift flex flex-col items-center gap-3 p-4 sm:p-5 rounded-lg bg-card border border-border hover:border-primary/30 hover:shadow-md transition-all group"
               >
                 <div className="brand-logo-float w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-secondary flex items-center justify-center overflow-hidden border border-border">
-                  {brand.logo ? (
-                    <img
-                      src={brand.logo}
-                      alt={brand.name}
-                      className="w-full h-full object-contain p-1.5"
-                      onError={(event) => {
-                        const fallback = getFallbackLogo(brand);
-                        if (!fallback || event.currentTarget.src === fallback) return;
-                        event.currentTarget.src = fallback;
-                      }}
-                    />
-                  ) : (
-                    <span className="text-xl font-bold text-muted-foreground">{brand.name[0]}</span>
-                  )}
+                  <BrandLogo
+                    brand={brand}
+                    alt={brand.name}
+                    className="w-full h-full object-contain p-1.5"
+                    fallbackClassName="text-xl font-bold text-muted-foreground"
+                  />
                 </div>
                 <div className="text-center">
                   <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">{brand.name}</h3>

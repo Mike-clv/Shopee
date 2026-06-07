@@ -12,54 +12,48 @@ import InterestSection from '../components/home/InterestSection';
 import FAQSection from '../components/home/FAQSection';
 
 export default function Home() {
-  const { data: hotVouchers = [], isLoading: loadingHot } = useQuery({
-    queryKey: ['vouchers', 'hot'],
-    queryFn: () => localClient.entities.Voucher.filter({ is_hot: true, status: 'active' }, '-sort_order', 6),
+  const { data: homepage, isLoading } = useQuery({
+    queryKey: ['homepage'],
+    queryFn: () => localClient.homepage.get(),
   });
 
-  const { data: newVouchers = [], isLoading: loadingNew } = useQuery({
-    queryKey: ['vouchers', 'new'],
-    queryFn: () => localClient.entities.Voucher.filter({ status: 'active' }, '-created_date', 6),
-  });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => localClient.entities.Category.filter({ is_active: true }, 'sort_order', 12),
-  });
-
-  const { data: brands = [] } = useQuery({
-    queryKey: ['brands', 'featured'],
-    queryFn: () => localClient.entities.Brand.filter({ is_featured: true, is_active: true }, 'sort_order', 12),
-  });
+  const hotVouchers = homepage?.hotVouchers || [];
+  const newVouchers = homepage?.newVouchers || [];
+  const categories = homepage?.categories || [];
+  const brands = homepage?.brands || [];
+  const topBanners = homepage?.topBanners || [];
+  const hotEmptyBanners = homepage?.hotEmptyBanners || [];
+  const blogPosts = homepage?.blogPosts || [];
+  const interestPosts = homepage?.interestPosts || [];
 
   return (
     <div>
       <HeroSection />
-      <AdBannerSlot />
+      <AdBannerSlot banners={topBanners} />
 
       <VoucherSection
-        title="🔥 Mã Giảm Giá Hot Hôm Nay"
+        title="ðŸ”¥ MÃ£ Giáº£m GiÃ¡ Hot HÃ´m Nay"
         vouchers={hotVouchers}
-        loading={loadingHot}
+        loading={isLoading}
         linkTo="/ma-giam-gia?filter=hot"
-        emptyMessage="Chưa có mã hot nào hôm nay"
-        emptyFallback={<HotVoucherBannerSlot />}
+        emptyMessage="ChÆ°a cÃ³ mÃ£ hot nÃ o hÃ´m nay"
+        emptyFallback={<HotVoucherBannerSlot banners={hotEmptyBanners} />}
       />
 
       <CategoryGrid categories={categories} />
 
       <VoucherSection
-        title="🆕 Mã Mới Nhất"
+        title="ðŸ†• MÃ£ Má»›i Nháº¥t"
         vouchers={newVouchers}
-        loading={loadingNew}
+        loading={isLoading}
         linkTo="/ma-giam-gia?filter=newest"
       />
 
       <BrandSection brands={brands} />
 
-      <BlogTipsSection />
+      <BlogTipsSection posts={blogPosts} />
 
-      <InterestSection />
+      <InterestSection posts={interestPosts} />
 
       <FAQSection />
     </div>

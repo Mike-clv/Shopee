@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const emptyBrand = {
   name: '', slug: '', logo: '', banner: '', platform: 'shopee',
@@ -67,7 +68,12 @@ export default function AdminBrands() {
           <div key={b.id} className="bg-card rounded-xl border border-border p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center overflow-hidden border">
-                {b.logo ? <img src={b.logo} alt={b.name} className="w-full h-full object-contain p-1" /> : <span className="font-bold text-muted-foreground">{b.name[0]}</span>}
+                <BrandLogo
+                  brand={b}
+                  alt={b.name}
+                  className="w-full h-full object-contain p-1"
+                  fallbackClassName="font-bold text-muted-foreground"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm truncate">{b.name}</h3>
@@ -92,6 +98,23 @@ export default function AdminBrands() {
               <div><Label>Tên *</Label><Input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} /></div>
               <div><Label>Slug</Label><Input value={editing.slug} onChange={e => setEditing({ ...editing, slug: e.target.value })} /></div>
               <div><Label>Logo URL</Label><Input value={editing.logo} onChange={e => setEditing({ ...editing, logo: e.target.value })} /></div>
+              <div className="rounded-lg border border-border bg-secondary/40 p-3">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">Preview logo</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border bg-card">
+                    <BrandLogo
+                      brand={editing}
+                      alt={editing.name || 'Brand preview'}
+                      className="h-full w-full object-contain p-1.5"
+                      fallbackClassName="text-xl font-bold text-muted-foreground"
+                      loading="eager"
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Náº¿u Logo URL bá»‹ lá»—i, web sáº½ tá»± dÃ¹ng logo ná»™i bá»™ hoáº·c fallback á»•n Ä‘á»‹nh.
+                  </p>
+                </div>
+              </div>
               <div>
                 <Label>Sàn</Label>
                 <Select value={editing.platform} onValueChange={v => setEditing({ ...editing, platform: v })}>

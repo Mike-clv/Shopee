@@ -64,6 +64,9 @@ function entityClient(name) {
 }
 
 export const localClient = {
+  homepage: {
+    get: () => request('/api/homepage'),
+  },
   entities: {
     Voucher: entityClient('Voucher'),
     Brand: entityClient('Brand'),

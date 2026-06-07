@@ -4,6 +4,7 @@ import { localClient } from '@/api/localClient';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const platformNames = {
   shopee: 'Shopee', lazada: 'Lazada', tiki: 'Tiki',
@@ -45,11 +46,12 @@ export default function BrandList() {
               className="bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all p-5 text-center group"
             >
               <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center overflow-hidden border border-border mx-auto mb-3">
-                {brand.logo ? (
-                  <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain p-2" />
-                ) : (
-                  <span className="text-xl font-bold text-muted-foreground">{brand.name[0]}</span>
-                )}
+                <BrandLogo
+                  brand={brand}
+                  alt={brand.name}
+                  className="w-full h-full object-contain p-2"
+                  fallbackClassName="text-xl font-bold text-muted-foreground"
+                />
               </div>
               <h3 className="font-semibold text-sm group-hover:text-primary transition-colors mb-1">{brand.name}</h3>
               {brand.platform && (

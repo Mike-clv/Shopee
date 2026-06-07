@@ -16,7 +16,7 @@ export const defaultShopeeBanners = [
 ];
 
 export default function PromoBannerGrid({ banners = [], className = '' }) {
-  const imageBanners = banners.filter(banner => banner?.image_url);
+  const imageBanners = banners.filter((banner) => banner?.image_url);
   const visibleBanners = imageBanners.length ? imageBanners : defaultShopeeBanners;
 
   return (
@@ -27,6 +27,9 @@ export default function PromoBannerGrid({ banners = [], className = '' }) {
             src={banner.image_url}
             alt={banner.title}
             className="w-full h-auto object-contain block promo-banner-image"
+            loading={index === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={index === 0 ? 'high' : 'auto'}
           />
         );
 
@@ -36,7 +39,7 @@ export default function PromoBannerGrid({ banners = [], className = '' }) {
             className="promo-banner-card promo-banner-glow overflow-hidden rounded-lg border border-border bg-card shadow-sm"
             style={{ animationDelay: `${index * 0.45}s` }}
           >
-            <span className="promo-banner-badge">Ưu đãi nổi bật</span>
+            <span className="promo-banner-badge">Æ¯u Ä‘Ã£i ná»•i báº­t</span>
             {banner.target_url ? (
               <a href={banner.target_url} target="_blank" rel="noopener noreferrer" aria-label={banner.title}>
                 {image}

@@ -6,6 +6,7 @@ import { ChevronRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import VoucherGrid from '../components/voucher/VoucherGrid';
 import BrandLogo from '@/components/brand/BrandLogo';
+import Seo from '@/components/Seo';
 
 const platformConfig = {
   shopee: {
@@ -94,6 +95,11 @@ export default function PlatformPage() {
 
   return (
     <div>
+      <Seo
+        title={`Mã giảm giá ${config.name}`}
+        description={config.desc}
+        path={`/san/${slug}`}
+      />
       <div className={`bg-gradient-to-r ${config.color} text-white`}>
         <div className="max-w-7xl mx-auto px-4 py-10 sm:py-14">
           <nav className="mb-4 flex flex-wrap items-center gap-2 text-sm text-white/70">

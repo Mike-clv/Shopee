@@ -59,3 +59,10 @@ npx prisma generate && npx prisma migrate deploy && npm run build
 - Sau khi deploy, can mo web va dieu huong qua vai trang de Vercel bat dau co du lieu
 - Neu dashboard chua co so lieu ngay, thu cho 30-60 giay va refresh lai
 - Mot so ad blocker co the lam giam du lieu Analytics/Speed Insights
+
+## SEO va Google
+
+- Meta title, description, canonical, Open Graph va Twitter tags da duoc them theo tung trang
+- `robots.txt` va `sitemap.xml` da duoc bo sung trong server
+- Cac trang admin, login va tim kiem duoc de `noindex`
+- Sau khi deploy, anh nen submit `https://ten-domain-cua-anh/sitemap.xml` len Google Search Console

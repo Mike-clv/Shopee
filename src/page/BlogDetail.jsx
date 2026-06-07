@@ -6,6 +6,7 @@ import { ChevronRight, Home, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
+import Seo from '@/components/Seo';
 
 export default function BlogDetail() {
   const slug = window.location.pathname.split('/blog/')[1];
@@ -45,6 +46,25 @@ export default function BlogDetail() {
 
   return (
     <article className="max-w-3xl mx-auto px-4 py-8">
+      <Seo
+        title={post.title}
+        description={post.excerpt || post.content}
+        path={`/blog/${post.slug || post.id}`}
+        image={post.cover_image}
+        type="article"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: post.title,
+          description: post.excerpt || post.content,
+          image: post.cover_image ? [post.cover_image] : undefined,
+          datePublished: post.published_at || undefined,
+          author: {
+            '@type': 'Organization',
+            name: 'Mã Giảm Giá Pro',
+          },
+        }}
+      />
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 flex-wrap">
         <Link to="/" className="hover:text-primary flex items-center gap-1"><Home className="w-3.5 h-3.5" /> Trang chủ</Link>
         <ChevronRight className="w-3.5 h-3.5" />

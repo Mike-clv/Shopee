@@ -27,6 +27,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const app = express();
 const port = Number.parseInt(process.env.PORT, 10) || 3001;
+const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://shopee-six-zeta.vercel.app').replace(/\/+$/, '');
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -55,6 +56,83 @@ app.use((req, res, next) => {
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'ma-giam-gia-api' });
+});
+
+function xmlEscape(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function formatSitemapUrl(pathname, lastmod, priority = '0.7') {
+  const cleanPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
+  return [
+    '<url>',
+    `<loc>${xmlEscape(`${siteUrl}${cleanPath}`)}</loc>`,
+    lastmod ? `<lastmod>${new Date(lastmod).toISOString()}</lastmod>` : '',
+    `<priority>${priority}</priority>`,
+    '</url>',
+  ].filter(Boolean).join('');
+}
+
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain');
+  res.send([
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /admin',
+    'Disallow: /login',
+    'Disallow: /register',
+    'Disallow: /forgot-password',
+    'Disallow: /reset-password',
+    'Disallow: /tim-kiem',
+    `Sitemap: ${siteUrl}/sitemap.xml`,
+  ].join('\n'));
+});
+
+app.get('/sitemap.xml', async (_req, res, next) => {
+  try {
+    const [blogPosts, brands, categories, vouchers] = await Promise.all([
+      listResource('blog-posts', { status: 'published' }, '-published_at', 500),
+      listResource('brands', { is_active: true }, 'sort_order', 500),
+      listResource('categories', { is_active: true }, 'sort_order', 500),
+      listResource('vouchers', { status: 'active' }, '-updated_date', 1000),
+    ]);
+
+    const staticUrls = [
+      formatSitemapUrl('/', new Date(), '1.0'),
+      formatSitemapUrl('/ma-giam-gia', new Date(), '0.9'),
+      formatSitemapUrl('/thuong-hieu', new Date(), '0.8'),
+      formatSitemapUrl('/danh-muc', new Date(), '0.8'),
+      formatSitemapUrl('/blog', new Date(), '0.8'),
+      formatSitemapUrl('/gioi-thieu', new Date(), '0.5'),
+      formatSitemapUrl('/chinh-sach', new Date(), '0.4'),
+      formatSitemapUrl('/san/shopee', new Date(), '0.8'),
+      formatSitemapUrl('/san/lazada', new Date(), '0.8'),
+      formatSitemapUrl('/san/tiki', new Date(), '0.8'),
+      formatSitemapUrl('/san/tiktok-shop', new Date(), '0.8'),
+    ];
+
+    const dynamicUrls = [
+      ...blogPosts.map((post) => formatSitemapUrl(`/blog/${post.slug || post.id}`, post.updated_date || post.published_at, '0.7')),
+      ...brands.map((brand) => formatSitemapUrl(`/thuong-hieu/${brand.slug || brand.id}`, brand.updated_date, '0.7')),
+      ...categories.map((category) => formatSitemapUrl(`/danh-muc/${category.slug || category.id}`, category.updated_date, '0.7')),
+      ...vouchers.map((voucher) => formatSitemapUrl(`/ma-giam-gia/${voucher.slug || voucher.id}`, voucher.updated_date || voucher.created_date, '0.6')),
+    ];
+
+    res.type('application/xml');
+    res.send(
+      `<?xml version="1.0" encoding="UTF-8"?>` +
+        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
+        [...staticUrls, ...dynamicUrls].join('') +
+        `</urlset>`,
+    );
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/api/homepage', async (_req, res, next) => {

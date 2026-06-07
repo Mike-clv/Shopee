@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { localClient } from '@/api/localClient';
+import Seo from '@/components/Seo';
 import HeroSection from '../components/home/HeroSection';
 import AdBannerSlot from '../components/home/AdBannerSlot';
 import VoucherSection from '../components/home/VoucherSection';
@@ -10,6 +11,7 @@ import HotVoucherBannerSlot from '../components/home/HotVoucherBannerSlot';
 import BlogTipsSection from '../components/home/BlogTipsSection';
 import InterestSection from '../components/home/InterestSection';
 import FAQSection from '../components/home/FAQSection';
+import { DEFAULT_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 
 export default function Home() {
   const { data: homepage, isLoading } = useQuery({
@@ -28,6 +30,22 @@ export default function Home() {
 
   return (
     <div>
+      <Seo
+        title="Mã giảm giá, voucher, deal hot mỗi ngày"
+        description={DEFAULT_DESCRIPTION}
+        path="/"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: SITE_NAME,
+          url: SITE_URL,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${SITE_URL}/tim-kiem?q={search_term_string}`,
+            'query-input': 'required name=search_term_string',
+          },
+        }}
+      />
       <HeroSection />
       <AdBannerSlot banners={topBanners} />
 

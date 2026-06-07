@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import VoucherGrid from '../components/voucher/VoucherGrid';
 import CopyModal from '../components/voucher/CopyModal';
 import BrandLogo from '@/components/brand/BrandLogo';
+import Seo from '@/components/Seo';
 
 const typeLabels = {
   coupon: 'Mã giảm giá', deal: 'Deal', cashback: 'Hoàn tiền',
@@ -97,6 +98,13 @@ export default function VoucherDetail() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <Seo
+        title={voucher.title}
+        description={voucher.description || voucher.terms || `Mã giảm giá ${voucher.brand_name || ''} mới nhất, cập nhật điều kiện sử dụng và ưu đãi nổi bật.`}
+        path={`/ma-giam-gia/${voucher.slug || voucher.id}`}
+        image={voucher.image || voucher.brand_logo}
+        type="article"
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 flex-wrap">
         <Link to="/" className="hover:text-primary flex items-center gap-1"><Home className="w-3.5 h-3.5" /> Trang chủ</Link>

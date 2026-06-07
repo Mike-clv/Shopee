@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Filter, X } from 'lucide-react';
+import Seo from '@/components/Seo';
 
 const platformOptions = [
   { value: 'all', label: 'Tất cả sàn' },
@@ -83,6 +84,11 @@ export default function VoucherList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <Seo
+        title="Mã giảm giá"
+        description="Tổng hợp mã giảm giá, voucher, coupon và deal hot mới nhất từ nhiều sàn thương mại điện tử."
+        path="/ma-giam-gia"
+      />
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold font-heading mb-2">Mã Giảm Giá</h1>
         <p className="text-muted-foreground">Tổng hợp mã giảm giá, voucher, deal hot nhất hôm nay</p>

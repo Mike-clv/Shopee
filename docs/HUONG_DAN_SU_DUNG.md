@@ -296,6 +296,49 @@ Deploy production:
 vercel --prod
 ```
 
+### 8.3.1. Đẩy code lên GitHub trước khi import vào Vercel
+
+Repo GitHub hiện dùng:
+
+```txt
+https://github.com/Mike-clv/Shopee
+```
+
+Nếu máy local chưa có `.git`, chạy:
+
+```powershell
+cd D:\Shopee
+git init
+git add .
+git commit -m "Initial deploy"
+git branch -M main
+git remote add origin https://github.com/Mike-clv/Shopee.git
+git push -u origin main
+```
+
+Lưu ý:
+
+- `.env` đã được ignore nên sẽ không bị đẩy lên GitHub.
+- file log local của Codex và thư mục `.codex-remote-attachments` cũng đã được ignore.
+- nếu lần đầu push mà GitHub/Git Credential Manager yêu cầu đăng nhập, chỉ cần đăng nhập tài khoản GitHub của anh rồi chạy lại:
+
+```powershell
+git push -u origin main
+```
+
+Sau khi repo đã lên GitHub, vào Vercel Dashboard:
+
+1. `Add New`
+2. `Project`
+3. `Import Git Repository`
+4. chọn repo `Mike-clv/Shopee`
+
+Vercel sẽ tự nhận:
+
+- Framework: `Vite`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+
 ### 8.4. Kiểm tra sau khi deploy
 
 Nên test lần lượt:

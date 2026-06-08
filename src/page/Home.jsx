@@ -77,9 +77,9 @@ export default function Home() {
 
       <BrandSection brands={brands} />
 
-      <BlogTipsSection posts={blogPosts} />
-
       <InterestSection posts={interestPosts} />
+
+      <BlogTipsSection posts={blogPosts} />
 
       <FAQSection />
     </div>

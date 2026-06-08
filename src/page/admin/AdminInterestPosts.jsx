@@ -186,7 +186,7 @@ export default function AdminInterestPosts() {
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={10} />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Anh chỉ cần sửa lại URL đích theo link muốn mở.
+                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Anh có thể đổi thành chữ khác như `XEM NGAY`, `NHẬN ƯU ĐÃI`... miễn là để link nằm riêng một dòng.
                 </p>
               </div>
 

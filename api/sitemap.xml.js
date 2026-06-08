@@ -23,8 +23,9 @@ function formatSitemapUrl(pathname, lastmod, priority = '0.7') {
 }
 
 export default async function handler(_req, res) {
-  const [blogPosts, brands, categories, vouchers] = await Promise.all([
+  const [blogPosts, interestPosts, brands, categories, vouchers] = await Promise.all([
     listResource('blog-posts', { status: 'published' }, '-published_at', 500),
+    listResource('interest-posts', { status: 'published' }, '-published_at', 500),
     listResource('brands', { is_active: true }, 'sort_order', 500),
     listResource('categories', { is_active: true }, 'sort_order', 500),
     listResource('vouchers', { status: 'active' }, '-updated_date', 1000),
@@ -46,6 +47,7 @@ export default async function handler(_req, res) {
 
   const dynamicUrls = [
     ...blogPosts.map((post) => formatSitemapUrl(`/blog/${post.slug || post.id}`, post.updated_date || post.published_at, '0.7')),
+    ...interestPosts.map((post) => formatSitemapUrl(`/quan-tam/${post.slug || post.id}`, post.updated_date || post.published_at, '0.7')),
     ...brands.map((brand) => formatSitemapUrl(`/thuong-hieu/${brand.slug || brand.id}`, brand.updated_date, '0.7')),
     ...categories.map((category) => formatSitemapUrl(`/danh-muc/${category.slug || category.id}`, category.updated_date, '0.7')),
     ...vouchers.map((voucher) => formatSitemapUrl(`/ma-giam-gia/${voucher.slug || voucher.id}`, voucher.updated_date || voucher.created_date, '0.6')),

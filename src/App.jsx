@@ -32,6 +32,7 @@ import SearchPage from '@/pages/SearchPage';
 import PlatformPage from '@/pages/PlatformPage';
 import BlogList from '@/pages/BlogList';
 import BlogDetail from '@/pages/BlogDetail';
+import InterestDetail from '@/pages/InterestDetail';
 import AboutPage from '@/pages/AboutPage';
 import PolicyPage from '@/pages/PolicyPage';
 
@@ -95,6 +96,7 @@ const AuthenticatedApp = () => {
           <Route path="/san/:platform" element={<PlatformPage />} />
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:slug" element={<BlogDetail />} />
+          <Route path="/quan-tam/:slug" element={<InterestDetail />} />
           <Route path="/gioi-thieu" element={<AboutPage />} />
           <Route path="/chinh-sach" element={<PolicyPage />} />
           <Route path="/dieu-khoan" element={<PolicyPage />} />

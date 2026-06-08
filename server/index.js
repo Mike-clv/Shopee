@@ -19,7 +19,7 @@ import {
   setSessionCookie,
   validateAdminCredentials,
 } from './services/auth-service.js';
-import { syncAccessTrade } from './services/accesstrade/sync.js';
+import { cleanupStaleAccessTradeSyncLogs, syncAccessTrade } from './services/accesstrade/sync.js';
 import { publishScheduledContent } from './services/publish-service.js';
 import { saveImageUpload } from './services/upload-service.js';
 import {
@@ -298,6 +298,12 @@ app.get('/api/:resource', async (req, res, next) => {
     const { resource } = req.params;
     if (resource === 'blog-posts' || resource === 'interest-posts') {
       await publishScheduledContent();
+    }
+    if (resource === 'sync-logs') {
+      const user = getSessionUser(req);
+      if (user?.role === 'admin') {
+        await cleanupStaleAccessTradeSyncLogs();
+      }
     }
 
     const { sort, limit, ...filters } = req.query;

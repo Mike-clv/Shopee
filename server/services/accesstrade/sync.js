@@ -5,6 +5,7 @@ import { accessTradeFetch, isAccessTradeConfigured } from './client.js';
 const DEFAULT_PAGE_SIZE = Math.min(Number.parseInt(process.env.ACCESSTRADE_SYNC_PAGE_SIZE || '50', 10), 50);
 const MAX_PAGES = Number.parseInt(process.env.ACCESSTRADE_SYNC_MAX_PAGES || '0', 10);
 const MAX_ITEMS = Number.parseInt(process.env.ACCESSTRADE_SYNC_MAX_ITEMS || '0', 10);
+const STALE_SYNC_WINDOW_MS = Number.parseInt(process.env.ACCESSTRADE_SYNC_STALE_MS || `${15 * 60 * 1000}`, 10);
 
 const platformNames = {
   shopee: 'Shopee',
@@ -591,10 +592,47 @@ async function syncVouchers(prisma) {
   };
 }
 
+export async function cleanupStaleAccessTradeSyncLogs(prisma = getPrisma()) {
+  const staleBefore = new Date(Date.now() - STALE_SYNC_WINDOW_MS);
+  return prisma.syncLog.updateMany({
+    where: {
+      status: 'running',
+      started_at: { lt: staleBefore },
+      finished_at: null,
+    },
+    data: {
+      status: 'failed',
+      message: 'Phiên sync trước đã bị gián đoạn hoặc quá thời gian chờ.',
+      error_detail: 'Tự động đóng log running quá lâu để tránh hiển thị treo.',
+      finished_at: new Date(),
+    },
+  });
+}
+
 export async function syncAccessTrade(syncType = 'campaigns') {
   const prisma = getPrisma();
   const startedAt = new Date();
   const normalizedType = String(syncType || 'campaigns').toLowerCase();
+
+  await cleanupStaleAccessTradeSyncLogs(prisma);
+
+  const existingRunningLog = await prisma.syncLog.findFirst({
+    where: {
+      sync_type: normalizedType,
+      status: 'running',
+      finished_at: null,
+    },
+    orderBy: { created_date: 'desc' },
+  });
+
+  if (existingRunningLog) {
+    return {
+      success: false,
+      message: 'Đang có một phiên sync cùng loại đang chạy. Anh chờ xong rồi bấm lại giúp em nhé.',
+      items_synced: 0,
+      log: existingRunningLog,
+    };
+  }
 
   const log = await prisma.syncLog.create({
     data: {

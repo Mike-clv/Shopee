@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
 import MarkdownEditor from '@/components/admin/MarkdownEditor';
@@ -149,16 +150,24 @@ export default function AdminInterestPosts() {
             Tạo bài/card gắn ảnh sản phẩm và link affiliate AccessTrade. Kéo thả để ưu tiên bài anh muốn hiển thị trước.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing({ ...emptyPost, sort_order: visiblePosts.length + 1 });
-            setShowForm(true);
-          }}
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Thêm bài
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button asChild variant="outline" className="gap-2">
+            <Link to="/quan-tam">
+              Xem trang Quan tâm
+              <ExternalLink className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button
+            onClick={() => {
+              setEditing({ ...emptyPost, sort_order: visiblePosts.length + 1 });
+              setShowForm(true);
+            }}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Thêm bài
+          </Button>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>

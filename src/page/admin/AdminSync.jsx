@@ -56,15 +56,15 @@ export default function AdminSync() {
   const disabled = syncMutation.isPending || hasRunningSync;
 
   return (
-    <div className="p-3 sm:p-6">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 sm:p-6">
+      <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-heading">Đồng Bộ AccessTrade</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Khi có phiên sync đang chạy, trang này sẽ tự làm mới để anh theo dõi dễ hơn.
+          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Đồng Bộ AccessTrade</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
+            Theo dõi tiến trình sync rõ hơn trên điện thoại, ít rối mắt hơn và dễ bấm thao tác hơn.
           </p>
         </div>
-        <Button asChild variant="outline" className="gap-2">
+        <Button asChild variant="outline" className="h-12 gap-2 rounded-2xl">
           <Link to="/quan-tam">
             Xem trang Quan tâm
             <ExternalLink className="h-4 w-4" />
@@ -72,17 +72,17 @@ export default function AdminSync() {
         </Button>
       </div>
 
-      <Card className="mb-6">
+      <Card className="mb-6 rounded-3xl">
         <CardHeader>
           <CardTitle className="text-base">Cấu hình AccessTrade API</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="mb-4 rounded-lg bg-secondary p-4">
-            <p className="text-sm text-muted-foreground">
+        <CardContent className="space-y-4">
+          <div className="rounded-2xl bg-secondary p-4">
+            <p className="text-sm leading-6 text-muted-foreground">
               AccessTrade chạy qua API nội bộ. Nếu chưa có API key, thao tác sync sẽ ghi log và trả thông báo cần cấu hình trong `.env`.
             </p>
           </div>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <div className="space-y-2 text-sm text-muted-foreground">
             <p>• API Base: <code>https://api.accesstrade.vn/v1</code></p>
             <p>• Auth header: <code>Authorization: Token &lt;access_key&gt;</code></p>
             <p>• Campaigns: <code>GET /campaigns?approval=successful</code></p>
@@ -92,20 +92,20 @@ export default function AdminSync() {
         </CardContent>
       </Card>
 
-      {hasRunningSync && (
-        <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+      {hasRunningSync ? (
+        <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
           Đang có một phiên sync chạy hoặc vừa mới khởi động. Hệ thống sẽ tự cập nhật lịch sử sync cho anh.
         </div>
-      )}
+      ) : null}
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {['all', 'campaigns', 'vouchers', 'transactions'].map((type) => (
           <Button
             key={type}
             variant="outline"
             onClick={() => syncMutation.mutate(type)}
             disabled={disabled}
-            className="h-auto flex-col gap-2 py-4"
+            className="h-auto min-h-24 flex-col gap-2 rounded-3xl py-4 text-sm shadow-sm"
           >
             <RefreshCw className={`h-5 w-5 ${(syncMutation.isPending || hasRunningSync) ? 'animate-spin' : ''}`} />
             <span className="capitalize">{hasRunningSync ? 'Đang sync...' : `Sync ${type}`}</span>
@@ -113,7 +113,7 @@ export default function AdminSync() {
         ))}
       </div>
 
-      <h2 className="mb-4 text-lg font-bold font-heading">Lịch Sử Sync</h2>
+      <h2 className="mb-4 font-heading text-lg font-bold">Lịch Sử Sync</h2>
       <div className="space-y-3">
         {syncLogs.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">Chưa có lịch sử sync</p>
@@ -122,20 +122,30 @@ export default function AdminSync() {
             const cfg = statusConfig[log.status] || statusConfig.running;
             const Icon = cfg.icon;
             return (
-              <div key={log.id} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-                <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${log.status === 'running' ? 'animate-spin text-blue-500' : log.status === 'success' ? 'text-green-500' : 'text-red-500'}`} />
-                <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className="text-sm font-medium capitalize">{log.sync_type}</span>
-                    <Badge className={`text-[10px] ${cfg.color}`}>{cfg.label}</Badge>
+              <div key={log.id} className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <Icon
+                    className={`mt-0.5 h-5 w-5 shrink-0 ${
+                      log.status === 'running'
+                        ? 'animate-spin text-blue-500'
+                        : log.status === 'success'
+                          ? 'text-green-500'
+                          : 'text-red-500'
+                    }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-medium capitalize">{log.sync_type}</span>
+                      <Badge className={`rounded-full text-[10px] ${cfg.color}`}>{cfg.label}</Badge>
+                    </div>
+                    <p className="text-sm leading-6 text-muted-foreground">{log.message}</p>
+                    {log.started_at ? (
+                      <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" />
+                        {new Date(log.started_at).toLocaleString('vi-VN')}
+                      </p>
+                    ) : null}
                   </div>
-                  <p className="text-xs text-muted-foreground">{log.message}</p>
-                  {log.started_at && (
-                    <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {new Date(log.started_at).toLocaleString('vi-VN')}
-                    </p>
-                  )}
                 </div>
               </div>
             );

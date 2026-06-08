@@ -18,7 +18,7 @@ const navLinks = [
   { name: 'Mã Hot', path: '/ma-giam-gia?filter=hot', hot: true },
   { name: 'Thương Hiệu', path: '/thuong-hieu' },
   { name: 'Danh Mục', path: '/danh-muc' },
-  { name: 'Quan Tâm', path: '/#co-the-ban-quan-tam' },
+  { name: 'Quan Tâm', path: '/quan-tam' },
   { name: 'Blog', path: '/blog' },
 ];
 
@@ -45,20 +45,6 @@ export default function Header() {
   const openCouponBoard = () => {
     navigate('/tim-kiem?embed=1');
     setMobileMenuOpen(false);
-  };
-
-  const handleNavClick = (path) => {
-    setMobileMenuOpen(false);
-
-    if (path === '/#co-the-ban-quan-tam') {
-      navigate('/');
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          const section = document.getElementById('co-the-ban-quan-tam');
-          section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 120);
-      });
-    }
   };
 
   return (
@@ -114,25 +100,14 @@ export default function Header() {
 
           <nav className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => (
-              link.path.startsWith('/#') ? (
-                <button
-                  key={link.path}
-                  type="button"
-                  onClick={() => handleNavClick(link.path)}
-                  className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-primary/5 hover:text-primary"
-                >
-                  {link.name}
-                </button>
-              ) : (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-primary/5 hover:text-primary"
-                >
-                  {link.name}
-                  {link.hot && <span className="flame-pop ml-1" aria-hidden="true">🔥</span>}
-                </Link>
-              )
+              <Link
+                key={link.path}
+                to={link.path}
+                className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-primary/5 hover:text-primary"
+              >
+                {link.name}
+                {link.hot && <span className="flame-pop ml-1" aria-hidden="true">🔥</span>}
+              </Link>
             ))}
           </nav>
 
@@ -160,26 +135,15 @@ export default function Header() {
                   </div>
                   <nav className="space-y-1">
                     {navLinks.map((link) => (
-                      link.path.startsWith('/#') ? (
-                        <button
-                          key={link.path}
-                          type="button"
-                          onClick={() => handleNavClick(link.path)}
-                          className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-secondary"
-                        >
-                          {link.name}
-                        </button>
-                      ) : (
-                        <Link
-                          key={link.path}
-                          to={link.path}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="block rounded-lg px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary"
-                        >
-                          {link.name}
-                          {link.hot && <span className="flame-pop ml-1" aria-hidden="true">🔥</span>}
-                        </Link>
-                      )
+                      <Link
+                        key={link.path}
+                        to={link.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block rounded-lg px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary"
+                      >
+                        {link.name}
+                        {link.hot && <span className="flame-pop ml-1" aria-hidden="true">🔥</span>}
+                      </Link>
                     ))}
                     {isAdmin && (
                       <Link

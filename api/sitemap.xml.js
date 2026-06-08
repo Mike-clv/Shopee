@@ -37,6 +37,7 @@ export default async function handler(_req, res) {
     formatSitemapUrl('/thuong-hieu', new Date(), '0.8'),
     formatSitemapUrl('/danh-muc', new Date(), '0.8'),
     formatSitemapUrl('/blog', new Date(), '0.8'),
+    formatSitemapUrl('/quan-tam', new Date(), '0.8'),
     formatSitemapUrl('/gioi-thieu', new Date(), '0.5'),
     formatSitemapUrl('/chinh-sach', new Date(), '0.4'),
     formatSitemapUrl('/san/shopee', new Date(), '0.8'),

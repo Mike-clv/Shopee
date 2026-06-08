@@ -46,7 +46,13 @@ export default function PromoBannerGrid({ banners = [], className = '' }) {
           >
             <span className="promo-banner-badge">Ưu đãi nổi bật</span>
             {banner.target_url ? (
-              <a href={banner.target_url} target="_blank" rel="noopener noreferrer" aria-label={banner.title}>
+              <a
+                href={banner.target_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={banner.title}
+                className="block w-full"
+              >
                 {image}
               </a>
             ) : image}

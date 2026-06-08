@@ -182,16 +182,15 @@ export default function AdminBlog() {
                           snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
                         }`}
                       >
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-10 w-10 shrink-0 cursor-grab touch-none select-none rounded-full text-muted-foreground active:cursor-grabbing"
-                          aria-label="Kéo để sắp xếp"
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          className="flex h-10 w-10 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground active:cursor-grabbing"
+                          aria-label="Keo de sap xep"
                           {...dragProvided.dragHandleProps}
                         >
                           <GripVertical className="h-4 w-4" />
-                        </Button>
+                        </div>
 
                         {post.cover_image && (
                           <img

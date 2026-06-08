@@ -101,11 +101,30 @@ export default function InterestDetail() {
       </div>
 
       {post.thumbnail_image && (
-        <img
-          src={post.thumbnail_image}
-          alt={post.title}
-          className="mb-8 max-h-[420px] w-full rounded-2xl object-cover"
-        />
+        post.target_url ? (
+          <a
+            href={post.target_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative mb-8 block overflow-hidden rounded-2xl"
+          >
+            <img
+              src={post.thumbnail_image}
+              alt={post.title}
+              className="max-h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/60 via-black/20 to-transparent px-4 py-3 text-white">
+              <span className="text-sm font-medium">Bấm vào ảnh để xem ưu đãi</span>
+              <ExternalLink className="h-4 w-4" />
+            </div>
+          </a>
+        ) : (
+          <img
+            src={post.thumbnail_image}
+            alt={post.title}
+            className="mb-8 max-h-[420px] w-full rounded-2xl object-cover"
+          />
+        )
       )}
 
       {post.excerpt && (

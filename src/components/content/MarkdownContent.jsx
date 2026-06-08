@@ -20,37 +20,13 @@ function normalizeText(children) {
     .trim();
 }
 
-function normalizeWords(text) {
-  return String(text || '')
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-}
-
-function isLikelyCtaLabel(text) {
-  const label = normalizeText(text);
-  if (!label) return false;
-
-  const words = normalizeWords(label);
-  if (!words.length || words.length > 5 || label.length > 42) return false;
-
-  const lower = label.toLowerCase();
-  if (/(mua|xem|nhận|lay|lấy|ưu đãi|uu dai|deal|shop|săn|san|đăng ký|dang ky|tham gia|xem ngay|mua ngay)/i.test(lower)) {
-    return true;
-  }
-
-  if (/^[\p{Lu}\p{N}\s!?.:+\-_%&🛒🔥🎁👉]+$/u.test(label)) {
-    return true;
-  }
-
-  return words.length <= 3;
-}
-
 function isStandaloneCtaLink(child) {
   if (!React.isValidElement(child)) return false;
   if (!child.props?.href) return false;
-  return isLikelyCtaLabel(child.props.children);
+  if (hasImageChild(child.props.children)) return false;
+
+  const label = normalizeText(child.props.children);
+  return Boolean(label) && label.length <= 140;
 }
 
 function hasImageChild(children) {
@@ -60,6 +36,17 @@ function hasImageChild(children) {
     if (child.props?.children) return hasImageChild(child.props.children);
     return false;
   });
+}
+
+function shouldRenderAsCta({ href, children }) {
+  if (!href || hasImageChild(children)) return false;
+  if (!/^https?:\/\//i.test(href)) return false;
+
+  const label = normalizeText(children);
+  if (!label || label.length > 140) return false;
+  if (/^https?:\/\//i.test(label)) return false;
+
+  return true;
 }
 
 function renderLink({ children, href, className = '', cta = false, ...props }) {
@@ -153,7 +140,7 @@ export default function MarkdownContent({ content = '', className = '' }) {
             return renderLink({
               children,
               href,
-              cta: isLikelyCtaLabel(children),
+              cta: shouldRenderAsCta({ href, children }),
               ...props,
             });
           },

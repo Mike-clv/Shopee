@@ -25,36 +25,31 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="footer-glow relative overflow-hidden bg-card border-t border-border mt-16">
+    <footer className="footer-glow relative mt-16 overflow-hidden border-t border-border bg-card">
       <div className="footer-finish-line" aria-hidden="true" />
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-          {/* Brand */}
+      <div className="mx-auto max-w-7xl px-4 py-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="brand-mark w-9 h-9 bg-primary rounded-xl flex items-center justify-center">
-                <Tag className="w-5 h-5 text-primary-foreground" />
+            <Link to="/" className="mb-4 flex items-center gap-2">
+              <div className="brand-mark flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
+                <Tag className="h-5 w-5 text-primary-foreground" />
               </div>
               <div>
                 <h3 className="brand-title text-lg font-bold font-heading">Mã Giảm Giá Pro</h3>
               </div>
             </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-sm">
+            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
               Tổng hợp mã giảm giá, voucher, coupon, deal hot nhất từ Shopee, Lazada, Tiki, TikTok Shop và hàng trăm thương hiệu uy tín.
-            </p>
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              ⚠️ Website có thể nhận hoa hồng khi bạn mua hàng qua các liên kết affiliate. Giá và voucher có thể thay đổi, vui lòng kiểm tra trên trang bán hàng trước khi mua.
             </p>
           </div>
 
-          {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-semibold font-heading text-sm mb-4">{title}</h4>
+              <h4 className="mb-4 text-sm font-semibold font-heading">{title}</h4>
               <ul className="space-y-2.5">
-                {links.map(link => (
+                {links.map((link) => (
                   <li key={link.path}>
-                    <Link to={link.path} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    <Link to={link.path} className="text-sm text-muted-foreground transition-colors hover:text-primary">
                       {link.name}
                     </Link>
                   </li>
@@ -64,15 +59,15 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Mã Giảm Giá Pro. Tất cả quyền được bảo lưu.
           </p>
           <div className="flex items-center gap-4">
-            <Link to="/chinh-sach" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/chinh-sach" className="text-xs text-muted-foreground transition-colors hover:text-primary">
               Chính Sách Bảo Mật
             </Link>
-            <Link to="/dieu-khoan" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/dieu-khoan" className="text-xs text-muted-foreground transition-colors hover:text-primary">
               Điều Khoản
             </Link>
           </div>

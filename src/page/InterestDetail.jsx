@@ -144,10 +144,10 @@ export default function InterestDetail() {
             href={post.target_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground no-underline shadow transition-opacity hover:opacity-90"
+            className="article-cta-link not-prose mt-4"
           >
-            <span>Xem ưu đãi ngay</span>
-            <ExternalLink className="h-4 w-4" />
+            <span className="article-cta-label">Xem ưu đãi ngay</span>
+            <ExternalLink className="article-cta-icon h-4 w-4" />
           </a>
         </div>
       )}

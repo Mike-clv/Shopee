@@ -3,8 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const CTA_LINK_CLASSNAME =
-  'not-prose my-3 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground no-underline shadow transition-opacity hover:opacity-90';
+const CTA_LINK_CLASSNAME = 'article-cta-link not-prose';
 
 function normalizeText(children) {
   return React.Children.toArray(children)
@@ -17,20 +16,41 @@ function normalizeText(children) {
       return '';
     })
     .join('')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
-function isCtaLabel(text) {
-  const normalized = String(text || '').trim().toUpperCase();
-  return normalized === 'MUA NGAY';
+function normalizeWords(text) {
+  return String(text || '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function isLikelyCtaLabel(text) {
+  const label = normalizeText(text);
+  if (!label) return false;
+
+  const words = normalizeWords(label);
+  if (!words.length || words.length > 5 || label.length > 42) return false;
+
+  const lower = label.toLowerCase();
+  if (/(mua|xem|nhận|lay|lấy|ưu đãi|uu dai|deal|shop|săn|san|đăng ký|dang ky|tham gia|xem ngay|mua ngay)/i.test(lower)) {
+    return true;
+  }
+
+  if (/^[\p{Lu}\p{N}\s!?.:+\-_%&🛒🔥🎁👉]+$/u.test(label)) {
+    return true;
+  }
+
+  return words.length <= 3;
 }
 
 function isStandaloneCtaLink(child) {
   if (!React.isValidElement(child)) return false;
   if (!child.props?.href) return false;
-
-  const label = normalizeText(child.props.children);
-  return Boolean(label) && label.length <= 40;
+  return isLikelyCtaLabel(child.props.children);
 }
 
 function hasImageChild(children) {
@@ -72,8 +92,8 @@ function renderLink({ children, href, className = '', cta = false, ...props }) {
         className={cn(CTA_LINK_CLASSNAME, className)}
         {...props}
       >
-        <span>{children}</span>
-        <ArrowRight className="h-4 w-4" />
+        <span className="article-cta-label">{children}</span>
+        <ArrowRight className="article-cta-icon h-4 w-4" />
       </a>
     );
   }
@@ -108,7 +128,7 @@ export default function MarkdownContent({ content = '', className = '' }) {
             if (items.length === 1 && isStandaloneCtaLink(items[0])) {
               const child = items[0];
 
-              if (String(child.props.className || '').includes('bg-primary')) {
+              if (String(child.props.className || '').includes('article-cta-link')) {
                 return <div className="not-prose">{child}</div>;
               }
 
@@ -118,8 +138,8 @@ export default function MarkdownContent({ content = '', className = '' }) {
                     className: cn(CTA_LINK_CLASSNAME, child.props.className),
                     children: (
                       <>
-                        <span>{child.props.children}</span>
-                        <ArrowRight className="h-4 w-4" />
+                        <span className="article-cta-label">{child.props.children}</span>
+                        <ArrowRight className="article-cta-icon h-4 w-4" />
                       </>
                     ),
                   })}
@@ -130,8 +150,12 @@ export default function MarkdownContent({ content = '', className = '' }) {
             return <p>{children}</p>;
           },
           a: ({ children, href, ...props }) => {
-            const label = normalizeText(children);
-            return renderLink({ children, href, cta: isCtaLabel(label), ...props });
+            return renderLink({
+              children,
+              href,
+              cta: isLikelyCtaLabel(children),
+              ...props,
+            });
           },
           img: ({ src, alt }) => (
             <img

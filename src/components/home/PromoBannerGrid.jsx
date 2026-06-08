@@ -23,21 +23,19 @@ export default function PromoBannerGrid({ banners = [], className = '' }) {
   return (
     <div
       className={`promo-banner-stage grid gap-4 ${
-        isSingleBanner ? 'mx-auto w-full md:max-w-5xl xl:max-w-[1080px]' : 'md:grid-cols-2'
+        isSingleBanner ? 'mx-auto w-full md:max-w-[1100px] xl:max-w-[1180px]' : 'md:grid-cols-2'
       } ${className}`}
     >
       {visibleBanners.map((banner, index) => {
         const image = (
-          <div className={isSingleBanner ? 'flex items-center justify-center md:h-[290px] lg:h-[320px] xl:h-[340px]' : ''}>
-            <img
-              src={banner.image_url}
-              alt={banner.title}
-              className={`block w-full object-contain promo-banner-image ${isSingleBanner ? 'h-auto max-h-full' : 'h-auto'}`}
-              loading={index === 0 ? 'eager' : 'lazy'}
-              decoding="async"
-              fetchPriority={index === 0 ? 'high' : 'auto'}
-            />
-          </div>
+          <img
+            src={banner.image_url}
+            alt={banner.title}
+            className={`block w-full promo-banner-image ${isSingleBanner ? 'h-auto' : 'h-auto object-contain'}`}
+            loading={index === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={index === 0 ? 'high' : 'auto'}
+          />
         );
 
         return (

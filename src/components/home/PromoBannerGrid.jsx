@@ -18,19 +18,26 @@ export const defaultShopeeBanners = [
 export default function PromoBannerGrid({ banners = [], className = '' }) {
   const imageBanners = banners.filter((banner) => banner?.image_url);
   const visibleBanners = imageBanners.length ? imageBanners : defaultShopeeBanners;
+  const isSingleBanner = visibleBanners.length === 1;
 
   return (
-    <div className={`promo-banner-stage grid gap-4 ${visibleBanners.length > 1 ? 'md:grid-cols-2' : ''} ${className}`}>
+    <div
+      className={`promo-banner-stage grid gap-4 ${
+        isSingleBanner ? 'mx-auto w-full md:max-w-5xl xl:max-w-[1080px]' : 'md:grid-cols-2'
+      } ${className}`}
+    >
       {visibleBanners.map((banner, index) => {
         const image = (
-          <img
-            src={banner.image_url}
-            alt={banner.title}
-            className="w-full h-auto object-contain block promo-banner-image"
-            loading={index === 0 ? 'eager' : 'lazy'}
-            decoding="async"
-            fetchPriority={index === 0 ? 'high' : 'auto'}
-          />
+          <div className={isSingleBanner ? 'flex items-center justify-center md:h-[290px] lg:h-[320px] xl:h-[340px]' : ''}>
+            <img
+              src={banner.image_url}
+              alt={banner.title}
+              className={`block w-full object-contain promo-banner-image ${isSingleBanner ? 'h-auto max-h-full' : 'h-auto'}`}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+              fetchPriority={index === 0 ? 'high' : 'auto'}
+            />
+          </div>
         );
 
         return (

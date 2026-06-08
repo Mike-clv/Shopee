@@ -206,6 +206,9 @@ export default function AdminBlog() {
               <div>
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={12} />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Anh chỉ cần thay URL phía sau bằng link sản phẩm hoặc affiliate của anh.
+                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

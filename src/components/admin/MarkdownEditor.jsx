@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Bold, Heading2, Italic, Link2, List, Quote, Eye, Pencil, ImagePlus } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { Bold, Heading2, Italic, Link2, List, Quote, Eye, Pencil, ImagePlus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import ImageUploadButton from './ImageUploadButton';
+import MarkdownContent from '@/components/content/MarkdownContent';
 
 const tools = [
   { icon: Heading2, label: 'Tiêu đề', before: '## ', after: '' },
@@ -38,6 +38,12 @@ export default function MarkdownEditor({ value = '', onChange, rows = 10 }) {
     onChange(next);
   };
 
+  const insertBuyNowCta = () => {
+    const snippet = '[MUA NGAY](https://)';
+    const next = `${value || ''}${value ? '\n\n' : ''}${snippet}`;
+    onChange(next);
+  };
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex items-center justify-between gap-2 border-b border-border bg-secondary/60 px-2 py-2">
@@ -67,6 +73,17 @@ export default function MarkdownEditor({ value = '', onChange, rows = 10 }) {
             <ImagePlus className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">URL ảnh</span>
           </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2"
+            onClick={insertBuyNowCta}
+          >
+            <ShoppingCart className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">MUA NGAY</span>
+          </Button>
         </div>
 
         <Button type="button" variant="outline" size="sm" className="h-8 gap-1" onClick={() => setPreview(!preview)}>
@@ -78,9 +95,7 @@ export default function MarkdownEditor({ value = '', onChange, rows = 10 }) {
       {preview ? (
         <div className={cn('min-h-[220px] bg-background p-4', rows > 8 && 'min-h-[320px]')}>
           {value.trim() ? (
-            <div className="prose prose-sm max-w-none sm:prose">
-              <ReactMarkdown>{value}</ReactMarkdown>
-            </div>
+            <MarkdownContent content={value} />
           ) : (
             <p className="text-sm text-muted-foreground">Nội dung xem trước sẽ hiển thị ở đây.</p>
           )}

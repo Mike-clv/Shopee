@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom';
 import { ChevronRight, Home, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import ReactMarkdown from 'react-markdown';
 import Seo from '@/components/Seo';
 import { BASE_KEYWORDS, BLOG_KEYWORDS, mergeKeywords } from '@/lib/site';
+import MarkdownContent from '@/components/content/MarkdownContent';
 
 export default function BlogDetail() {
   const slug = window.location.pathname.split('/blog/')[1];
@@ -92,9 +92,7 @@ export default function BlogDetail() {
         <img src={post.cover_image} alt={post.title} className="w-full rounded-2xl mb-8 max-h-96 object-cover" />
       )}
 
-      <div className="prose prose-sm sm:prose max-w-none">
-        <ReactMarkdown>{post.content || ''}</ReactMarkdown>
-      </div>
+      <MarkdownContent content={post.content || ''} />
     </article>
   );
 }

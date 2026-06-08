@@ -185,6 +185,9 @@ export default function AdminInterestPosts() {
               <div>
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={10} />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Anh chỉ cần sửa lại URL đích theo link muốn mở.
+                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

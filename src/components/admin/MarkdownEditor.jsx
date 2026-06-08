@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bold, Heading2, Italic, Link2, List, Quote, Eye, Pencil, ImagePlus, ShoppingCart } from 'lucide-react';
+import { Bold, Heading2, Italic, Link2, List, Quote, Eye, Pencil, ImagePlus, ShoppingCart, ImageUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -44,6 +44,12 @@ export default function MarkdownEditor({ value = '', onChange, rows = 10 }) {
     onChange(next);
   };
 
+  const insertLinkedImage = () => {
+    const snippet = '[![mo-ta-anh](https://url-anh.com)](https://link-affiliate-cua-anh.com)';
+    const next = `${value || ''}${value ? '\n\n' : ''}${snippet}`;
+    onChange(next);
+  };
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex items-center justify-between gap-2 border-b border-border bg-secondary/60 px-2 py-2">
@@ -72,6 +78,17 @@ export default function MarkdownEditor({ value = '', onChange, rows = 10 }) {
           >
             <ImagePlus className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">URL ảnh</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2"
+            onClick={insertLinkedImage}
+          >
+            <ImageUp className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Ảnh + link</span>
           </Button>
 
           <Button

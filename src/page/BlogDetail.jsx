@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { localClient } from '@/api/localClient';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Home, Calendar } from 'lucide-react';
+import { ChevronRight, Home, Calendar, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Seo from '@/components/Seo';
@@ -89,7 +89,26 @@ export default function BlogDetail() {
       </div>
 
       {post.cover_image && (
-        <img src={post.cover_image} alt={post.title} className="w-full rounded-2xl mb-8 max-h-96 object-cover" />
+        post.cover_target_url ? (
+          <a
+            href={post.cover_target_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative mb-8 block overflow-hidden rounded-2xl"
+          >
+            <img
+              src={post.cover_image}
+              alt={post.title}
+              className="w-full max-h-96 object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/60 via-black/20 to-transparent px-4 py-3 text-white">
+              <span className="text-sm font-medium">Bấm vào ảnh để xem ưu đãi</span>
+              <ExternalLink className="h-4 w-4" />
+            </div>
+          </a>
+        ) : (
+          <img src={post.cover_image} alt={post.title} className="w-full rounded-2xl mb-8 max-h-96 object-cover" />
+        )
       )}
 
       <MarkdownContent content={post.content || ''} />

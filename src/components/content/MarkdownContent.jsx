@@ -33,7 +33,36 @@ function isStandaloneCtaLink(child) {
   return Boolean(label) && label.length <= 40;
 }
 
+function hasImageChild(children) {
+  return React.Children.toArray(children).some((child) => {
+    if (!React.isValidElement(child)) return false;
+    if (child.type === 'img') return true;
+    if (child.props?.children) return hasImageChild(child.props.children);
+    return false;
+  });
+}
+
 function renderLink({ children, href, className = '', cta = false, ...props }) {
+  if (hasImageChild(children)) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn('not-prose group my-4 block overflow-hidden rounded-2xl', className)}
+        {...props}
+      >
+        <div className="relative">
+          {children}
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/60 via-black/20 to-transparent px-4 py-3 text-white opacity-90 transition-opacity group-hover:opacity-100">
+            <span className="text-sm font-medium">Bấm vào ảnh để xem ưu đãi</span>
+            <ExternalLink className="h-4 w-4" />
+          </div>
+        </div>
+      </a>
+    );
+  }
+
   if (cta) {
     return (
       <a
@@ -104,6 +133,15 @@ export default function MarkdownContent({ content = '', className = '' }) {
             const label = normalizeText(children);
             return renderLink({ children, href, cta: isCtaLabel(label), ...props });
           },
+          img: ({ src, alt }) => (
+            <img
+              src={src}
+              alt={alt || ''}
+              className="my-0 w-full rounded-2xl object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          ),
         }}
       >
         {content}

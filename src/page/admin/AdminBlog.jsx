@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { localClient } from '@/api/localClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ const emptyPost = {
   excerpt: '',
   content: '',
   cover_image: '',
+  cover_target_url: '',
   category: '',
   seo_title: '',
   seo_description: '',
@@ -174,6 +175,18 @@ export default function AdminBlog() {
               </div>
 
               <div>
+                <Label>Link khi bấm vào ảnh bìa</Label>
+                <Input
+                  value={editing.cover_target_url || ''}
+                  onChange={(e) => setEditing({ ...editing, cover_target_url: e.target.value })}
+                  placeholder="https://link-affiliate-cua-anh.com"
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Nếu điền link này, khi người dùng bấm vào ảnh bìa ở trang chi tiết bài viết sẽ mở sang URL anh gắn.
+                </p>
+              </div>
+
+              <div>
                 <Label>Danh mục</Label>
                 <Input value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} />
               </div>
@@ -207,7 +220,7 @@ export default function AdminBlog() {
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={12} />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Anh chỉ cần thay URL phía sau bằng link sản phẩm hoặc affiliate của anh.
+                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Nút `Ảnh + link` sẽ chèn mẫu `[![mo-ta-anh](https://url-anh)](https://link-affiliate)` để bấm vào ảnh trong nội dung cũng ra đúng link của anh.
                 </p>
               </div>
 

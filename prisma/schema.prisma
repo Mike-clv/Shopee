@@ -105,6 +105,7 @@ model BlogPost {
   excerpt         String?   @db.Text
   content         String?   @db.Text
   cover_image     String?
+  cover_target_url String?   @db.Text
   category        String?
   seo_title       String?
   seo_description String?   @db.Text

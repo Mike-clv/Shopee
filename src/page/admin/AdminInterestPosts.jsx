@@ -175,6 +175,9 @@ export default function AdminInterestPosts() {
               <div>
                 <Label>Link sản phẩm hoặc affiliate AccessTrade</Label>
                 <Input value={editing.target_url || ''} onChange={(e) => setEditing({ ...editing, target_url: e.target.value })} />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Link này sẽ được dùng cho nút ưu đãi và cả ảnh bìa của bài quan tâm khi người dùng bấm vào.
+                </p>
               </div>
 
               <div>
@@ -186,7 +189,7 @@ export default function AdminInterestPosts() {
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={10} />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Anh có thể đổi thành chữ khác như `XEM NGAY`, `NHẬN ƯU ĐÃI`... miễn là để link nằm riêng một dòng.
+                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Nút `Ảnh + link` sẽ chèn mẫu `[![mo-ta-anh](https://url-anh)](https://link-affiliate)` để người dùng bấm vào ảnh trong nội dung cũng ra đúng link của anh.
                 </p>
               </div>
 

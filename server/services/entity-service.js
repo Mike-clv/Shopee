@@ -49,7 +49,7 @@ export const resources = {
     fallback: mockData.blogPosts,
     fields: [
       ...commonFields,
-      'title', 'slug', 'excerpt', 'content', 'cover_image', 'category',
+      'title', 'slug', 'excerpt', 'content', 'cover_image', 'cover_target_url', 'category',
       'seo_title', 'seo_description', 'status', 'published_at', 'view_count',
     ],
     intFields: ['view_count'],

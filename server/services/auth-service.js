@@ -31,6 +31,17 @@ function parseCookies(req) {
   return cookies;
 }
 
+function timingSafeMatch(left, right) {
+  const leftBuffer = Buffer.from(String(left || ''), 'utf8');
+  const rightBuffer = Buffer.from(String(right || ''), 'utf8');
+
+  if (leftBuffer.length !== rightBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
 export function createSessionCookie(user) {
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
   const payload = base64url(JSON.stringify({
@@ -50,7 +61,7 @@ export function createSessionCookie(user) {
 export function setSessionCookie(res, session) {
   res.cookie(COOKIE_NAME, session.value, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
     maxAge: session.maxAge * 1000,
     path: '/',
@@ -58,7 +69,11 @@ export function setSessionCookie(res, session) {
 }
 
 export function clearSessionCookie(res) {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
+  res.clearCookie(COOKIE_NAME, {
+    path: '/',
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+  });
 }
 
 export function getSessionUser(req) {
@@ -95,5 +110,5 @@ export function requireAdmin(req, res, next) {
 export function validateAdminCredentials(email, password) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
   const adminPassword = process.env.ADMIN_PASSWORD || 'change-me';
-  return email === adminEmail && password === adminPassword;
+  return timingSafeMatch(email, adminEmail) && timingSafeMatch(password, adminPassword);
 }

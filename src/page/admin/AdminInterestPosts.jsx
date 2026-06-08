@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ExternalLink, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
 import MarkdownEditor from '@/components/admin/MarkdownEditor';
@@ -17,6 +18,7 @@ import {
   getContentStatusMeta,
   normalizePublicationPayload,
   slugifyVietnamese,
+  sortContentByPriority,
   toDateTimeLocalValue,
 } from '@/lib/content-admin';
 
@@ -28,19 +30,36 @@ const emptyPost = {
   thumbnail_image: '',
   target_url: '',
   status: 'draft',
-  sort_order: 0,
+  sort_order: 1000,
   published_at: '',
 };
+
+function reorderItems(items, startIndex, endIndex) {
+  const next = [...items];
+  const [removed] = next.splice(startIndex, 1);
+  next.splice(endIndex, 0, removed);
+  return next.map((item, index) => ({
+    ...item,
+    sort_order: index + 1,
+  }));
+}
 
 export default function AdminInterestPosts() {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [orderedPosts, setOrderedPosts] = useState([]);
   const qc = useQueryClient();
 
   const { data: posts = [] } = useQuery({
     queryKey: ['admin-interest-posts'],
     queryFn: () => localClient.entities.InterestPost.list('sort_order', 100),
   });
+
+  useEffect(() => {
+    setOrderedPosts(sortContentByPriority(posts));
+  }, [posts]);
+
+  const visiblePosts = useMemo(() => sortContentByPriority(orderedPosts), [orderedPosts]);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -59,11 +78,34 @@ export default function AdminInterestPosts() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-interest-posts'] });
       qc.invalidateQueries({ queryKey: ['interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
       setShowForm(false);
       setEditing(null);
-      toast.success('Đã lưu bài quan tâm');
+      toast.success('Đã lưu bài Quan tâm');
     },
-    onError: (error) => toast.error(error.message || 'Không thể lưu bài quan tâm'),
+    onError: (error) => toast.error(error.message || 'Không thể lưu bài Quan tâm'),
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (items) => Promise.all(
+      items.map((item, index) =>
+        localClient.entities.InterestPost.update(item.id, { sort_order: index + 1 }),
+      ),
+    ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      toast.success('Đã cập nhật thứ tự hiển thị');
+    },
+    onError: (error, _items, previousItems) => {
+      if (previousItems) {
+        setOrderedPosts(previousItems);
+      }
+      toast.error(error.message || 'Không thể cập nhật thứ tự');
+    },
   });
 
   const deleteMutation = useMutation({
@@ -71,12 +113,17 @@ export default function AdminInterestPosts() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-interest-posts'] });
       qc.invalidateQueries({ queryKey: ['interest-posts'] });
-      toast.success('Đã xóa bài quan tâm');
+      qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      toast.success('Đã xóa bài Quan tâm');
     },
   });
 
   const handleSave = () => {
-    if (!editing.title) return toast.error('Vui lòng nhập tiêu đề');
+    if (!editing.title) {
+      toast.error('Vui lòng nhập tiêu đề');
+      return;
+    }
 
     saveMutation.mutate({
       ...editing,
@@ -84,53 +131,130 @@ export default function AdminInterestPosts() {
     });
   };
 
+  const handleDragEnd = (result) => {
+    if (!result.destination || result.destination.index === result.source.index) return;
+
+    const previousItems = visiblePosts;
+    const nextItems = reorderItems(visiblePosts, result.source.index, result.destination.index);
+    setOrderedPosts(nextItems);
+    reorderMutation.mutate(nextItems, { onError: () => setOrderedPosts(previousItems) });
+  };
+
   return (
     <div className="p-3 sm:p-6">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold font-heading">Có Thể Bạn Quan Tâm</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Tạo bài/card gắn ảnh sản phẩm và link affiliate AccessTrade.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tạo bài/card gắn ảnh sản phẩm và link affiliate AccessTrade. Kéo thả để ưu tiên bài anh muốn hiển thị trước.
+          </p>
         </div>
-        <Button onClick={() => { setEditing({ ...emptyPost }); setShowForm(true); }} className="gap-2">
-          <Plus className="w-4 h-4" />
+        <Button
+          onClick={() => {
+            setEditing({ ...emptyPost, sort_order: visiblePosts.length + 1 });
+            setShowForm(true);
+          }}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
           Thêm bài
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {posts.map((post) => {
-          const statusMeta = getContentStatusMeta(post.status, post.published_at);
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="interest-posts">
+          {(dropProvided) => (
+            <div ref={dropProvided.innerRef} {...dropProvided.droppableProps} className="space-y-3">
+              {visiblePosts.map((post, index) => {
+                const statusMeta = getContentStatusMeta(post.status, post.published_at);
 
-          return (
-            <div key={post.id} className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
-              {post.thumbnail_image && <img src={post.thumbnail_image} alt={post.title} className="h-14 w-20 shrink-0 rounded-md object-cover" />}
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-semibold">{post.title}</h3>
-                <div className="mt-1 flex items-center gap-2">
-                  <Badge variant={statusMeta.variant} className="text-[10px]">{statusMeta.label}</Badge>
-                  {post.target_url && <span className="truncate text-xs text-muted-foreground">Có link affiliate</span>}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{statusMeta.description}</p>
-              </div>
-              <div className="flex shrink-0 gap-1">
-                {post.target_url && (
-                  <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                    <a href={post.target_url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditing({ ...post }); setShowForm(true); }}>
-                  <Pencil className="w-3.5 h-3.5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { if (confirm('Xóa bài này?')) deleteMutation.mutate(post.id); }}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </div>
+                return (
+                  <Draggable key={post.id} draggableId={post.id} index={index}>
+                    {(dragProvided, snapshot) => (
+                      <div
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        className={`flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-shadow ${
+                          snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
+                        }`}
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 shrink-0 cursor-grab rounded-full text-muted-foreground"
+                          aria-label="Kéo để sắp xếp"
+                          {...dragProvided.dragHandleProps}
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </Button>
+
+                        {post.thumbnail_image && (
+                          <img
+                            src={post.thumbnail_image}
+                            alt={post.title}
+                            className="h-14 w-20 shrink-0 rounded-md object-cover"
+                          />
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
+                              #{index + 1}
+                            </span>
+                            <h3 className="truncate text-sm font-semibold">{post.title}</h3>
+                          </div>
+
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <Badge variant={statusMeta.variant} className="text-[10px]">{statusMeta.label}</Badge>
+                            {post.target_url && <span className="truncate text-xs text-muted-foreground">Có link affiliate</span>}
+                          </div>
+
+                          <p className="mt-1 text-xs text-muted-foreground">{statusMeta.description}</p>
+                        </div>
+
+                        <div className="flex shrink-0 gap-1">
+                          {post.target_url && (
+                            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                              <a href={post.target_url} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setEditing({ ...post });
+                              setShowForm(true);
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => {
+                              if (confirm('Xóa bài này?')) deleteMutation.mutate(post.id);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {dropProvided.placeholder}
             </div>
-          );
-        })}
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-3xl overflow-y-auto">
@@ -176,7 +300,7 @@ export default function AdminInterestPosts() {
                 <Label>Link sản phẩm hoặc affiliate AccessTrade</Label>
                 <Input value={editing.target_url || ''} onChange={(e) => setEditing({ ...editing, target_url: e.target.value })} />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Link này sẽ được dùng cho nút ưu đãi và cả ảnh bìa của bài quan tâm khi người dùng bấm vào.
+                  Link này sẽ được dùng cho nút ưu đãi và cả ảnh bìa của bài Quan tâm khi người dùng bấm vào.
                 </p>
               </div>
 
@@ -208,7 +332,7 @@ export default function AdminInterestPosts() {
 
                 <div>
                   <Label>Thứ tự</Label>
-                  <Input type="number" value={editing.sort_order || 0} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })} />
+                  <Input type="number" value={editing.sort_order || 0} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) || 0 })} />
                 </div>
 
                 <div className="sm:col-span-2">

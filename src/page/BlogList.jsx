@@ -6,12 +6,15 @@ import { Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Seo from '@/components/Seo';
 import { BASE_KEYWORDS, BLOG_KEYWORDS, mergeKeywords } from '@/lib/site';
+import { sortContentByPriority } from '@/lib/content-admin';
 
 export default function BlogList() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['blog-posts'],
-    queryFn: () => localClient.entities.BlogPost.filter({ status: 'published' }, '-published_at', 50),
+    queryFn: () => localClient.entities.BlogPost.filter({ status: 'published' }, 'sort_order', 100),
   });
+
+  const visiblePosts = sortContentByPriority(posts);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -45,14 +48,14 @@ export default function BlogList() {
             </div>
           ))}
         </div>
-      ) : posts.length === 0 ? (
+      ) : visiblePosts.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">Bài viết</p>
           <p className="text-muted-foreground">Chưa có bài viết nào.</p>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
+          {visiblePosts.map((post) => (
             <Link
               key={post.id}
               to={`/blog/${post.slug || post.id}`}

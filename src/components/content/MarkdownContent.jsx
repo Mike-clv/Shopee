@@ -21,15 +21,6 @@ function normalizeText(children) {
     .trim();
 }
 
-function isStandaloneCtaLink(child) {
-  if (!React.isValidElement(child)) return false;
-  if (!child.props?.href) return false;
-  if (hasImageChild(child.props.children)) return false;
-
-  const label = normalizeText(child.props.children);
-  return Boolean(label) && label.length <= 140;
-}
-
 function hasImageChild(children) {
   return React.Children.toArray(children).some((child) => {
     if (!React.isValidElement(child)) return false;
@@ -39,18 +30,36 @@ function hasImageChild(children) {
   });
 }
 
-function shouldRenderAsCta({ href, children }) {
-  if (!href || hasImageChild(children)) return false;
-  if (!/^https?:\/\//i.test(href)) return false;
+function isStandaloneCtaLink(child) {
+  if (!React.isValidElement(child)) return false;
+  if (!child.props?.href) return false;
+  if (hasImageChild(child.props.children)) return false;
 
-  const label = normalizeText(children);
-  if (!label || label.length > 140) return false;
-  if (/^https?:\/\//i.test(label)) return false;
+  const href = String(child.props.href || '');
+  const label = normalizeText(child.props.children);
 
-  return true;
+  return Boolean(label)
+    && label.length <= 140
+    && /^https?:\/\//i.test(href)
+    && !/^https?:\/\//i.test(label);
 }
 
-function renderLink({ children, href, className = '', cta = false, ...props }) {
+function renderCtaLink({ children, href, className = '', ...props }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(CTA_LINK_CLASSNAME, className)}
+      {...props}
+    >
+      <span className="article-cta-label">{children}</span>
+      <ArrowRight className="article-cta-icon h-4 w-4" />
+    </a>
+  );
+}
+
+function renderLink({ children, href, className = '', standalone = false, ...props }) {
   if (hasImageChild(children)) {
     return (
       <a
@@ -71,19 +80,8 @@ function renderLink({ children, href, className = '', cta = false, ...props }) {
     );
   }
 
-  if (cta) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={cn(CTA_LINK_CLASSNAME, className)}
-        {...props}
-      >
-        <span className="article-cta-label">{children}</span>
-        <ArrowRight className="article-cta-icon h-4 w-4" />
-      </a>
-    );
+  if (standalone) {
+    return renderCtaLink({ children, href, className, ...props });
   }
 
   return (
@@ -116,21 +114,12 @@ export default function MarkdownContent({ content = '', className = '' }) {
 
             if (items.length === 1 && isStandaloneCtaLink(items[0])) {
               const child = items[0];
-
-              if (String(child.props.className || '').includes('article-cta-link')) {
-                return <div className="not-prose">{child}</div>;
-              }
-
               return (
                 <div className="not-prose">
-                  {React.cloneElement(child, {
-                    className: cn(CTA_LINK_CLASSNAME, child.props.className),
-                    children: (
-                      <>
-                        <span className="article-cta-label">{child.props.children}</span>
-                        <ArrowRight className="article-cta-icon h-4 w-4" />
-                      </>
-                    ),
+                  {renderCtaLink({
+                    children: child.props.children,
+                    href: child.props.href,
+                    className: child.props.className,
                   })}
                 </div>
               );
@@ -138,14 +127,7 @@ export default function MarkdownContent({ content = '', className = '' }) {
 
             return <p>{children}</p>;
           },
-          a: ({ children, href, ...props }) => {
-            return renderLink({
-              children,
-              href,
-              cta: shouldRenderAsCta({ href, children }),
-              ...props,
-            });
-          },
+          a: ({ children, href, ...props }) => renderLink({ children, href, standalone: false, ...props }),
           img: ({ src, alt }) => (
             <img
               src={src}

@@ -50,9 +50,9 @@ export const resources = {
     fields: [
       ...commonFields,
       'title', 'slug', 'excerpt', 'content', 'cover_image', 'cover_target_url', 'category',
-      'seo_title', 'seo_description', 'status', 'published_at', 'view_count',
+      'seo_title', 'seo_description', 'status', 'sort_order', 'published_at', 'view_count',
     ],
-    intFields: ['view_count'],
+    intFields: ['sort_order', 'view_count'],
     dateFields: ['published_at', 'created_date', 'updated_date'],
   },
   'interest-posts': {

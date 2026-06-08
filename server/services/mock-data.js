@@ -5,6 +5,7 @@ export const mockData = {
   categories,
   vouchers,
   blogPosts,
+  interestPosts: [],
   clickEvents: [],
   copyEvents: [],
   syncLogs: [],

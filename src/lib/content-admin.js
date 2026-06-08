@@ -69,3 +69,19 @@ export function getContentStatusMeta(status, publishedAt) {
     description: 'Chưa hiển thị công khai',
   };
 }
+
+export function sortContentByPriority(items = []) {
+  return [...items].sort((left, right) => {
+    const leftOrder = Number.isFinite(Number(left?.sort_order)) ? Number(left.sort_order) : 1000;
+    const rightOrder = Number.isFinite(Number(right?.sort_order)) ? Number(right.sort_order) : 1000;
+
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
+
+    const leftDate = new Date(left?.published_at || left?.created_date || 0).getTime();
+    const rightDate = new Date(right?.published_at || right?.created_date || 0).getTime();
+
+    return rightDate - leftDate;
+  });
+}

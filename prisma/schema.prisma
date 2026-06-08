@@ -110,6 +110,7 @@ model BlogPost {
   seo_title       String?
   seo_description String?   @db.Text
   status          String    @default("draft")
+  sort_order      Int       @default(1000)
   published_at    DateTime?
   view_count      Int       @default(0)
   created_date    DateTime  @default(now())

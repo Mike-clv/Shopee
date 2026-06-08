@@ -333,6 +333,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.7rem;
+    max-width: min(100%, 34rem);
     overflow: hidden;
     padding: 0.9rem 1.35rem;
     border-radius: 999px;
@@ -388,7 +389,16 @@
     z-index: 1;
   }
 
+  .article-cta-label {
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+
   .article-cta-icon {
+    flex-shrink: 0;
     transition: transform 180ms ease;
     animation: ctaIconNudge 1.9s ease-in-out infinite;
   }

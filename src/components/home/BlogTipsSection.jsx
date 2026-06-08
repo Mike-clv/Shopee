@@ -3,15 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { CalendarDays } from 'lucide-react';
 import { localClient } from '@/api/localClient';
+import { sortContentByPriority } from '@/lib/content-admin';
 
 export default function BlogTipsSection({ posts: providedPosts }) {
   const { data: posts = [] } = useQuery({
     queryKey: ['home-blog-tips'],
-    queryFn: () => localClient.entities.BlogPost.filter({ status: 'published' }, '-published_at', 100),
+    queryFn: () => localClient.entities.BlogPost.filter({ status: 'published' }, 'sort_order', 100),
     enabled: !providedPosts,
   });
 
-  const visiblePosts = providedPosts || posts;
+  const visiblePosts = sortContentByPriority(providedPosts || posts);
 
   if (!visiblePosts.length) return null;
 

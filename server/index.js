@@ -22,12 +22,28 @@ import {
 import { syncAccessTrade } from './services/accesstrade/sync.js';
 import { publishScheduledContent } from './services/publish-service.js';
 import { saveImageUpload } from './services/upload-service.js';
+import {
+  applySecurityHeaders,
+  assertProductionSecurityConfig,
+  buildPublicQuery,
+  canRunCronWithoutSecret,
+  clampLimit,
+  createRateLimitMiddleware,
+  requireSameOrigin,
+  validateAnalyticsPayload,
+} from './services/security-service.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
+const distDir = path.join(rootDir, 'dist');
 const app = express();
 const port = Number.parseInt(process.env.PORT, 10) || 3001;
 const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansaleshopee.vercel.app').replace(/\/+$/, '');
+
+assertProductionSecurityConfig();
+
+app.disable('x-powered-by');
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -35,14 +51,29 @@ const upload = multer({
   },
 });
 
+const loginRateLimit = createRateLimitMiddleware({
+  keyPrefix: 'login',
+  max: Number.parseInt(process.env.LOGIN_RATE_LIMIT_MAX || '8', 10),
+  windowMs: Number.parseInt(process.env.LOGIN_RATE_LIMIT_WINDOW_MS || `${15 * 60 * 1000}`, 10),
+  message: 'Bạn thử đăng nhập quá nhiều lần. Vui lòng chờ một chút rồi thử lại.',
+});
+
+const analyticsRateLimit = createRateLimitMiddleware({
+  keyPrefix: 'analytics',
+  max: Number.parseInt(process.env.ANALYTICS_RATE_LIMIT_MAX || '60', 10),
+  windowMs: Number.parseInt(process.env.ANALYTICS_RATE_LIMIT_WINDOW_MS || `${60 * 1000}`, 10),
+  message: 'Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.',
+});
+
+app.use(applySecurityHeaders);
 app.use(express.json({ limit: '2mb' }));
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+  if (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   }
 
@@ -96,7 +127,7 @@ app.get('/robots.txt', (_req, res) => {
 app.get('/sitemap.xml', async (_req, res, next) => {
   try {
     const [blogPosts, brands, categories, vouchers] = await Promise.all([
-      listResource('blog-posts', { status: 'published' }, '-published_at', 500),
+      listResource('blog-posts', { status: 'published' }, 'sort_order', 500),
       listResource('brands', { is_active: true }, 'sort_order', 500),
       listResource('categories', { is_active: true }, 'sort_order', 500),
       listResource('vouchers', { status: 'active' }, '-updated_date', 1000),
@@ -108,6 +139,7 @@ app.get('/sitemap.xml', async (_req, res, next) => {
       formatSitemapUrl('/thuong-hieu', new Date(), '0.8'),
       formatSitemapUrl('/danh-muc', new Date(), '0.8'),
       formatSitemapUrl('/blog', new Date(), '0.8'),
+      formatSitemapUrl('/quan-tam', new Date(), '0.75'),
       formatSitemapUrl('/gioi-thieu', new Date(), '0.5'),
       formatSitemapUrl('/chinh-sach', new Date(), '0.4'),
       formatSitemapUrl('/san/shopee', new Date(), '0.8'),
@@ -125,10 +157,10 @@ app.get('/sitemap.xml', async (_req, res, next) => {
 
     res.type('application/xml');
     res.send(
-      `<?xml version="1.0" encoding="UTF-8"?>` +
-        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
-        [...staticUrls, ...dynamicUrls].join('') +
-        `</urlset>`,
+      `<?xml version="1.0" encoding="UTF-8"?>`
+      + `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+      + [...staticUrls, ...dynamicUrls].join('')
+      + `</urlset>`,
     );
   } catch (error) {
     next(error);
@@ -155,7 +187,7 @@ app.get('/api/homepage', async (_req, res, next) => {
       listResource('brands', { is_featured: true, is_active: true }, 'sort_order', 12),
       listResource('banners', { is_active: true, placement: 'homepage_top' }, 'sort_order', 4),
       listResource('banners', { is_active: true, placement: 'hot_empty' }, 'sort_order', 4),
-      listResource('blog-posts', { status: 'published' }, '-published_at', 100),
+      listResource('blog-posts', { status: 'published' }, 'sort_order', 100),
       listResource('interest-posts', { status: 'published' }, 'sort_order', 12),
     ]);
 
@@ -174,7 +206,7 @@ app.get('/api/homepage', async (_req, res, next) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', requireSameOrigin, loginRateLimit, async (req, res) => {
   const { email, password } = req.body || {};
   if (!validateAdminCredentials(email, password)) {
     res.status(401).json({ message: 'Email hoặc mật khẩu admin không đúng.' });
@@ -187,6 +219,7 @@ app.post('/api/auth/login', async (req, res) => {
     role: 'admin',
     name: 'Local Admin',
   };
+
   setSessionCookie(res, createSessionCookie(user));
   res.json(user);
 });
@@ -201,7 +234,7 @@ app.get('/api/auth/me', (req, res) => {
   res.json(user);
 });
 
-app.post('/api/auth/logout', (_req, res) => {
+app.post('/api/auth/logout', requireSameOrigin, (_req, res) => {
   clearSessionCookie(res);
   res.json({ ok: true });
 });
@@ -218,7 +251,7 @@ app.post('/api/auth/reset-password', (_req, res) => {
   res.status(501).json({ message: 'Reset mật khẩu self-service chưa bật trong bản local. Hãy đổi ADMIN_PASSWORD trong .env.' });
 });
 
-app.post('/api/accesstrade/sync', requireAdmin, async (req, res, next) => {
+app.post('/api/accesstrade/sync', requireSameOrigin, requireAdmin, async (req, res, next) => {
   try {
     const result = await syncAccessTrade(req.body?.sync_type || 'campaigns');
     res.json(result);
@@ -227,7 +260,7 @@ app.post('/api/accesstrade/sync', requireAdmin, async (req, res, next) => {
   }
 });
 
-app.post('/api/uploads/image', requireAdmin, upload.single('file'), async (req, res, next) => {
+app.post('/api/uploads/image', requireSameOrigin, requireAdmin, upload.single('file'), async (req, res, next) => {
   try {
     const result = await saveImageUpload(req.file);
     res.status(201).json(result);
@@ -244,6 +277,9 @@ app.get('/api/cron/publish', async (req, res, next) => {
         res.status(401).json({ message: 'Unauthorized cron request.' });
         return;
       }
+    } else if (!canRunCronWithoutSecret()) {
+      res.status(503).json({ message: 'CRON_SECRET chưa được cấu hình trên production.' });
+      return;
     }
 
     const publishedCount = await publishScheduledContent();
@@ -263,35 +299,41 @@ app.get('/api/:resource', async (req, res, next) => {
     if (resource === 'blog-posts' || resource === 'interest-posts') {
       await publishScheduledContent();
     }
+
     const { sort, limit, ...filters } = req.query;
-    const rows = await listResource(resource, filters, sort, limit);
+    const user = getSessionUser(req);
+
+    if (user?.role === 'admin') {
+      const rows = await listResource(resource, filters, sort, clampLimit(limit, 500));
+      res.json(rows);
+      return;
+    }
+
+    const publicQuery = buildPublicQuery(resource, filters, sort, limit);
+    const rows = await listResource(resource, publicQuery.filters, publicQuery.sort, publicQuery.limit);
     res.json(rows);
   } catch (error) {
     next(error);
   }
 });
 
-app.post('/api/:resource', async (req, res, next) => {
+app.post('/api/:resource', requireSameOrigin, async (req, res, next) => {
   try {
     const { resource } = req.params;
 
-    if (resource === 'click-events') {
-      try {
-        const event = await trackEvent(req.body || {});
-        res.status(201).json(event);
-      } catch {
-        res.status(202).json({
-          id: `fallback_${Date.now()}`,
-          ...(req.body || {}),
-          created_date: new Date().toISOString(),
-        });
-      }
-      return;
-    }
-
-    if (resource === 'copy-events') {
-      const event = await createResource(resource, req.body || {});
-      res.status(201).json(event);
+    if (resource === 'click-events' || resource === 'copy-events') {
+      analyticsRateLimit(req, res, async () => {
+        try {
+          const payload = validateAnalyticsPayload({
+            ...(req.body || {}),
+            event_type: resource === 'copy-events' ? 'copy' : req.body?.event_type,
+          });
+          const event = await trackEvent(payload);
+          res.status(201).json(event);
+        } catch (error) {
+          next(error);
+        }
+      });
       return;
     }
 
@@ -308,7 +350,7 @@ app.post('/api/:resource', async (req, res, next) => {
   }
 });
 
-app.put('/api/:resource/:id', requireAdmin, async (req, res, next) => {
+app.put('/api/:resource/:id', requireSameOrigin, requireAdmin, async (req, res, next) => {
   try {
     const row = await updateResource(req.params.resource, req.params.id, req.body || {});
     res.json(row);
@@ -317,7 +359,7 @@ app.put('/api/:resource/:id', requireAdmin, async (req, res, next) => {
   }
 });
 
-app.delete('/api/:resource/:id', requireAdmin, async (req, res, next) => {
+app.delete('/api/:resource/:id', requireSameOrigin, requireAdmin, async (req, res, next) => {
   try {
     const result = await deleteResource(req.params.resource, req.params.id);
     res.json(result);
@@ -328,7 +370,6 @@ app.delete('/api/:resource/:id', requireAdmin, async (req, res, next) => {
 
 app.use('/uploads', express.static(path.join(rootDir, process.env.UPLOAD_DIR || 'public/uploads')));
 
-const distDir = path.join(rootDir, 'dist');
 if (fs.existsSync(distDir)) {
   app.use(express.static(distDir));
   app.get('*', (_req, res) => {

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { localClient } from '@/api/localClient';
+import { sortContentByPriority } from '@/lib/content-admin';
 
 export default function InterestSection({ posts: providedPosts }) {
   const { data: posts = [] } = useQuery({
@@ -11,7 +12,7 @@ export default function InterestSection({ posts: providedPosts }) {
     enabled: !providedPosts,
   });
 
-  const visiblePosts = providedPosts || posts;
+  const visiblePosts = sortContentByPriority(providedPosts || posts);
 
   if (!visiblePosts.length) return null;
 

@@ -6,12 +6,11 @@ import { put } from '@vercel/blob';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..', '..');
-const allowedMimeTypes = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-  'image/svg+xml',
+const allowedMimeTypes = new Map([
+  ['image/jpeg', '.jpg'],
+  ['image/png', '.png'],
+  ['image/webp', '.webp'],
+  ['image/gif', '.gif'],
 ]);
 
 function sanitizeBaseName(fileName = '') {
@@ -32,14 +31,14 @@ function ensureAllowedImage(file) {
   }
 
   if (!allowedMimeTypes.has(file.mimetype)) {
-    const error = new Error('Chỉ hỗ trợ upload ảnh JPG, PNG, WEBP, GIF hoặc SVG.');
+    const error = new Error('Chỉ hỗ trợ upload ảnh JPG, PNG, WEBP hoặc GIF.');
     error.status = 400;
     throw error;
   }
 }
 
 function buildFileName(file) {
-  const ext = path.extname(file.originalname || '').toLowerCase() || '.png';
+  const ext = allowedMimeTypes.get(file.mimetype) || '.png';
   return `${Date.now()}-${crypto.randomUUID()}-${sanitizeBaseName(file.originalname)}${ext}`;
 }
 

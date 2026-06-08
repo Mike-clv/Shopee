@@ -285,7 +285,10 @@ export const vouchers = [
   },
 ];
 
-export const blogPosts = seoBlogPosts;
+export const blogPosts = seoBlogPosts.map((post, index) => ({
+  ...post,
+  sort_order: index + 1,
+}));
 
 export const staleSeedBlogPostIds = [
   'blog-cach-dung-ma-giam-gia',

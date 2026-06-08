@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Báo cáo bảo mật 2026-06-08</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 40px auto; max-width: 900px; padding: 0 20px; }
+    h1, h2, h3 { color: #111827; }
+    h1 { font-size: 32px; }
+    h2 { margin-top: 32px; font-size: 24px; }
+    h3 { margin-top: 24px; font-size: 18px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #fff7ed; color: #c2410c; font-weight: 700; font-size: 12px; }
+    .high { color: #b91c1c; font-weight: 700; }
+    .medium { color: #b45309; font-weight: 700; }
+    .low { color: #1d4ed8; font-weight: 700; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 6px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Báo cáo bảo mật - 2026-06-08</h1>
+  <p><span class="badge">Audit nhanh nhưng có xác minh production</span></p>
+
+  <h2>Kết luận nhanh</h2>
+  <p>Web hiện tại chưa có dấu hiệu bị bypass admin ngay lập tức, nhưng đang có một số lỗ hổng quan trọng cần xử lý sớm: lộ dữ liệu nội bộ qua API public, endpoint analytics có thể bị spam, login admin chưa có rate limit, upload SVG cùng origin, và thiếu một số security headers cơ bản.</p>
+
+  <h2>Phát hiện chính</h2>
+
+  <h3>1. Public API exposure của dữ liệu nội bộ</h3>
+  <p class="high">Mức độ: Cao</p>
+  <p>Route <code>GET /api/:resource</code> đang cho phép đọc nhiều bảng dữ liệu mà không cần auth admin. Trên production, endpoint blog trả cả bài draft và endpoint sync logs trả dữ liệu log nội bộ.</p>
+
+  <h3>2. Analytics có thể bị spam công khai</h3>
+  <p class="medium">Mức độ: Trung bình cao</p>
+  <p>Các endpoint <code>POST /api/click-events</code> và <code>POST /api/copy-events</code> không yêu cầu auth và có thể làm sai số liệu click/copy.</p>
+
+  <h3>3. Login admin chưa có rate limit</h3>
+  <p class="medium">Mức độ: Trung bình</p>
+  <p>Đăng nhập admin hiện dựa trên cặp email/password trong env và chưa có lockout, throttle, captcha hoặc MFA.</p>
+
+  <h3>4. Upload SVG cùng origin</h3>
+  <p class="medium">Mức độ: Trung bình</p>
+  <p>SVG đang được chấp nhận upload và được phục vụ trực tiếp cùng origin, làm tăng bề mặt XSS nếu có file độc hại.</p>
+
+  <h3>5. Thiếu security headers cơ bản</h3>
+  <p class="low">Mức độ: Trung bình thấp</p>
+  <p>Production có HSTS nhưng chưa thấy CSP, X-Frame-Options, X-Content-Type-Options và Referrer-Policy.</p>
+
+  <h3>6. Advisory XSS trong react-quill/quill</h3>
+  <p class="low">Mức độ: Trung bình thấp</p>
+  <p><code>npm audit --omit=dev</code> đang báo advisory XSS cho chuỗi phụ thuộc <code>react-quill</code> / <code>quill</code>.</p>
+
+  <h2>Ưu tiên xử lý</h2>
+  <ul>
+    <li>Khóa public API cho draft, log và analytics</li>
+    <li>Thêm rate limit + validation cho analytics và login</li>
+    <li>Tắt upload SVG hoặc phục vụ từ origin tách biệt</li>
+    <li>Bổ sung bộ security headers chuẩn</li>
+    <li>Lên kế hoạch thay hoặc nâng cấp editor phụ thuộc Quill</li>
+  </ul>
+</body>
+</html>

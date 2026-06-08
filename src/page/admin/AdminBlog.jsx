@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
+import MarkdownEditor from '@/components/admin/MarkdownEditor';
+import ImageUploadButton from '@/components/admin/ImageUploadButton';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import MarkdownEditor from '@/components/admin/MarkdownEditor';
-import ImageUploadButton from '@/components/admin/ImageUploadButton';
 import {
   fromDateTimeLocalValue,
   getContentStatusMeta,
   normalizePublicationPayload,
   slugifyVietnamese,
+  sortContentByPriority,
   toDateTimeLocalValue,
 } from '@/lib/content-admin';
 
@@ -31,18 +33,36 @@ const emptyPost = {
   seo_title: '',
   seo_description: '',
   status: 'draft',
+  sort_order: 1000,
   published_at: '',
 };
+
+function reorderItems(items, startIndex, endIndex) {
+  const next = [...items];
+  const [removed] = next.splice(startIndex, 1);
+  next.splice(endIndex, 0, removed);
+  return next.map((item, index) => ({
+    ...item,
+    sort_order: index + 1,
+  }));
+}
 
 export default function AdminBlog() {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [orderedPosts, setOrderedPosts] = useState([]);
   const qc = useQueryClient();
 
   const { data: posts = [] } = useQuery({
     queryKey: ['admin-blog-list'],
-    queryFn: () => localClient.entities.BlogPost.list('-created_date', 100),
+    queryFn: () => localClient.entities.BlogPost.list('sort_order', 100),
   });
+
+  useEffect(() => {
+    setOrderedPosts(sortContentByPriority(posts));
+  }, [posts]);
+
+  const visiblePosts = useMemo(() => sortContentByPriority(orderedPosts), [orderedPosts]);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -52,7 +72,7 @@ export default function AdminBlog() {
       }
 
       if (payload.id) {
-        const { id, created_date, updated_date, created_by_id, ...rest } = payload;
+        const { id, created_date, updated_date, ...rest } = payload;
         return localClient.entities.BlogPost.update(id, rest);
       }
 
@@ -62,6 +82,7 @@ export default function AdminBlog() {
       qc.invalidateQueries({ queryKey: ['admin-blog-list'] });
       qc.invalidateQueries({ queryKey: ['blog-posts'] });
       qc.invalidateQueries({ queryKey: ['home-blog-tips'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
       setShowForm(false);
       setEditing(null);
       toast.success('Đã lưu bài viết');
@@ -71,12 +92,34 @@ export default function AdminBlog() {
     },
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async (items) => Promise.all(
+      items.map((item, index) =>
+        localClient.entities.BlogPost.update(item.id, { sort_order: index + 1 }),
+      ),
+    ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-blog-list'] });
+      qc.invalidateQueries({ queryKey: ['blog-posts'] });
+      qc.invalidateQueries({ queryKey: ['home-blog-tips'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      toast.success('Đã cập nhật thứ tự bài Blog');
+    },
+    onError: (error, _items, previousItems) => {
+      if (previousItems) {
+        setOrderedPosts(previousItems);
+      }
+      toast.error(error.message || 'Không thể cập nhật thứ tự bài viết');
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id) => localClient.entities.BlogPost.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-blog-list'] });
       qc.invalidateQueries({ queryKey: ['blog-posts'] });
       qc.invalidateQueries({ queryKey: ['home-blog-tips'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
       toast.success('Đã xóa bài viết');
     },
   });
@@ -93,43 +136,117 @@ export default function AdminBlog() {
     });
   };
 
+  const handleDragEnd = (result) => {
+    if (!result.destination || result.destination.index === result.source.index) return;
+
+    const previousItems = visiblePosts;
+    const nextItems = reorderItems(visiblePosts, result.source.index, result.destination.index);
+    setOrderedPosts(nextItems);
+    reorderMutation.mutate(nextItems, { onError: () => setOrderedPosts(previousItems) });
+  };
+
   return (
     <div className="p-3 sm:p-6">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold font-heading">Quản Lý Blog</h1>
-        <Button onClick={() => { setEditing({ ...emptyPost }); setShowForm(true); }} className="gap-2">
-          <Plus className="w-4 h-4" />
+        <div>
+          <h1 className="text-2xl font-bold font-heading">Quản Lý Blog</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Kéo thả để ưu tiên bài nào lên trước ở trang Blog và khu Mẹo săn mã.</p>
+        </div>
+        <Button
+          onClick={() => {
+            setEditing({ ...emptyPost, sort_order: visiblePosts.length + 1 });
+            setShowForm(true);
+          }}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
           Thêm bài
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {posts.map((post) => {
-          const statusMeta = getContentStatusMeta(post.status, post.published_at);
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="blog-posts">
+          {(dropProvided) => (
+            <div ref={dropProvided.innerRef} {...dropProvided.droppableProps} className="space-y-3">
+              {visiblePosts.map((post, index) => {
+                const statusMeta = getContentStatusMeta(post.status, post.published_at);
 
-          return (
-            <div key={post.id} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">
-              {post.cover_image && <img src={post.cover_image} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />}
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-semibold">{post.title}</h3>
-                <div className="mt-1 flex items-center gap-2">
-                  <Badge variant={statusMeta.variant} className="text-[10px]">{statusMeta.label}</Badge>
-                  {post.category && <span className="text-xs text-muted-foreground">{post.category}</span>}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{statusMeta.description}</p>
-              </div>
-              <div className="flex shrink-0 gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditing({ ...post }); setShowForm(true); }}>
-                  <Pencil className="w-3.5 h-3.5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { if (confirm('Xóa bài viết này?')) deleteMutation.mutate(post.id); }}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </div>
+                return (
+                  <Draggable key={post.id} draggableId={post.id} index={index}>
+                    {(dragProvided, snapshot) => (
+                      <div
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        className={`flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-shadow ${
+                          snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
+                        }`}
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 shrink-0 cursor-grab rounded-full text-muted-foreground"
+                          aria-label="Kéo để sắp xếp"
+                          {...dragProvided.dragHandleProps}
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </Button>
+
+                        {post.cover_image && (
+                          <img
+                            src={post.cover_image}
+                            alt={post.title}
+                            className="h-12 w-16 shrink-0 rounded-lg object-cover"
+                          />
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
+                              #{index + 1}
+                            </span>
+                            <h3 className="truncate text-sm font-semibold">{post.title}</h3>
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <Badge variant={statusMeta.variant} className="text-[10px]">{statusMeta.label}</Badge>
+                            {post.category && <span className="text-xs text-muted-foreground">{post.category}</span>}
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">{statusMeta.description}</p>
+                        </div>
+
+                        <div className="flex shrink-0 gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setEditing({ ...post });
+                              setShowForm(true);
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => {
+                              if (confirm('Xóa bài viết này?')) deleteMutation.mutate(post.id);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {dropProvided.placeholder}
             </div>
-          );
-        })}
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto">
@@ -150,7 +267,7 @@ export default function AdminBlog() {
               <div className="space-y-2">
                 <Label>Slug</Label>
                 <Input
-                  value={editing.slug}
+                  value={editing.slug || ''}
                   onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
                   placeholder="vi-du-meo-san-sale"
                 />
@@ -161,7 +278,7 @@ export default function AdminBlog() {
                 <Label>Ảnh bìa URL</Label>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
-                    value={editing.cover_image}
+                    value={editing.cover_image || ''}
                     onChange={(e) => setEditing({ ...editing, cover_image: e.target.value })}
                     placeholder="/uploads/ten-anh.jpg hoặc URL ảnh"
                   />
@@ -188,12 +305,12 @@ export default function AdminBlog() {
 
               <div>
                 <Label>Danh mục</Label>
-                <Input value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} />
+                <Input value={editing.category || ''} onChange={(e) => setEditing({ ...editing, category: e.target.value })} />
               </div>
 
               <div>
                 <Label>Tóm tắt</Label>
-                <Textarea value={editing.excerpt} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} rows={2} />
+                <Textarea value={editing.excerpt || ''} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} rows={2} />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -227,7 +344,7 @@ export default function AdminBlog() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Trạng thái</Label>
-                  <Select value={editing.status} onValueChange={(value) => setEditing({ ...editing, status: value })}>
+                  <Select value={editing.status || 'draft'} onValueChange={(value) => setEditing({ ...editing, status: value })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">Nháp</SelectItem>
@@ -238,6 +355,15 @@ export default function AdminBlog() {
                 </div>
 
                 <div>
+                  <Label>Thứ tự</Label>
+                  <Input
+                    type="number"
+                    value={editing.sort_order || 0}
+                    onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) || 0 })}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
                   <Label>Thời gian đăng</Label>
                   <Input
                     type="datetime-local"

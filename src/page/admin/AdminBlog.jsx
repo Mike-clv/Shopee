@@ -146,18 +146,18 @@ export default function AdminBlog() {
   };
 
   return (
-    <div className="p-3 sm:p-6">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 sm:p-6">
+      <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-heading">Quản Lý Blog</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Kéo thả để ưu tiên bài nào lên trước ở trang Blog và khu Mẹo săn mã.</p>
+          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Quản Lý Blog</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">Kéo thả để ưu tiên bài nào lên trước ở trang Blog và khu Mẹo săn mã.</p>
         </div>
         <Button
           onClick={() => {
             setEditing({ ...emptyPost, sort_order: visiblePosts.length + 1 });
             setShowForm(true);
           }}
-          className="gap-2"
+          className="h-12 gap-2 rounded-2xl shadow-sm"
         >
           <Plus className="h-4 w-4" />
           Thêm bài
@@ -178,14 +178,14 @@ export default function AdminBlog() {
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
                         style={dragProvided.draggableProps.style}
-                        className={`flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-shadow ${
+                        className={`grid grid-cols-[40px,72px,minmax(0,1fr)] gap-3 rounded-3xl border border-border bg-card p-4 transition-shadow sm:flex sm:items-center sm:gap-4 sm:p-5 ${
                           snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
                         }`}
                       >
                         <div
                           role="button"
                           tabIndex={0}
-                          className="flex h-10 w-10 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground active:cursor-grabbing"
+                          className="flex h-10 w-10 shrink-0 self-center cursor-grab touch-none select-none items-center justify-center rounded-full border border-border/70 bg-secondary/40 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground active:cursor-grabbing sm:self-auto"
                           aria-label="Keo de sap xep"
                           {...dragProvided.dragHandleProps}
                         >
@@ -196,45 +196,45 @@ export default function AdminBlog() {
                           <img
                             src={post.cover_image}
                             alt={post.title}
-                            className="h-12 w-16 shrink-0 rounded-lg object-cover"
+                            className="h-[4.5rem] w-[4.5rem] shrink-0 self-center rounded-2xl object-cover sm:h-12 sm:w-16 sm:self-auto sm:rounded-lg"
                           />
                         )}
 
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 self-center sm:self-auto">
                           <div className="flex items-center gap-2">
                             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
                               #{index + 1}
                             </span>
-                            <h3 className="truncate text-sm font-semibold">{post.title}</h3>
+                            <h3 className="line-clamp-2 text-sm font-semibold leading-5 sm:truncate">{post.title}</h3>
                           </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
                             <Badge variant={statusMeta.variant} className="text-[10px]">{statusMeta.label}</Badge>
                             {post.category && <span className="text-xs text-muted-foreground">{post.category}</span>}
                           </div>
-                          <p className="mt-1 text-xs text-muted-foreground">{statusMeta.description}</p>
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">{statusMeta.description}</p>
                         </div>
 
-                        <div className="flex shrink-0 gap-1">
+                        <div className="col-span-3 flex items-center justify-end gap-1 border-t border-border/70 pt-2 sm:col-auto sm:border-t-0 sm:pt-0">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-9 w-9 rounded-full"
                             onClick={() => {
                               setEditing({ ...post });
                               setShowForm(true);
                             }}
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-destructive"
+                            className="h-9 w-9 rounded-full text-destructive"
                             onClick={() => {
                               if (confirm('Xóa bài viết này?')) deleteMutation.mutate(post.id);
                             }}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>

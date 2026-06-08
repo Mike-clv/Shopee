@@ -34,19 +34,28 @@ const navItems = [
 
 export default function AdminLayout() {
   const location = useLocation();
-  const currentItem = navItems.find(item => item.path === location.pathname) || navItems[0];
+  const currentItem = navItems.find((item) => item.path === location.pathname) || navItems[0];
+  const CurrentIcon = currentItem.icon;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden">
-        <div className="flex items-center justify-between gap-3 px-3 py-3">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Admin CMS</p>
-            <p className="truncate text-sm font-semibold">{currentItem.label}</p>
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">Admin CMS</p>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <CurrentIcon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-base font-bold">{currentItem.label}</p>
+                <p className="truncate text-xs text-muted-foreground">Quản trị nội dung tối ưu cho điện thoại</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="icon" className="h-9 w-9 rounded-full">
+            <Button asChild variant="outline" size="icon" className="h-10 w-10 rounded-full shadow-sm">
               <Link to="/" aria-label="Về trang chủ">
                 <Home className="h-4 w-4" />
               </Link>
@@ -54,7 +63,7 @@ export default function AdminLayout() {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" aria-label="Mở menu admin">
+                <Button variant="outline" size="icon" className="h-10 w-10 rounded-full shadow-sm" aria-label="Mở menu admin">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -67,7 +76,7 @@ export default function AdminLayout() {
                   </SheetHeader>
 
                   <div className="flex-1 space-y-1 overflow-y-auto p-3">
-                    {navItems.map(item => (
+                    {navItems.map((item) => (
                       <SheetClose asChild key={item.path}>
                         <Link
                           to={item.path}
@@ -75,7 +84,7 @@ export default function AdminLayout() {
                             'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors',
                             location.pathname === item.path
                               ? 'bg-primary text-primary-foreground'
-                              : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                              : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                           )}
                         >
                           <item.icon className="h-4 w-4" />
@@ -102,17 +111,20 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        <div className="px-3 pb-3">
+        <div className="px-4 pb-3">
           <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {navItems.map(item => (
+            <span className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
+              {navItems.length} mục
+            </span>
+            {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition-colors',
+                  'shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-colors',
                   location.pathname === item.path
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground',
                 )}
               >
                 {item.label}
@@ -133,7 +145,7 @@ export default function AdminLayout() {
           </div>
 
           <nav className="flex-1 space-y-1 p-3">
-            {navItems.map(item => (
+            {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -141,7 +153,7 @@ export default function AdminLayout() {
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                   location.pathname === item.path
                     ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -151,7 +163,7 @@ export default function AdminLayout() {
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 overflow-x-hidden">
           <Outlet />
         </main>
       </div>

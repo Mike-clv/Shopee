@@ -142,16 +142,16 @@ export default function AdminInterestPosts() {
   };
 
   return (
-    <div className="p-3 sm:p-6">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 sm:p-6">
+      <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-heading">Có Thể Bạn Quan Tâm</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Có Thể Bạn Quan Tâm</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
             Tạo bài/card gắn ảnh sản phẩm và link affiliate AccessTrade. Kéo thả để ưu tiên bài anh muốn hiển thị trước.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button asChild variant="outline" className="gap-2">
+          <Button asChild variant="outline" className="h-12 gap-2 rounded-2xl">
             <Link to="/quan-tam">
               Xem trang Quan tâm
               <ExternalLink className="h-4 w-4" />
@@ -162,7 +162,7 @@ export default function AdminInterestPosts() {
               setEditing({ ...emptyPost, sort_order: visiblePosts.length + 1 });
               setShowForm(true);
             }}
-            className="gap-2"
+            className="h-12 gap-2 rounded-2xl shadow-sm"
           >
             <Plus className="h-4 w-4" />
             Thêm bài
@@ -184,14 +184,14 @@ export default function AdminInterestPosts() {
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
                         style={dragProvided.draggableProps.style}
-                        className={`flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-shadow ${
+                        className={`grid grid-cols-[40px,88px,minmax(0,1fr)] gap-3 rounded-3xl border border-border bg-card p-4 transition-shadow sm:flex sm:items-center sm:gap-4 sm:p-5 ${
                           snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
                         }`}
                       >
                         <div
                           role="button"
                           tabIndex={0}
-                          className="flex h-10 w-10 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground active:cursor-grabbing"
+                          className="flex h-10 w-10 shrink-0 self-center cursor-grab touch-none select-none items-center justify-center rounded-full border border-border/70 bg-secondary/40 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground active:cursor-grabbing sm:self-auto"
                           aria-label="Keo de sap xep"
                           {...dragProvided.dragHandleProps}
                         >
@@ -202,31 +202,31 @@ export default function AdminInterestPosts() {
                           <img
                             src={post.thumbnail_image}
                             alt={post.title}
-                            className="h-14 w-20 shrink-0 rounded-md object-cover"
+                            className="h-20 w-[5.5rem] shrink-0 self-center rounded-2xl object-cover sm:h-14 sm:w-20 sm:self-auto sm:rounded-md"
                           />
                         )}
 
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 self-center sm:self-auto">
                           <div className="flex items-center gap-2">
                             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
                               #{index + 1}
                             </span>
-                            <h3 className="truncate text-sm font-semibold">{post.title}</h3>
+                            <h3 className="line-clamp-2 text-sm font-semibold leading-5 sm:truncate">{post.title}</h3>
                           </div>
 
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
                             <Badge variant={statusMeta.variant} className="text-[10px]">{statusMeta.label}</Badge>
                             {post.target_url && <span className="truncate text-xs text-muted-foreground">Có link affiliate</span>}
                           </div>
 
-                          <p className="mt-1 text-xs text-muted-foreground">{statusMeta.description}</p>
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">{statusMeta.description}</p>
                         </div>
 
-                        <div className="flex shrink-0 gap-1">
+                        <div className="col-span-3 flex items-center justify-end gap-1 border-t border-border/70 pt-2 sm:col-auto sm:border-t-0 sm:pt-0">
                           {post.target_url && (
-                            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                            <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full">
                               <a href={post.target_url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-3.5 w-3.5" />
+                                <ExternalLink className="h-4 w-4" />
                               </a>
                             </Button>
                           )}
@@ -234,24 +234,24 @@ export default function AdminInterestPosts() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-9 w-9 rounded-full"
                             onClick={() => {
                               setEditing({ ...post });
                               setShowForm(true);
                             }}
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
 
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-destructive"
+                            className="h-9 w-9 rounded-full text-destructive"
                             onClick={() => {
                               if (confirm('Xóa bài này?')) deleteMutation.mutate(post.id);
                             }}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>

@@ -27,6 +27,8 @@ const emptyPost = {
   content: '',
   cover_image: '',
   category: '',
+  seo_title: '',
+  seo_description: '',
   status: 'draft',
   published_at: '',
 };
@@ -179,6 +181,26 @@ export default function AdminBlog() {
               <div>
                 <Label>Tóm tắt</Label>
                 <Textarea value={editing.excerpt} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} rows={2} />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>SEO title</Label>
+                  <Input
+                    value={editing.seo_title || ''}
+                    onChange={(e) => setEditing({ ...editing, seo_title: e.target.value })}
+                    placeholder="Tiêu đề tối ưu SEO cho Google"
+                  />
+                </div>
+                <div>
+                  <Label>SEO description</Label>
+                  <Textarea
+                    value={editing.seo_description || ''}
+                    onChange={(e) => setEditing({ ...editing, seo_description: e.target.value })}
+                    rows={2}
+                    placeholder="Mô tả ngắn khoảng 140-160 ký tự"
+                  />
+                </div>
               </div>
 
               <div>

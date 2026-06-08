@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import BrandLogo from '@/components/brand/BrandLogo';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, BRAND_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 const platformNames = {
   shopee: 'Shopee',
@@ -25,9 +26,13 @@ export default function BrandList() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Seo
-        title="Thương hiệu"
-        description="Danh sách thương hiệu, shop và sàn thương mại điện tử đang có mã giảm giá và voucher mới nhất."
+        title="Thương hiệu có mã giảm giá, voucher mới nhất"
+        description="Danh sách thương hiệu, shop và sàn thương mại điện tử đang có mã giảm giá, voucher và deal mới nhất."
         path="/thuong-hieu"
+        keywords={mergeKeywords(BASE_KEYWORDS, BRAND_KEYWORDS, [
+          'thương hiệu shopee lazada tiki',
+          'thuong hieu shopee lazada tiki',
+        ])}
       />
 
       <h1 className="text-2xl sm:text-3xl font-bold font-heading mb-2">Thương hiệu</h1>

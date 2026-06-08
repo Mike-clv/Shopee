@@ -11,6 +11,7 @@ import VoucherGrid from '../components/voucher/VoucherGrid';
 import CopyModal from '../components/voucher/CopyModal';
 import BrandLogo from '@/components/brand/BrandLogo';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, VOUCHER_PAGE_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 const typeLabels = {
   coupon: 'Mã giảm giá', deal: 'Deal', cashback: 'Hoàn tiền',
@@ -116,11 +117,17 @@ export default function VoucherDetail() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <Seo
-        title={voucher.title}
+        title={`${voucher.title}${voucher.brand_name ? ` - ${voucher.brand_name}` : ''}`}
         description={voucher.description || voucher.terms || `Mã giảm giá ${voucher.brand_name || ''} mới nhất, cập nhật điều kiện sử dụng và ưu đãi nổi bật.`}
         path={`/ma-giam-gia/${voucher.slug || voucher.id}`}
         image={voucher.image || voucher.brand_logo}
         type="article"
+        keywords={mergeKeywords(BASE_KEYWORDS, VOUCHER_PAGE_KEYWORDS, [
+          voucher.title,
+          voucher.brand_name ? `mã giảm giá ${voucher.brand_name}` : '',
+          voucher.brand_name ? `voucher ${voucher.brand_name}` : '',
+          voucher.platform ? `mã giảm giá ${voucher.platform}` : '',
+        ])}
       />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 flex-wrap">

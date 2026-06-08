@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import VoucherGrid from '../components/voucher/VoucherGrid';
 import BrandLogo from '@/components/brand/BrandLogo';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, BRAND_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 const platformNames = {
   shopee: 'Shopee', lazada: 'Lazada', tiki: 'Tiki',
@@ -54,10 +55,15 @@ export default function BrandDetail() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Seo
-        title={`Mã giảm giá ${brand.name}`}
-        description={brand.description || `Tổng hợp mã giảm giá, voucher và ưu đãi mới nhất của ${brand.name}.`}
+        title={brand.seo_title || `Mã giảm giá ${brand.name} hôm nay, voucher ${brand.name}`}
+        description={brand.seo_description || brand.description || `Tổng hợp mã giảm giá, voucher và ưu đãi mới nhất của ${brand.name}.`}
         path={`/thuong-hieu/${brand.slug}`}
         image={brand.logo || brand.brand_logo}
+        keywords={mergeKeywords(BASE_KEYWORDS, BRAND_KEYWORDS, [
+          `mã giảm giá ${brand.name}`,
+          `voucher ${brand.name}`,
+          brand.platform ? `mã giảm giá ${platformNames[brand.platform]}` : '',
+        ])}
       />
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 flex-wrap">
         <Link to="/" className="hover:text-primary flex items-center gap-1"><Home className="w-3.5 h-3.5" /> Trang chủ</Link>

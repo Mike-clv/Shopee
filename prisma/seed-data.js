@@ -1,10 +1,10 @@
+import { seoBlogPosts } from './seo-blog-posts.js';
+
 const dateFromNow = (days) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
   return date;
 };
-
-const fixedDate = (date) => new Date(`${date}T00:00:00+07:00`);
 
 export const brands = [
   { id: 'brand_shopee', name: 'Shopee', slug: 'shopee', platform: 'shopee', description: 'Sàn thương mại điện tử phổ biến với nhiều mã giảm giá, freeship và flash sale hằng ngày.', website_url: 'https://shopee.vn', is_featured: true, is_active: true, voucher_count: 15, click_count: 0, sort_order: 1 },
@@ -285,63 +285,7 @@ export const vouchers = [
   },
 ];
 
-export const blogPosts = [
-  {
-    id: 'blog-tiktok-shop-coupon-guide',
-    title: 'Cách sử dụng mã giảm giá TikTok Shop cho người mới',
-    slug: 'cach-su-dung-ma-giam-gia-tiktok-shop',
-    excerpt: 'Hướng dẫn chi tiết từ A-Z cách lấy và sử dụng mã giảm giá trên TikTok Shop',
-    content: '## Cách lấy mã giảm giá TikTok Shop\n\nMở TikTok Shop, kiểm tra mục voucher của sàn, voucher shop và các mã hiển thị trong phiên live. Hãy lưu mã trước khi thêm sản phẩm vào giỏ để hệ thống tự áp dụng khi thanh toán.\n\n## Cách dùng mã hiệu quả\n\nKiểm tra điều kiện đơn tối thiểu, ngành hàng áp dụng và thời hạn. Nếu có nhiều mã, ưu tiên mã freeship trước, sau đó thử mã sàn và mã shop để tìm tổng giảm tốt nhất.',
-    cover_image: 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=400&fit=crop',
-    category: 'Hướng dẫn',
-    status: 'published',
-    published_at: fixedDate('2026-06-05'),
-  },
-  {
-    id: 'blog-lazada-codes-june-2026',
-    title: 'Top 10 mã giảm giá Lazada không thể bỏ lỡ tháng 6/2026',
-    slug: 'top-10-ma-giam-gia-lazada-thang-6-2026',
-    excerpt: 'Tổng hợp những mã giảm giá giá trị nhất từ Lazada trong tháng 6',
-    content: '## Những nhóm mã Lazada nên lưu\n\nTrong tháng 6/2026, người mua nên kiểm tra mã toàn sàn, mã hoàn xu, voucher ngành hàng và deal freeship trước khi thanh toán.\n\n## Mẹo áp mã\n\nHãy thêm sản phẩm vào giỏ sớm, lưu mã vào ví voucher và thử nhiều tổ hợp mã để tìm mức giảm tốt nhất cho đơn hàng.',
-    cover_image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop',
-    category: 'Mã giảm giá',
-    status: 'published',
-    published_at: fixedDate('2026-06-03'),
-  },
-  {
-    id: 'blog-shopee-hunt-code-2026',
-    title: 'Hướng dẫn săn mã giảm giá Shopee hiệu quả nhất 2026',
-    slug: 'huong-dan-san-ma-giam-gia-shopee-2026',
-    excerpt: 'Tổng hợp các mẹo và thủ thuật giúp bạn luôn lấy được mã giảm giá Shopee nhanh nhất',
-    content: '## Chuẩn bị trước giờ sale\n\nTheo dõi lịch sale, lưu sẵn voucher, thêm sản phẩm vào giỏ và kiểm tra điều kiện áp dụng trước khung giờ cao điểm.\n\n## Khi thanh toán\n\nƯu tiên chọn mã freeship, mã shop và mã sàn theo thứ tự có lợi nhất. Với flash sale, hãy kiểm tra tồn kho và thanh toán ngay khi giá đã đúng.',
-    cover_image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&h=400&fit=crop',
-    category: 'Mẹo săn mã',
-    status: 'published',
-    published_at: fixedDate('2026-06-01'),
-  },
-  {
-    id: 'blog-price-compare-shopee-lazada-tiki',
-    title: 'So sánh giá giữa Shopee, Lazada và Tiki - Sàn nào rẻ hơn?',
-    slug: 'so-sanh-gia-shopee-lazada-tiki',
-    excerpt: 'Phân tích chi tiết giá cả và chính sách khuyến mãi giữa 3 sàn lớn',
-    content: '## Mỗi sàn có thế mạnh riêng\n\nShopee thường mạnh về số lượng shop và mã freeship. Lazada nổi bật ở deal thương hiệu và voucher ngành hàng. Tiki phù hợp với sản phẩm chính hãng, sách, hàng gia dụng và giao nhanh.\n\n## Cách chọn sàn rẻ nhất\n\nSo sánh tổng tiền cuối cùng sau khi áp mã, phí vận chuyển và hoàn xu. Đừng chỉ nhìn giá niêm yết, vì voucher có thể làm tổng đơn thay đổi đáng kể.',
-    cover_image: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=800&h=400&fit=crop',
-    category: 'Review',
-    status: 'published',
-    published_at: fixedDate('2026-05-28'),
-  },
-  {
-    id: 'blog-five-saving-tips-online-sale',
-    title: '5 mẹo tiết kiệm khi mua sắm online mùa sale',
-    slug: '5-meo-tiet-kiem-mua-sam-online',
-    excerpt: 'Chia sẻ kinh nghiệm mua sắm thông minh, tiết kiệm tối đa trong mùa sale',
-    content: '## 5 mẹo nên áp dụng\n\nLập danh sách sản phẩm cần mua, theo dõi giá trước ngày sale, lưu voucher sớm, so sánh nhiều sàn và kiểm tra đánh giá shop trước khi thanh toán.\n\n## Mua thông minh hơn\n\nMùa sale có nhiều ưu đãi hấp dẫn, nhưng chỉ nên mua sản phẩm thật sự cần thiết và luôn kiểm tra tổng chi phí sau khi áp mã.',
-    cover_image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop',
-    category: 'Mẹo tiết kiệm',
-    status: 'published',
-    published_at: fixedDate('2026-05-25'),
-  },
-];
+export const blogPosts = seoBlogPosts;
 
 export const staleSeedBlogPostIds = [
   'blog-cach-dung-ma-giam-gia',

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import VoucherGrid from '../components/voucher/VoucherGrid';
 import BrandLogo from '@/components/brand/BrandLogo';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, PLATFORM_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 const platformConfig = {
   shopee: {
@@ -96,9 +97,13 @@ export default function PlatformPage() {
   return (
     <div>
       <Seo
-        title={`Mã giảm giá ${config.name}`}
+        title={`Mã giảm giá ${config.name} hôm nay, voucher ${config.name} mới nhất`}
         description={config.desc}
         path={`/san/${slug}`}
+        keywords={mergeKeywords(BASE_KEYWORDS, PLATFORM_KEYWORDS[slug], [
+          `mã giảm giá ${config.name.toLowerCase()}`,
+          `voucher ${config.name.toLowerCase()}`,
+        ])}
       />
       <div className={`bg-gradient-to-r ${config.color} text-white`}>
         <div className="max-w-7xl mx-auto px-4 py-10 sm:py-14">

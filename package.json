@@ -20,7 +20,8 @@
     "db:studio": "prisma studio",
     "prisma:generate": "prisma generate",
     "sync:accesstrade": "node scripts/sync-accesstrade.js",
-    "seed:homepage": "node scripts/seed-homepage-content.js"
+    "seed:homepage": "node scripts/seed-homepage-content.js",
+    "seed:seo-content": "node scripts/sync-seo-blog-posts.js"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",

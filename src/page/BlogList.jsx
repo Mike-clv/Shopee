@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, BLOG_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 export default function BlogList() {
   const { data: posts = [], isLoading } = useQuery({
@@ -15,9 +16,15 @@ export default function BlogList() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Seo
-        title="Blog và mẹo săn mã"
-        description="Tổng hợp mẹo săn sale, cách sử dụng mã giảm giá hiệu quả và kinh nghiệm mua sắm tiết kiệm."
+        title="Mẹo săn sale Shopee, Lazada, Tiki | Blog mã giảm giá"
+        description="Tổng hợp mẹo săn sale, cách áp mã giảm giá Shopee, Lazada, Tiki, TikTok Shop và kinh nghiệm mua sắm tiết kiệm."
         path="/blog"
+        keywords={mergeKeywords(BASE_KEYWORDS, BLOG_KEYWORDS, [
+          'blog mã giảm giá',
+          'blog ma giam gia',
+          'cách săn sale shopee',
+          'cach san sale shopee',
+        ])}
       />
 
       <h1 className="text-2xl sm:text-3xl font-bold font-heading mb-2">Blog & Mẹo Săn Mã</h1>

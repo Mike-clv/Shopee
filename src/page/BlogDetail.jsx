@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, BLOG_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 export default function BlogDetail() {
   const slug = window.location.pathname.split('/blog/')[1];
@@ -47,11 +48,17 @@ export default function BlogDetail() {
   return (
     <article className="max-w-3xl mx-auto px-4 py-8">
       <Seo
-        title={post.title}
-        description={post.excerpt || post.content}
+        title={post.seo_title || post.title}
+        description={post.seo_description || post.excerpt || post.content}
         path={`/blog/${post.slug || post.id}`}
         image={post.cover_image}
         type="article"
+        keywords={mergeKeywords(BASE_KEYWORDS, BLOG_KEYWORDS, [
+          post.title,
+          post.category || '',
+          post.category ? `${post.category} mã giảm giá` : '',
+          post.category ? `${post.category} ma giam gia` : '',
+        ])}
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'Article',

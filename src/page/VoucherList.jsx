@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Filter, X } from 'lucide-react';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, VOUCHER_PAGE_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 const platformOptions = [
   { value: 'all', label: 'Tất cả sàn' },
@@ -85,9 +86,10 @@ export default function VoucherList() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Seo
-        title="Mã giảm giá"
-        description="Tổng hợp mã giảm giá, voucher, coupon và deal hot mới nhất từ nhiều sàn thương mại điện tử."
+        title="Mã giảm giá hôm nay - voucher Shopee, Lazada, Tiki, TikTok Shop"
+        description="Tổng hợp mã giảm giá hôm nay, voucher Shopee, Lazada, Tiki, TikTok Shop và deal hot mới nhất từ nhiều sàn thương mại điện tử."
         path="/ma-giam-gia"
+        keywords={mergeKeywords(BASE_KEYWORDS, VOUCHER_PAGE_KEYWORDS)}
       />
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold font-heading mb-2">Mã Giảm Giá</h1>

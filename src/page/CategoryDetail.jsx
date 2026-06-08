@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import VoucherGrid from '../components/voucher/VoucherGrid';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, CATEGORY_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 export default function CategoryDetail() {
   const slug = window.location.pathname.split('/danh-muc/')[1];
@@ -47,9 +48,14 @@ export default function CategoryDetail() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Seo
-        title={`Mã giảm giá ${category.name}`}
-        description={category.description || `Tổng hợp mã giảm giá, voucher và deal mới nhất cho danh mục ${category.name}.`}
+        title={category.seo_title || `Mã giảm giá ${category.name} hôm nay`}
+        description={category.seo_description || category.description || `Tổng hợp mã giảm giá, voucher và deal mới nhất cho danh mục ${category.name}.`}
         path={`/danh-muc/${category.slug}`}
+        keywords={mergeKeywords(BASE_KEYWORDS, CATEGORY_KEYWORDS, [
+          `mã giảm giá ${category.name}`,
+          `ma giam gia ${category.name}`,
+          `${category.name} voucher`,
+        ])}
       />
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 flex-wrap">
         <Link to="/" className="hover:text-primary flex items-center gap-1"><Home className="w-3.5 h-3.5" /> Trang chủ</Link>

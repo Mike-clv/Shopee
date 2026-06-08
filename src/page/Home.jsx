@@ -11,7 +11,14 @@ import HotVoucherBannerSlot from '../components/home/HotVoucherBannerSlot';
 import BlogTipsSection from '../components/home/BlogTipsSection';
 import InterestSection from '../components/home/InterestSection';
 import FAQSection from '../components/home/FAQSection';
-import { DEFAULT_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
+import {
+  DEFAULT_DESCRIPTION,
+  HOME_KEYWORDS,
+  SITE_NAME,
+  SITE_URL,
+  BASE_KEYWORDS,
+  mergeKeywords,
+} from '@/lib/site';
 
 export default function Home() {
   const { data: homepage, isLoading } = useQuery({
@@ -31,9 +38,10 @@ export default function Home() {
   return (
     <div>
       <Seo
-        title="Mã giảm giá, voucher, deal hot mỗi ngày"
+        title="Mã giảm giá Shopee, Lazada, Tiki, TikTok Shop hôm nay"
         description={DEFAULT_DESCRIPTION}
         path="/"
+        keywords={mergeKeywords(BASE_KEYWORDS, HOME_KEYWORDS)}
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'WebSite',

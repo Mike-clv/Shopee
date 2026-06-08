@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Seo from '@/components/Seo';
+import { BASE_KEYWORDS, CATEGORY_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 const iconMap = {
   Shirt,
@@ -43,9 +44,15 @@ export default function CategoryList() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Seo
-        title="Danh mục"
-        description="Tìm mã giảm giá theo từng ngành hàng như thời trang, mỹ phẩm, điện tử, đồ ăn, du lịch và nhiều danh mục khác."
+        title="Danh mục mã giảm giá theo ngành hàng"
+        description="Tìm mã giảm giá theo từng ngành hàng như thời trang, mỹ phẩm, điện tử, đồ ăn, du lịch, mẹ và bé cùng nhiều danh mục khác."
         path="/danh-muc"
+        keywords={mergeKeywords(BASE_KEYWORDS, CATEGORY_KEYWORDS, [
+          'mã giảm giá thời trang',
+          'ma giam gia thoi trang',
+          'mã giảm giá mỹ phẩm',
+          'ma giam gia my pham',
+        ])}
       />
 
       <h1 className="text-2xl sm:text-3xl font-bold font-heading mb-2">Danh mục</h1>

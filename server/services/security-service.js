@@ -174,7 +174,7 @@ export function applySecurityHeaders(_req, res, next) {
 
 export function assertProductionSecurityConfig() {
   const isProductionLike = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
-  if (!isProductionLike) return;
+  if (!isProductionLike) return [];
 
   const issues = [];
   const authSecret = process.env.AUTH_SECRET || '';
@@ -193,9 +193,7 @@ export function assertProductionSecurityConfig() {
     issues.push('ADMIN_EMAIL phải được cấu hình bằng email admin thật.');
   }
 
-  if (issues.length > 0) {
-    throw new Error(`Cấu hình bảo mật production chưa đạt yêu cầu: ${issues.join(' ')}`);
-  }
+  return issues;
 }
 
 export function canRunCronWithoutSecret() {

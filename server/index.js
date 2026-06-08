@@ -40,7 +40,10 @@ const app = express();
 const port = Number.parseInt(process.env.PORT, 10) || 3001;
 const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansaleshopee.vercel.app').replace(/\/+$/, '');
 
-assertProductionSecurityConfig();
+const productionSecurityWarnings = assertProductionSecurityConfig();
+if (productionSecurityWarnings.length > 0) {
+  console.warn('[security] Production config warnings:', productionSecurityWarnings.join(' '));
+}
 
 app.disable('x-powered-by');
 

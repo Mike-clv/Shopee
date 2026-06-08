@@ -16,7 +16,7 @@ export default function InterestSection({ posts: providedPosts }) {
   if (!visiblePosts.length) return null;
 
   return (
-    <section className="py-10">
+    <section id="co-the-ban-quan-tam" className="py-10">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="section-heading-pro text-xl sm:text-2xl font-bold font-heading">Có Thể Bạn Quan Tâm</h2>

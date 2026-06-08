@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -103,6 +104,7 @@ export default function MarkdownContent({ content = '', className = '' }) {
   return (
     <div className={cn('prose prose-sm max-w-none sm:prose', className)}>
       <ReactMarkdown
+        remarkPlugins={[remarkBreaks]}
         components={{
           p: ({ children }) => {
             const items = React.Children.toArray(children).filter((child) => {

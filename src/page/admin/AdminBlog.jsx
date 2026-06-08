@@ -177,6 +177,7 @@ export default function AdminBlog() {
                       <div
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
+                        style={dragProvided.draggableProps.style}
                         className={`flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-shadow ${
                           snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
                         }`}
@@ -185,7 +186,7 @@ export default function AdminBlog() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-10 w-10 shrink-0 cursor-grab rounded-full text-muted-foreground"
+                          className="h-10 w-10 shrink-0 cursor-grab touch-none select-none rounded-full text-muted-foreground active:cursor-grabbing"
                           aria-label="Kéo để sắp xếp"
                           {...dragProvided.dragHandleProps}
                         >

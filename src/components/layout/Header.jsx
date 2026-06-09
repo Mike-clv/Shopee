@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, Tag, Settings } from 'lucide-react';
+import { Menu, Search, Settings, Tag } from 'lucide-react';
+import { localClient } from '@/api/localClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { localClient } from '@/api/localClient';
 
 const platforms = [
   { name: 'Shopee', slug: 'shopee', color: 'text-orange-500' },
@@ -71,7 +71,9 @@ export default function Header() {
               <Tag className="h-5 w-5 text-primary-foreground" />
             </div>
             <div className="block">
-              <h1 className="brand-title whitespace-nowrap text-base font-bold font-heading leading-tight sm:text-lg">Mã Giảm Giá</h1>
+              <h1 className="brand-title whitespace-nowrap text-lg font-bold font-heading leading-tight sm:text-xl xl:text-[1.7rem]">
+                Mã Giảm Giá
+              </h1>
               <p className="brand-pro -mt-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">PRO</p>
             </div>
           </Link>

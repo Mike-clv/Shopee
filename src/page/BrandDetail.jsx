@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ChevronRight, ExternalLink, Globe2, Home, Ticket, Store } from 'lucide-react';
+import { ArrowUpRight, ChevronRight, ExternalLink, Globe2, Home } from 'lucide-react';
 import { localClient } from '@/api/localClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,13 @@ export default function BrandDetail() {
   const websiteHost = brand?.website_url
     ? brand.website_url.replace(/^https?:\/\//i, '').replace(/\/.*$/, '')
     : '';
+  const sanitizedDescription = (() => {
+    const raw = String(brand?.description || '').trim();
+    if (!raw) return '';
+    if (/logo\s+(sàn|thuong hieu|thương hiệu)/i.test(raw)) return '';
+    if (/khu vực thương hiệu nổi bật/i.test(raw)) return '';
+    return raw;
+  })();
 
   if (loadingBrand) {
     return (
@@ -118,33 +125,23 @@ export default function BrandDetail() {
                   ) : null}
                 </div>
 
-                <h1 className="mt-3 text-3xl font-bold leading-tight font-heading text-foreground sm:text-[2.1rem]">
+                <div className="mt-4 inline-flex rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/90">
+                  Thương hiệu {brand.platform ? platformNames[brand.platform] : 'nổi bật'}
+                </div>
+
+                <h1 className="mt-3 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-4xl font-black leading-none text-transparent sm:text-[3.2rem]">
                   {brand.name}
                 </h1>
 
-                <p className="mt-2 text-sm leading-6 text-muted-foreground sm:max-w-2xl">
-                  {brand.description || `Tổng hợp voucher, mã giảm giá và ưu đãi mới nhất từ ${brand.name} để anh dễ theo dõi và chuyển sang website chính hãng nhanh hơn.`}
+                <p className="mt-3 text-base font-medium text-foreground/80 sm:max-w-2xl">
+                  {voucherCount} mã giảm giá đang còn hiệu lực
                 </p>
 
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-                  <div className="rounded-2xl border border-border bg-background/90 px-4 py-3 shadow-sm">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground sm:justify-start">
-                      <Ticket className="h-4 w-4 text-primary" />
-                      <span className="text-[11px] uppercase tracking-[0.18em]">Voucher</span>
-                    </div>
-                    <p className="mt-2 text-lg font-semibold text-foreground">{voucherCount} mã giảm giá</p>
-                  </div>
-
-                  <div className="rounded-2xl border border-border bg-background/90 px-4 py-3 shadow-sm">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground sm:justify-start">
-                      <Store className="h-4 w-4 text-primary" />
-                      <span className="text-[11px] uppercase tracking-[0.18em]">Website</span>
-                    </div>
-                    <p className="mt-2 line-clamp-1 text-sm font-semibold text-foreground">
-                      {websiteHost || 'Chưa cập nhật'}
-                    </p>
-                  </div>
-                </div>
+                {sanitizedDescription ? (
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground sm:max-w-2xl">
+                    {sanitizedDescription}
+                  </p>
+                ) : null}
               </div>
             </div>
 
@@ -170,9 +167,11 @@ export default function BrandDetail() {
                     </Button>
                   </a>
 
-                  <p className="mt-3 line-clamp-1 text-center text-xs text-muted-foreground">
-                    {websiteHost}
-                  </p>
+                  {websiteHost ? (
+                    <p className="mt-3 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                      Website chính hãng
+                    </p>
+                  ) : null}
                 </div>
               </div>
             ) : null}

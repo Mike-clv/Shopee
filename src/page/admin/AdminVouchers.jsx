@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useState } from 'react';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { GripVertical, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { toast } from 'sonner';
 
 const emptyVoucher = {
   title: '',
@@ -40,6 +41,34 @@ const emptyVoucher = {
   is_featured: false,
   sort_order: 0,
 };
+
+function sortVouchersByPriority(items = []) {
+  return [...items].sort((left, right) => {
+    const leftOrder = Number.isFinite(Number(left?.sort_order)) ? Number(left.sort_order) : 0;
+    const rightOrder = Number.isFinite(Number(right?.sort_order)) ? Number(right.sort_order) : 0;
+
+    if (leftOrder !== rightOrder) {
+      return rightOrder - leftOrder;
+    }
+
+    const leftDate = new Date(left?.created_date || 0).getTime();
+    const rightDate = new Date(right?.created_date || 0).getTime();
+
+    return rightDate - leftDate;
+  });
+}
+
+function reorderItems(items, startIndex, endIndex) {
+  const next = [...items];
+  const [removed] = next.splice(startIndex, 1);
+  next.splice(endIndex, 0, removed);
+
+  const total = next.length;
+  return next.map((item, index) => ({
+    ...item,
+    sort_order: total - index,
+  }));
+}
 
 function StatusBadge({ status }) {
   return (
@@ -73,11 +102,12 @@ export default function AdminVouchers() {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [orderedVouchers, setOrderedVouchers] = useState([]);
   const qc = useQueryClient();
 
   const { data: vouchers = [], isLoading } = useQuery({
     queryKey: ['admin-vouchers-list'],
-    queryFn: () => localClient.entities.Voucher.list('-created_date', 200),
+    queryFn: () => localClient.entities.Voucher.list('-sort_order', 200),
   });
 
   const { data: brands = [] } = useQuery({
@@ -90,6 +120,25 @@ export default function AdminVouchers() {
     queryFn: () => localClient.entities.Category.list('name', 50),
   });
 
+  useEffect(() => {
+    setOrderedVouchers(sortVouchersByPriority(vouchers));
+  }, [vouchers]);
+
+  const visibleVouchers = useMemo(() => sortVouchersByPriority(orderedVouchers), [orderedVouchers]);
+
+  const filtered = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    if (!keyword) return visibleVouchers;
+
+    return visibleVouchers.filter((voucher) =>
+      (voucher.title || '').toLowerCase().includes(keyword)
+      || (voucher.code || '').toLowerCase().includes(keyword)
+      || (voucher.brand_name || '').toLowerCase().includes(keyword),
+    );
+  }, [search, visibleVouchers]);
+
+  const isFiltering = search.trim().length > 0;
+
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (data.id) {
@@ -100,9 +149,32 @@ export default function AdminVouchers() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
       setShowForm(false);
       setEditing(null);
       toast.success('Đã lưu voucher');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể lưu voucher');
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (items) => Promise.all(
+      items.map((item) => localClient.entities.Voucher.update(item.id, { sort_order: item.sort_order })),
+    ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      toast.success('Đã cập nhật thứ tự voucher');
+    },
+    onError: (error, _items, previousItems) => {
+      if (previousItems) {
+        setOrderedVouchers(previousItems);
+      }
+      toast.error(error.message || 'Không thể cập nhật thứ tự voucher');
     },
   });
 
@@ -110,15 +182,14 @@ export default function AdminVouchers() {
     mutationFn: (id) => localClient.entities.Voucher.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
       toast.success('Đã xóa voucher');
     },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể xóa voucher');
+    },
   });
-
-  const filtered = vouchers.filter((voucher) =>
-    (voucher.title || '').toLowerCase().includes(search.toLowerCase())
-    || (voucher.code || '').toLowerCase().includes(search.toLowerCase())
-    || (voucher.brand_name || '').toLowerCase().includes(search.toLowerCase()),
-  );
 
   const handleEdit = (voucher) => {
     setEditing({ ...voucher });
@@ -126,21 +197,31 @@ export default function AdminVouchers() {
   };
 
   const handleNew = () => {
-    setEditing({ ...emptyVoucher });
+    setEditing({ ...emptyVoucher, sort_order: (visibleVouchers[0]?.sort_order || 0) + 1 });
     setShowForm(true);
   };
 
   const handleSave = () => {
-    if (!editing.title) {
+    if (!editing?.title) {
       toast.error('Vui lòng nhập tiêu đề');
       return;
     }
 
-    if (!editing.slug) {
-      editing.slug = editing.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    }
+    const payload = {
+      ...editing,
+      slug: editing.slug || editing.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+    };
 
-    saveMutation.mutate(editing);
+    saveMutation.mutate(payload);
+  };
+
+  const handleDragEnd = (result) => {
+    if (isFiltering || !result.destination || result.destination.index === result.source.index) return;
+
+    const previousItems = visibleVouchers;
+    const nextItems = reorderItems(visibleVouchers, result.source.index, result.destination.index);
+    setOrderedVouchers(nextItems);
+    reorderMutation.mutate(nextItems, { onError: () => setOrderedVouchers(previousItems) });
   };
 
   const updateField = (field, value) => setEditing((prev) => ({ ...prev, [field]: value }));
@@ -151,16 +232,16 @@ export default function AdminVouchers() {
         <div>
           <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Quản Lý Voucher</h1>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Tìm nhanh, chỉnh sửa gọn và quản lý ưu đãi thuận tay hơn trên điện thoại.
+            Kéo thả để ưu tiên voucher hiển thị trước. Khi đang tìm kiếm, hệ thống sẽ tạm khóa kéo-thả để tránh sắp xếp nhầm.
           </p>
         </div>
         <Button onClick={handleNew} className="h-12 gap-2 rounded-2xl shadow-sm">
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           Thêm voucher
         </Button>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 space-y-2">
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -170,124 +251,220 @@ export default function AdminVouchers() {
             className="h-12 rounded-2xl pl-10"
           />
         </div>
-      </div>
-
-      <div className="space-y-3 md:hidden">
-        {isLoading ? (
-          <div className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            Đang tải...
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            Không có voucher
-          </div>
+        {isFiltering ? (
+          <p className="text-xs text-muted-foreground">
+            Đang lọc danh sách. Xóa từ khóa tìm kiếm để kéo thả sắp xếp voucher.
+          </p>
         ) : (
-          filtered.map((voucher) => (
-            <div key={voucher.id} className="rounded-3xl border border-border bg-card p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="line-clamp-2 text-sm font-semibold leading-5">{voucher.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{voucher.brand_name || 'Chưa có thương hiệu'}</p>
-                </div>
-                <StatusBadge status={voucher.status} />
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                {voucher.code ? (
-                  <code className="rounded-full bg-primary/10 px-2.5 py-1 font-medium text-primary">{voucher.code}</code>
-                ) : null}
-                <span className="rounded-full bg-secondary px-2.5 py-1">{voucher.platform || 'other'}</span>
-              </div>
-
-              <div className="mt-3">
-                <VoucherFlags voucher={voucher} />
-              </div>
-
-              <div className="mt-4 flex items-center justify-end gap-2 border-t border-border/70 pt-3">
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleEdit(voucher)}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full text-destructive"
-                  onClick={() => {
-                    if (confirm('Xóa voucher này?')) deleteMutation.mutate(voucher.id);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ))
+          <p className="text-xs text-muted-foreground">
+            Kéo biểu tượng 6 chấm để đổi thứ tự ưu tiên hiển thị voucher.
+          </p>
         )}
       </div>
 
-      <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-secondary/50">
-                <th className="p-3 text-left font-medium">Voucher</th>
-                <th className="hidden p-3 text-left font-medium sm:table-cell">Mã</th>
-                <th className="hidden p-3 text-left font-medium md:table-cell">Sàn</th>
-                <th className="hidden p-3 text-left font-medium lg:table-cell">Trạng thái</th>
-                <th className="hidden p-3 text-left font-medium lg:table-cell">Tags</th>
-                <th className="p-3 text-right font-medium">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">Đang tải...</td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">Không có voucher</td>
-                </tr>
-              ) : (
-                filtered.map((voucher) => (
-                  <tr key={voucher.id} className="border-b transition-colors hover:bg-secondary/30">
-                    <td className="p-3">
-                      <p className="line-clamp-1 font-medium">{voucher.title}</p>
-                      <p className="text-xs text-muted-foreground">{voucher.brand_name}</p>
-                    </td>
-                    <td className="hidden p-3 sm:table-cell">
-                      {voucher.code ? (
-                        <code className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{voucher.code}</code>
-                      ) : null}
-                    </td>
-                    <td className="hidden p-3 text-xs md:table-cell">{voucher.platform}</td>
-                    <td className="hidden p-3 lg:table-cell">
-                      <StatusBadge status={voucher.status} />
-                    </td>
-                    <td className="hidden p-3 lg:table-cell">
-                      <VoucherFlags voucher={voucher} />
-                    </td>
-                    <td className="p-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => handleEdit(voucher)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-full text-destructive"
-                          onClick={() => {
-                            if (confirm('Xóa voucher này?')) deleteMutation.mutate(voucher.id);
-                          }}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="vouchers">
+          {(dropProvided) => (
+            <div ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
+              <div className="space-y-3 md:hidden">
+                {isLoading ? (
+                  <div className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+                    Đang tải...
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="rounded-3xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+                    Không có voucher
+                  </div>
+                ) : (
+                  filtered.map((voucher, index) => (
+                    <Draggable
+                      key={voucher.id}
+                      draggableId={voucher.id}
+                      index={index}
+                      isDragDisabled={isFiltering}
+                    >
+                      {(dragProvided, snapshot) => (
+                        <div
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          style={dragProvided.draggableProps.style}
+                          className={`rounded-3xl border border-border bg-card p-4 shadow-sm transition-shadow ${
+                            snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
+                          }`}
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                          <div className="flex items-start gap-3">
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              aria-label="Kéo để sắp xếp voucher"
+                              className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-secondary/40 text-muted-foreground transition-colors ${
+                                isFiltering
+                                  ? 'cursor-not-allowed opacity-50'
+                                  : 'cursor-grab touch-none select-none hover:bg-accent hover:text-accent-foreground active:cursor-grabbing'
+                              }`}
+                              {...(!isFiltering ? dragProvided.dragHandleProps : {})}
+                            >
+                              <GripVertical className="h-4 w-4" />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
+                                      #{index + 1}
+                                    </span>
+                                    <p className="line-clamp-2 text-sm font-semibold leading-5">{voucher.title}</p>
+                                  </div>
+                                  <p className="mt-1 text-xs text-muted-foreground">{voucher.brand_name || 'Chưa có thương hiệu'}</p>
+                                </div>
+                                <StatusBadge status={voucher.status} />
+                              </div>
+
+                              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                {voucher.code ? (
+                                  <code className="rounded-full bg-primary/10 px-2.5 py-1 font-medium text-primary">{voucher.code}</code>
+                                ) : null}
+                                <span className="rounded-full bg-secondary px-2.5 py-1">{voucher.platform || 'other'}</span>
+                              </div>
+
+                              <div className="mt-3">
+                                <VoucherFlags voucher={voucher} />
+                              </div>
+
+                              <div className="mt-4 flex items-center justify-end gap-2 border-t border-border/70 pt-3">
+                                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleEdit(voucher)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-10 w-10 rounded-full text-destructive"
+                                  onClick={() => {
+                                    if (confirm('Xóa voucher này?')) deleteMutation.mutate(voucher.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))
+                )}
+              </div>
+
+              <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-secondary/50">
+                        <th className="w-14 p-3 text-left font-medium">Kéo</th>
+                        <th className="p-3 text-left font-medium">Voucher</th>
+                        <th className="hidden p-3 text-left font-medium sm:table-cell">Mã</th>
+                        <th className="hidden p-3 text-left font-medium md:table-cell">Sàn</th>
+                        <th className="hidden p-3 text-left font-medium lg:table-cell">Trạng thái</th>
+                        <th className="hidden p-3 text-left font-medium lg:table-cell">Tags</th>
+                        <th className="p-3 text-right font-medium">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan={7} className="p-8 text-center text-muted-foreground">Đang tải...</td>
+                        </tr>
+                      ) : filtered.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="p-8 text-center text-muted-foreground">Không có voucher</td>
+                        </tr>
+                      ) : (
+                        filtered.map((voucher, index) => (
+                          <Draggable
+                            key={voucher.id}
+                            draggableId={voucher.id}
+                            index={index}
+                            isDragDisabled={isFiltering}
+                          >
+                            {(dragProvided, snapshot) => (
+                              <tr
+                                ref={dragProvided.innerRef}
+                                {...dragProvided.draggableProps}
+                                style={dragProvided.draggableProps.style}
+                                className={`border-b transition-colors hover:bg-secondary/30 ${
+                                  snapshot.isDragging ? 'bg-secondary/40 shadow-sm' : ''
+                                }`}
+                              >
+                                <td className="p-3 align-top">
+                                  <div
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label="Kéo để sắp xếp voucher"
+                                    className={`flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-secondary/40 text-muted-foreground transition-colors ${
+                                      isFiltering
+                                        ? 'cursor-not-allowed opacity-50'
+                                        : 'cursor-grab touch-none select-none hover:bg-accent hover:text-accent-foreground active:cursor-grabbing'
+                                    }`}
+                                    {...(!isFiltering ? dragProvided.dragHandleProps : {})}
+                                  >
+                                    <GripVertical className="h-4 w-4" />
+                                  </div>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
+                                      #{index + 1}
+                                    </span>
+                                    <div className="min-w-0">
+                                      <p className="line-clamp-1 font-medium">{voucher.title}</p>
+                                      <p className="text-xs text-muted-foreground">{voucher.brand_name}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="hidden p-3 sm:table-cell">
+                                  {voucher.code ? (
+                                    <code className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{voucher.code}</code>
+                                  ) : null}
+                                </td>
+                                <td className="hidden p-3 text-xs md:table-cell">{voucher.platform}</td>
+                                <td className="hidden p-3 lg:table-cell">
+                                  <StatusBadge status={voucher.status} />
+                                </td>
+                                <td className="hidden p-3 lg:table-cell">
+                                  <VoucherFlags voucher={voucher} />
+                                </td>
+                                <td className="p-3 text-right">
+                                  <div className="flex justify-end gap-1">
+                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => handleEdit(voucher)}>
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9 rounded-full text-destructive"
+                                      onClick={() => {
+                                        if (confirm('Xóa voucher này?')) deleteMutation.mutate(voucher.id);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Draggable>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              {dropProvided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-3xl">

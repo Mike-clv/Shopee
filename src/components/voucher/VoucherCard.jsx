@@ -81,13 +81,10 @@ export default function VoucherCard({ voucher, variant = 'default' }) {
   const discountText = renderDiscountText(voucher);
 
   const trackClick = async (type) => {
-    localClient.entities.ClickEvent.create({
-      voucher_id: voucher.id,
-      brand_id: voucher.brand_id || '',
-      event_type: type,
-      source_page: window.location.pathname,
-      voucher_title: voucher.title,
-      brand_name: voucher.brand_name || '',
+    localClient.analytics.track({
+      eventType: type,
+      voucher,
+      sourcePage: window.location.pathname,
     }).catch(() => {});
   };
 

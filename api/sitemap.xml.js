@@ -1,6 +1,6 @@
 import { listResource } from '../server/services/entity-service.js';
 
-const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansaleshopee.vercel.app').replace(/\/+$/, '');
+const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansale247.io.vn').replace(/\/+$/, '');
 
 function xmlEscape(value) {
   return String(value || '')

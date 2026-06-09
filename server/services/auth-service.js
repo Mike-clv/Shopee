@@ -1,10 +1,15 @@
 import crypto from 'node:crypto';
+import { isProductionLike } from './security-service.js';
 
 const COOKIE_NAME = 'admin_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 function getSecret() {
-  return process.env.AUTH_SECRET || 'change-me';
+  if (process.env.AUTH_SECRET) return process.env.AUTH_SECRET;
+  if (isProductionLike()) {
+    throw new Error('AUTH_SECRET chưa được cấu hình an toàn cho production.');
+  }
+  return 'change-me';
 }
 
 function base64url(input) {
@@ -108,7 +113,7 @@ export function requireAdmin(req, res, next) {
 }
 
 export function validateAdminCredentials(email, password) {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'change-me';
+  const adminEmail = process.env.ADMIN_EMAIL || (isProductionLike() ? '' : 'admin@example.com');
+  const adminPassword = process.env.ADMIN_PASSWORD || (isProductionLike() ? '' : 'change-me');
   return timingSafeMatch(email, adminEmail) && timingSafeMatch(password, adminPassword);
 }

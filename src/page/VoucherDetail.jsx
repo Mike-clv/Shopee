@@ -66,9 +66,10 @@ export default function VoucherDetail() {
 
   const handleCopy = async () => {
     if (!voucher?.code) return;
-    localClient.entities.ClickEvent.create({
-      voucher_id: voucher.id, event_type: 'copy', source_page: window.location.pathname,
-      voucher_title: voucher.title, brand_name: voucher.brand_name || '',
+    localClient.analytics.track({
+      eventType: 'copy',
+      voucher,
+      sourcePage: window.location.pathname,
     }).catch(() => {});
     try {
       await navigator.clipboard.writeText(voucher.code);
@@ -83,9 +84,10 @@ export default function VoucherDetail() {
 
   const handleGoToShop = () => {
     if (!voucher) return;
-    localClient.entities.ClickEvent.create({
-      voucher_id: voucher.id, event_type: 'click', source_page: window.location.pathname,
-      voucher_title: voucher.title, brand_name: voucher.brand_name || '',
+    localClient.analytics.track({
+      eventType: 'click',
+      voucher,
+      sourcePage: window.location.pathname,
     }).catch(() => {});
     const url = voucher.tracking_url || voucher.original_url || '#';
     window.open(url, '_blank', 'noopener');

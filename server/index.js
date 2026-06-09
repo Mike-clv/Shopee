@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import multer from 'multer';
@@ -24,21 +25,26 @@ import { publishScheduledContent } from './services/publish-service.js';
 import { saveImageUpload } from './services/upload-service.js';
 import {
   applySecurityHeaders,
+  attachPublicResourceMetadata,
   assertProductionSecurityConfig,
   buildPublicQuery,
   canRunCronWithoutSecret,
   clampLimit,
   createRateLimitMiddleware,
+  createSecurityEventLogger,
+  enforceProductionSecurityConfig,
   requireSameOrigin,
   validateAnalyticsPayload,
+  verifyAnalyticsToken,
 } from './services/security-service.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');
+enforceProductionSecurityConfig();
 const app = express();
 const port = Number.parseInt(process.env.PORT, 10) || 3001;
-const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansaleshopee.vercel.app').replace(/\/+$/, '');
+const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansale247.io.vn').replace(/\/+$/, '');
 
 const productionSecurityWarnings = assertProductionSecurityConfig();
 if (productionSecurityWarnings.length > 0) {
@@ -46,6 +52,8 @@ if (productionSecurityWarnings.length > 0) {
 }
 
 app.disable('x-powered-by');
+// Trust the first upstream proxy in production so req.ip reflects Cloudflare/Nginx.
+app.set('trust proxy', process.env.TRUST_PROXY || process.env.VERCEL ? 1 : false);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -63,13 +71,47 @@ const loginRateLimit = createRateLimitMiddleware({
 
 const analyticsRateLimit = createRateLimitMiddleware({
   keyPrefix: 'analytics',
-  max: Number.parseInt(process.env.ANALYTICS_RATE_LIMIT_MAX || '60', 10),
-  windowMs: Number.parseInt(process.env.ANALYTICS_RATE_LIMIT_WINDOW_MS || `${60 * 1000}`, 10),
+  max: Number.parseInt(process.env.ANALYTICS_RATE_LIMIT_MAX || '15', 10),
+  windowMs: Number.parseInt(process.env.ANALYTICS_RATE_LIMIT_WINDOW_MS || `${10 * 60 * 1000}`, 10),
   message: 'Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.',
+  keyBuilder: (req) => `${req.ip || 'unknown'}:${req.body?.voucher_id || 'unknown'}`,
 });
+
+const publicReadRateLimit = createRateLimitMiddleware({
+  keyPrefix: 'public-read',
+  max: Number.parseInt(process.env.PUBLIC_READ_RATE_LIMIT_MAX || '120', 10),
+  windowMs: Number.parseInt(process.env.PUBLIC_READ_RATE_LIMIT_WINDOW_MS || `${60 * 1000}`, 10),
+  message: 'Ban dang tai du lieu qua nhanh. Vui long cho it giay roi thu lai.',
+});
+
+const adminMutationRateLimit = createRateLimitMiddleware({
+  keyPrefix: 'admin-mutation',
+  max: Number.parseInt(process.env.ADMIN_MUTATION_RATE_LIMIT_MAX || '60', 10),
+  windowMs: Number.parseInt(process.env.ADMIN_MUTATION_RATE_LIMIT_WINDOW_MS || `${60 * 1000}`, 10),
+  message: 'Thao tac admin qua nhanh. Vui long cho it giay roi thu lai.',
+});
+
+const uploadRateLimit = createRateLimitMiddleware({
+  keyPrefix: 'upload',
+  max: Number.parseInt(process.env.UPLOAD_RATE_LIMIT_MAX || '20', 10),
+  windowMs: Number.parseInt(process.env.UPLOAD_RATE_LIMIT_WINDOW_MS || `${10 * 60 * 1000}`, 10),
+  message: 'Ban upload qua nhieu anh trong thoi gian ngan. Vui long thu lai sau.',
+});
+
+function maybeRateLimitPublicRead(req, res, next) {
+  const user = getSessionUser(req);
+  if (user?.role === 'admin') {
+    next();
+    return;
+  }
+
+  publicReadRateLimit(req, res, next);
+}
 
 app.use(applySecurityHeaders);
 app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: false, limit: '32kb' }));
+app.use(createSecurityEventLogger());
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -85,6 +127,11 @@ app.use((req, res, next) => {
     return;
   }
 
+  next();
+});
+
+app.use('/api/auth', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
   next();
 });
 
@@ -170,7 +217,7 @@ app.get('/sitemap.xml', async (_req, res, next) => {
   }
 });
 
-app.get('/api/homepage', async (_req, res, next) => {
+app.get('/api/homepage', maybeRateLimitPublicRead, async (_req, res, next) => {
   try {
     await publishScheduledContent();
 
@@ -195,8 +242,8 @@ app.get('/api/homepage', async (_req, res, next) => {
     ]);
 
     res.json({
-      hotVouchers,
-      newVouchers,
+      hotVouchers: attachPublicResourceMetadata('vouchers', hotVouchers, _req),
+      newVouchers: attachPublicResourceMetadata('vouchers', newVouchers, _req),
       categories,
       brands,
       topBanners,
@@ -254,7 +301,7 @@ app.post('/api/auth/reset-password', (_req, res) => {
   res.status(501).json({ message: 'Reset mật khẩu self-service chưa bật trong bản local. Hãy đổi ADMIN_PASSWORD trong .env.' });
 });
 
-app.post('/api/accesstrade/sync', requireSameOrigin, requireAdmin, async (req, res, next) => {
+app.post('/api/accesstrade/sync', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
   try {
     const result = await syncAccessTrade(req.body?.sync_type || 'campaigns');
     res.json(result);
@@ -263,7 +310,7 @@ app.post('/api/accesstrade/sync', requireSameOrigin, requireAdmin, async (req, r
   }
 });
 
-app.post('/api/uploads/image', requireSameOrigin, requireAdmin, upload.single('file'), async (req, res, next) => {
+app.post('/api/uploads/image', requireSameOrigin, requireAdmin, uploadRateLimit, upload.single('file'), async (req, res, next) => {
   try {
     const result = await saveImageUpload(req.file);
     res.status(201).json(result);
@@ -296,7 +343,7 @@ app.get('/api/cron/publish', async (req, res, next) => {
   }
 });
 
-app.get('/api/:resource', async (req, res, next) => {
+app.get('/api/:resource', maybeRateLimitPublicRead, async (req, res, next) => {
   try {
     const { resource } = req.params;
     if (resource === 'blog-posts' || resource === 'interest-posts') {
@@ -320,7 +367,7 @@ app.get('/api/:resource', async (req, res, next) => {
 
     const publicQuery = buildPublicQuery(resource, filters, sort, limit);
     const rows = await listResource(resource, publicQuery.filters, publicQuery.sort, publicQuery.limit);
-    res.json(rows);
+    res.json(attachPublicResourceMetadata(resource, rows, req));
   } catch (error) {
     next(error);
   }
@@ -337,6 +384,7 @@ app.post('/api/:resource', requireSameOrigin, async (req, res, next) => {
             ...(req.body || {}),
             event_type: resource === 'copy-events' ? 'copy' : req.body?.event_type,
           });
+          verifyAnalyticsToken(req, payload);
           const event = await trackEvent(payload);
           res.status(201).json(event);
         } catch (error) {
@@ -346,20 +394,20 @@ app.post('/api/:resource', requireSameOrigin, async (req, res, next) => {
       return;
     }
 
-    requireAdmin(req, res, async () => {
+    adminMutationRateLimit(req, res, () => requireAdmin(req, res, async () => {
       try {
         const row = await createResource(resource, req.body || {});
         res.status(201).json(row);
       } catch (error) {
         next(error);
       }
-    });
+    }));
   } catch (error) {
     next(error);
   }
 });
 
-app.put('/api/:resource/:id', requireSameOrigin, requireAdmin, async (req, res, next) => {
+app.put('/api/:resource/:id', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
   try {
     const row = await updateResource(req.params.resource, req.params.id, req.body || {});
     res.json(row);
@@ -368,7 +416,7 @@ app.put('/api/:resource/:id', requireSameOrigin, requireAdmin, async (req, res, 
   }
 });
 
-app.delete('/api/:resource/:id', requireSameOrigin, requireAdmin, async (req, res, next) => {
+app.delete('/api/:resource/:id', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
   try {
     const result = await deleteResource(req.params.resource, req.params.id);
     res.json(result);
@@ -394,7 +442,14 @@ app.use((error, _req, res, _next) => {
 });
 
 if (!process.env.VERCEL) {
-  app.listen(port, () => {
+  const server = http.createServer(app);
+  // Bound idle/slow client behavior to reduce connection-hoarding attacks.
+  server.requestTimeout = Number.parseInt(process.env.HTTP_REQUEST_TIMEOUT_MS || '15000', 10);
+  server.headersTimeout = Number.parseInt(process.env.HTTP_HEADERS_TIMEOUT_MS || '10000', 10);
+  server.keepAliveTimeout = Number.parseInt(process.env.HTTP_KEEPALIVE_TIMEOUT_MS || '5000', 10);
+  server.maxRequestsPerSocket = Number.parseInt(process.env.HTTP_MAX_REQUESTS_PER_SOCKET || '100', 10);
+
+  server.listen(port, () => {
     console.log(`API server listening on http://localhost:${port}`);
   });
 }

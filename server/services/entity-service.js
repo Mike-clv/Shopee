@@ -233,29 +233,54 @@ export async function deleteResource(resource, id) {
 export async function trackEvent(input) {
   const eventType = input.event_type === 'copy' ? 'copy' : 'click';
   const prisma = getPrisma();
-  const event = await createResource('click-events', {
-    ...input,
+  const voucher = await prisma.voucher.findUnique({
+    where: { id: input.voucher_id },
+    select: {
+      id: true,
+      title: true,
+      brand_id: true,
+      brand_name: true,
+      status: true,
+    },
+  });
+
+  if (!voucher || voucher.status !== 'active') {
+    const error = new Error('Voucher không tồn tại hoặc không còn hoạt động.');
+    error.status = 404;
+    throw error;
+  }
+
+  const eventPayload = {
+    voucher_id: voucher.id,
+    brand_id: voucher.brand_id || undefined,
     event_type: eventType,
+    source_page: input.source_page,
+    voucher_title: voucher.title,
+    brand_name: voucher.brand_name || undefined,
+  };
+
+  const event = await createResource('click-events', {
+    ...eventPayload,
   });
 
   if (eventType === 'copy') {
     await prisma.copyEvent.create({
-      data: sanitizeInput(resources['copy-events'], input),
+      data: sanitizeInput(resources['copy-events'], eventPayload),
     }).catch(() => {});
   }
 
-  if (input.voucher_id) {
+  if (voucher.id) {
     await prisma.voucher.update({
-      where: { id: input.voucher_id },
+      where: { id: voucher.id },
       data: {
         ...(eventType === 'copy' ? { copy_count: { increment: 1 } } : { click_count: { increment: 1 } }),
       },
     }).catch(() => {});
   }
 
-  if (input.brand_id && eventType === 'click') {
+  if (voucher.brand_id && eventType === 'click') {
     await prisma.brand.update({
-      where: { id: input.brand_id },
+      where: { id: voucher.brand_id },
       data: { click_count: { increment: 1 } },
     }).catch(() => {});
   }

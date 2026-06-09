@@ -1,4 +1,4 @@
-const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansaleshopee.vercel.app').replace(/\/+$/, '');
+const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansale247.io.vn').replace(/\/+$/, '');
 
 export default function handler(_req, res) {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');

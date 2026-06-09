@@ -33,6 +33,7 @@ Lưu ý:
 
 - Không đưa file `.env` lên GitHub.
 - Không dùng `localhost` trong `DATABASE_URL` khi deploy lên Vercel.
+- Tài liệu bảo mật và chống DDoS xem thêm tại `docs/SECURITY_HARDENING.md`.
 
 ## 3. Bật database local
 

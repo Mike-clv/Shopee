@@ -129,4 +129,21 @@ export const localClient = {
       });
     },
   },
+  analytics: {
+    track: ({ eventType = 'click', voucher = {}, sourcePage }) => {
+      const path = eventType === 'copy' ? 'copy-events' : 'click-events';
+      return request(`/api/${path}`, {
+        method: 'POST',
+        body: {
+          voucher_id: voucher.id,
+          brand_id: voucher.brand_id || '',
+          event_type: eventType,
+          source_page: sourcePage,
+          voucher_title: voucher.title,
+          brand_name: voucher.brand_name || '',
+          analytics_token: voucher.analytics_token || '',
+        },
+      });
+    },
+  },
 };

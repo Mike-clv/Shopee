@@ -1,5 +1,5 @@
 export const SITE_NAME = 'Mã Giảm Giá Pro';
-export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://sansaleshopee.vercel.app').replace(/\/+$/, '');
+export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://sansale247.io.vn').replace(/\/+$/, '');
 export const DEFAULT_DESCRIPTION =
   'Tổng hợp mã giảm giá, voucher, coupon và deal hot từ Shopee, Lazada, Tiki, TikTok Shop và nhiều thương hiệu uy tín.';
 export const DEFAULT_IMAGE = `${SITE_URL}/uploads/66.jpg`;

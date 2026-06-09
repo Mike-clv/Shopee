@@ -1,24 +1,24 @@
 import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Tag,
-  Store,
-  FolderOpen,
-  FileText,
-  RefreshCw,
-  BarChart3,
   ArrowLeft,
-  Images,
-  Newspaper,
+  BarChart3,
+  FileText,
   Flame,
-  Menu,
+  FolderOpen,
   Home,
+  Images,
+  LayoutDashboard,
   LogOut,
+  Menu,
+  Newspaper,
+  RefreshCw,
+  Store,
+  Tag,
 } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -58,6 +58,17 @@ export default function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-full border-destructive/30 text-destructive shadow-sm hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => logout(true)}
+              aria-label="Đăng xuất"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+
             <Button asChild variant="outline" size="icon" className="h-10 w-10 rounded-full shadow-sm">
               <Link to="/" aria-label="Về trang chủ">
                 <Home className="h-4 w-4" />
@@ -149,10 +160,22 @@ export default function AdminLayout() {
       <div className="flex">
         <aside className="sticky top-0 hidden min-h-screen w-60 flex-col border-r border-border bg-card lg:flex">
           <div className="border-b border-border p-4">
-            <Link to="/" className="mb-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
-              <ArrowLeft className="h-4 w-4" />
-              Về trang chủ
-            </Link>
+            <div className="mb-3 flex items-center gap-2">
+              <Link to="/" className="flex min-w-0 flex-1 items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+                <ArrowLeft className="h-4 w-4" />
+                Về trang chủ
+              </Link>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2 rounded-full border-destructive/30 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => logout(true)}
+              >
+                <LogOut className="h-4 w-4" />
+                Đăng xuất
+              </Button>
+            </div>
             <h2 className="font-heading text-lg font-bold">Admin CMS</h2>
           </div>
 

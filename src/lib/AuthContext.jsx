@@ -43,14 +43,14 @@ export const AuthProvider = ({ children }) => {
     checkAppState();
   }, [checkAppState]);
 
-  const logout = useCallback(async (shouldRedirect = true) => {
+  const logout = useCallback(async (redirectTo = '/') => {
     await localClient.auth.logout().catch(() => {});
     setUser(null);
     setIsAuthenticated(false);
     setAuthChecked(true);
 
-    if (shouldRedirect) {
-      window.location.href = '/login';
+    if (redirectTo) {
+      window.location.href = redirectTo;
     }
   }, []);
 
@@ -60,19 +60,21 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      isLoadingAuth,
-      isLoadingPublicSettings,
-      authError,
-      appPublicSettings,
-      authChecked,
-      logout,
-      navigateToLogin,
-      checkUserAuth,
-      checkAppState,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        isLoadingAuth,
+        isLoadingPublicSettings,
+        authError,
+        appPublicSettings,
+        authChecked,
+        logout,
+        navigateToLogin,
+        checkUserAuth,
+        checkAppState,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

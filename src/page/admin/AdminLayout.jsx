@@ -63,7 +63,7 @@ export default function AdminLayout() {
               variant="outline"
               size="icon"
               className="h-10 w-10 rounded-full border-destructive/30 text-destructive shadow-sm hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => logout(true)}
+              onClick={() => logout()}
               aria-label="Đăng xuất"
             >
               <LogOut className="h-4 w-4" />
@@ -109,15 +109,6 @@ export default function AdminLayout() {
                   </div>
 
                   <div className="border-t border-border p-3">
-                    <button
-                      type="button"
-                      onClick={() => logout(true)}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Đăng xuất
-                    </button>
-
                     <SheetClose asChild>
                       <Link
                         to="/"
@@ -170,7 +161,7 @@ export default function AdminLayout() {
                 variant="outline"
                 size="sm"
                 className="gap-2 rounded-full border-destructive/30 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => logout(true)}
+                onClick={() => logout()}
               >
                 <LogOut className="h-4 w-4" />
                 Đăng xuất
@@ -196,18 +187,6 @@ export default function AdminLayout() {
               </Link>
             ))}
           </nav>
-
-          <div className="border-t border-border p-3">
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => logout(true)}
-            >
-              <LogOut className="h-4 w-4" />
-              Đăng xuất
-            </Button>
-          </div>
         </aside>
 
         <main className="min-w-0 flex-1 overflow-x-hidden">

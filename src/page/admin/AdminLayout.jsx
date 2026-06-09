@@ -14,9 +14,11 @@ import {
   Flame,
   Menu,
   Home,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -33,6 +35,7 @@ const navItems = [
 ];
 
 export default function AdminLayout() {
+  const { logout } = useAuth();
   const location = useLocation();
   const currentItem = navItems.find((item) => item.path === location.pathname) || navItems[0];
   const CurrentIcon = currentItem.icon;
@@ -95,6 +98,15 @@ export default function AdminLayout() {
                   </div>
 
                   <div className="border-t border-border p-3">
+                    <button
+                      type="button"
+                      onClick={() => logout(true)}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Đăng xuất
+                    </button>
+
                     <SheetClose asChild>
                       <Link
                         to="/"
@@ -161,6 +173,18 @@ export default function AdminLayout() {
               </Link>
             ))}
           </nav>
+
+          <div className="border-t border-border p-3">
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => logout(true)}
+            >
+              <LogOut className="h-4 w-4" />
+              Đăng xuất
+            </Button>
+          </div>
         </aside>
 
         <main className="min-w-0 flex-1 overflow-x-hidden">

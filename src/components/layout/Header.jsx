@@ -64,14 +64,14 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-3">
-        <div className="flex items-center gap-4">
-          <Link to="/" className="group flex shrink-0 items-center gap-2.5">
+      <div className="mx-auto max-w-7xl px-3 py-3 sm:px-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link to="/" className="group flex shrink-0 items-center gap-2">
             <div className="brand-mark flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
               <Tag className="h-5 w-5 text-primary-foreground" />
             </div>
             <div className="block">
-              <h1 className="brand-title whitespace-nowrap text-lg font-bold font-heading leading-tight sm:text-xl xl:text-[1.7rem]">
+              <h1 className="brand-title whitespace-nowrap text-[1.35rem] font-bold font-heading leading-tight sm:text-[1.55rem] xl:text-[1.85rem]">
                 Mã Giảm Giá
               </h1>
               <p className="brand-pro -mt-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">PRO</p>

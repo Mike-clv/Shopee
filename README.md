@@ -40,6 +40,7 @@ Mac dinh theo `.env`:
 ```txt
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-me
+DATABASE_URL_UNPOOLED=postgresql://shopee:shopee@localhost:5432/shopee_magiamgia?schema=public
 ```
 
 ## Deploy
@@ -55,3 +56,8 @@ Xem chi tiet trong:
 ```txt
 docs/HUONG_DAN_SU_DUNG.md
 ```
+
+Luu y khi deploy Neon/Vercel:
+
+- `DATABASE_URL` dung cho runtime/pool.
+- `DATABASE_URL_UNPOOLED` dung cho `prisma migrate deploy` de tranh loi khi migrate qua connection pool.

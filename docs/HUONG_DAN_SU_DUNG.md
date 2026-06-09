@@ -27,6 +27,7 @@ AUTH_SECRET=change-me
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-me
 DATABASE_URL=postgresql://shopee:shopee@localhost:5432/shopee_magiamgia?schema=public
+DATABASE_URL_UNPOOLED=postgresql://shopee:shopee@localhost:5432/shopee_magiamgia?schema=public
 ```
 
 Lưu ý:
@@ -347,10 +348,16 @@ npx prisma generate && npx prisma migrate deploy && npm run build
 
 ```env
 DATABASE_URL=postgresql://...
+DATABASE_URL_UNPOOLED=postgresql://...
 AUTH_SECRET=...
 ADMIN_EMAIL=...
 ADMIN_PASSWORD=...
 ```
+
+Lưu ý với Neon/Vercel:
+
+- `DATABASE_URL` dùng cho runtime hoặc pooled connection.
+- `DATABASE_URL_UNPOOLED` dùng cho `prisma migrate deploy` để tránh lỗi migrate qua pool.
 
 Nếu dùng AccessTrade:
 

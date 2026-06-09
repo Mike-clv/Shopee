@@ -78,7 +78,7 @@ export default function Header() {
             </div>
           </Link>
 
-          <form onSubmit={handleSearch} className="hidden min-w-0 flex-1 md:flex md:max-w-none lg:max-w-2xl">
+          <form onSubmit={handleSearch} className="hidden max-w-xl flex-1 md:flex">
             <div className="relative w-full">
               <button
                 type="button"
@@ -92,7 +92,7 @@ export default function Header() {
                 placeholder="Tìm mã giảm giá, voucher, thương hiệu..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                className="h-10 rounded-full border-0 bg-secondary pl-10 pr-20 text-sm focus-visible:ring-primary"
+                className="h-10 rounded-full border-0 bg-secondary pl-10 pr-20 focus-visible:ring-primary"
               />
               <Button type="submit" size="sm" className="absolute right-1 top-1/2 h-8 -translate-y-1/2 rounded-full px-4">
                 Tìm

@@ -101,6 +101,34 @@ const accessTradeEmbedHtml = `<!doctype html>
         padding-top: 4px !important;
         padding-bottom: 4px !important;
       }
+      .atEQPOIVFSDFSDG-container-btncopy {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+      }
+      .atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 86px !important;
+        min-height: 30px !important;
+        padding: 6px 12px !important;
+        color: #fff !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        text-indent: 0 !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+      .atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy:empty::after {
+        content: "Lấy link";
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+      }
       #myModalDesktop .atEQPOIVFSDFSDG-at-modal-content,
       #myModalNextCouponDesktop .atEQPOIVFSDFSDG-at-modal-content {
         width: min(460px, calc(100vw - 48px)) !important;
@@ -256,6 +284,9 @@ const accessTradeEmbedHtml = `<!doctype html>
             '.atEQPOIVFSDFSDG-icon-search{display:inline-flex!important;}',
             '.atEQPOIVFSDFSDG-second-block{margin-top:0!important;margin-bottom:0!important;}',
             '.atEQPOIVFSDFSDG-coupon-pagination{padding-top:4px!important;padding-bottom:4px!important;}',
+            '.atEQPOIVFSDFSDG-container-btncopy{display:flex!important;justify-content:flex-end!important;align-items:center!important;}',
+            '.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:86px!important;min-height:30px!important;padding:6px 12px!important;color:#fff!important;font-size:13px!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important;text-indent:0!important;overflow:visible!important;opacity:1!important;visibility:visible!important;}',
+            '.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy:empty::after{content:"Lấy link";color:#fff;font-size:13px;font-weight:700;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-at-modal-content,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-at-modal-content{width:min(460px,calc(100vw - 48px))!important;max-width:460px!important;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-details-action,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-action{display:flex!important;align-items:center!important;gap:12px!important;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-code-coupon,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon{flex:1 1 auto!important;min-width:0!important;}',
@@ -312,6 +343,13 @@ const accessTradeEmbedHtml = `<!doctype html>
           }
         }
         function patchDetailButtons() {
+          var listButtons = document.querySelectorAll('.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy');
+          for (var k = 0; k < listButtons.length; k += 1) {
+            var listButton = listButtons[k];
+            listButton.textContent = 'L\\u1EA5y link';
+            listButton.setAttribute('aria-label', 'L\\u1EA5y link');
+          }
+
           function ensureDesktopButton(modalSelector) {
             var modal = document.querySelector(modalSelector);
             if (!modal) return;

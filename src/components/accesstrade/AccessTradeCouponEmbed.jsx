@@ -158,6 +158,13 @@ const accessTradeEmbedHtml = `<!doctype html>
       #myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon {
         flex: 1 1 auto !important;
         min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        font-size: 12px !important;
+        line-height: 1.2 !important;
       }
       #myModalDesktop .atEQPOIVFSDFSDG-details-dealact-copy,
       #myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-dealact-copy {
@@ -197,6 +204,13 @@ const accessTradeEmbedHtml = `<!doctype html>
       #myModalNextCoupon .atEQPOIVFSDFSDG-code-coupon-vmb {
         flex: 1 1 auto !important;
         min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        font-size: 12px !important;
+        line-height: 1.2 !important;
       }
       #myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb,
       #myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb {
@@ -303,13 +317,14 @@ const accessTradeEmbedHtml = `<!doctype html>
             '.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy:empty::after{content:"Lấy link";color:#fff;font-size:13px;font-weight:700;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-at-modal-content,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-at-modal-content{width:min(460px,calc(100vw - 48px))!important;max-width:460px!important;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-details-action,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-action{display:flex!important;align-items:center!important;gap:12px!important;}',
-            '#myModalDesktop .atEQPOIVFSDFSDG-code-coupon,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon{flex:1 1 auto!important;min-width:0!important;}',
+            '#myModalDesktop .atEQPOIVFSDFSDG-code-coupon,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon{flex:1 1 auto!important;min-width:0!important;display:flex!important;align-items:center!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;font-size:12px!important;line-height:1.2!important;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-details-dealact-copy,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-dealact-copy{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-width:132px!important;padding:10px 16px!important;visibility:visible!important;opacity:1!important;white-space:nowrap!important;overflow:visible!important;}',
             '.at-fixed-link-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-width:132px!important;padding:10px 16px!important;border-radius:12px!important;background:#5b4fd4!important;color:#fff!important;font-weight:700!important;text-decoration:none!important;white-space:nowrap!important;box-sizing:border-box!important;}',
             '#myModal .atEQPOIVFSDFSDG-details-action-content,#myModalNextCoupon .atEQPOIVFSDFSDG-details-action-content{display:flex!important;align-items:stretch!important;gap:10px!important;}',
-            '#myModal .atEQPOIVFSDFSDG-code-coupon-vmb,#myModalNextCoupon .atEQPOIVFSDFSDG-code-coupon-vmb{flex:1 1 auto!important;min-width:0!important;}',
+            '#myModal .atEQPOIVFSDFSDG-code-coupon-vmb,#myModalNextCoupon .atEQPOIVFSDFSDG-code-coupon-vmb{flex:1 1 auto!important;min-width:0!important;display:flex!important;align-items:center!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;font-size:12px!important;line-height:1.2!important;}',
             '#myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb,#myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-width:118px!important;padding:0 14px!important;white-space:nowrap!important;}',
-            '#myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,#myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,#myModal .atEQPOIVFSDFSDG-details-copy-btn-large,#myModalNextCoupon .atEQPOIVFSDFSDG-details-copy-btn-large{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;white-space:nowrap!important;}'
+            '#myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,#myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,#myModal .atEQPOIVFSDFSDG-details-copy-btn-large,#myModalNextCoupon .atEQPOIVFSDFSDG-details-copy-btn-large{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;white-space:nowrap!important;}',
+            '#myModal .atEQPOIVFSDFSDG-code-coupon-vmb > *,#myModalNextCoupon .atEQPOIVFSDFSDG-code-coupon-vmb > *,#myModalDesktop .atEQPOIVFSDFSDG-code-coupon > *,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon > *{min-width:0!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;box-sizing:border-box!important;}'
           ].join('');
           document.head.appendChild(style);
         }

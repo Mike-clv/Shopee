@@ -101,6 +101,66 @@ const accessTradeEmbedHtml = `<!doctype html>
         padding-top: 4px !important;
         padding-bottom: 4px !important;
       }
+      #myModalDesktop .atEQPOIVFSDFSDG-at-modal-content,
+      #myModalNextCouponDesktop .atEQPOIVFSDFSDG-at-modal-content {
+        width: min(460px, calc(100vw - 48px)) !important;
+        max-width: 460px !important;
+      }
+      #myModalDesktop .atEQPOIVFSDFSDG-details-action,
+      #myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-action {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      #myModalDesktop .atEQPOIVFSDFSDG-code-coupon,
+      #myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+      }
+      #myModalDesktop .atEQPOIVFSDFSDG-details-dealact-copy,
+      #myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-dealact-copy {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 0 0 auto !important;
+        min-width: 132px !important;
+        padding: 10px 16px !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+      }
+      #myModal .atEQPOIVFSDFSDG-details-action-content,
+      #myModalNextCoupon .atEQPOIVFSDFSDG-details-action-content {
+        display: flex !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+      }
+      #myModal .atEQPOIVFSDFSDG-code-coupon-vmb,
+      #myModalNextCoupon .atEQPOIVFSDFSDG-code-coupon-vmb {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+      }
+      #myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb,
+      #myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 0 0 auto !important;
+        min-width: 118px !important;
+        padding: 0 14px !important;
+        white-space: nowrap !important;
+      }
+      #myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,
+      #myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,
+      #myModal .atEQPOIVFSDFSDG-details-copy-btn-large,
+      #myModalNextCoupon .atEQPOIVFSDFSDG-details-copy-btn-large {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+      }
       @media (max-width: 640px) {
         #layout-wrapper,
         .atEQPOIVFSDFSDG-voucher-main { min-height: 0 !important; }
@@ -180,7 +240,15 @@ const accessTradeEmbedHtml = `<!doctype html>
             '.atEQPOIVFSDFSDG-label-search{display:inline-flex!important;visibility:visible!important;opacity:1!important;color:#fff!important;white-space:nowrap!important;font-size:14px!important;font-weight:700!important;}',
             '.atEQPOIVFSDFSDG-icon-search{display:inline-flex!important;}',
             '.atEQPOIVFSDFSDG-second-block{margin-top:0!important;margin-bottom:0!important;}',
-            '.atEQPOIVFSDFSDG-coupon-pagination{padding-top:4px!important;padding-bottom:4px!important;}'
+            '.atEQPOIVFSDFSDG-coupon-pagination{padding-top:4px!important;padding-bottom:4px!important;}',
+            '#myModalDesktop .atEQPOIVFSDFSDG-at-modal-content,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-at-modal-content{width:min(460px,calc(100vw - 48px))!important;max-width:460px!important;}',
+            '#myModalDesktop .atEQPOIVFSDFSDG-details-action,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-action{display:flex!important;align-items:center!important;gap:12px!important;}',
+            '#myModalDesktop .atEQPOIVFSDFSDG-code-coupon,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon{flex:1 1 auto!important;min-width:0!important;}',
+            '#myModalDesktop .atEQPOIVFSDFSDG-details-dealact-copy,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-dealact-copy{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-width:132px!important;padding:10px 16px!important;visibility:visible!important;opacity:1!important;white-space:nowrap!important;overflow:visible!important;}',
+            '#myModal .atEQPOIVFSDFSDG-details-action-content,#myModalNextCoupon .atEQPOIVFSDFSDG-details-action-content{display:flex!important;align-items:stretch!important;gap:10px!important;}',
+            '#myModal .atEQPOIVFSDFSDG-code-coupon-vmb,#myModalNextCoupon .atEQPOIVFSDFSDG-code-coupon-vmb{flex:1 1 auto!important;min-width:0!important;}',
+            '#myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb,#myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-width:118px!important;padding:0 14px!important;white-space:nowrap!important;}',
+            '#myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,#myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb a,#myModal .atEQPOIVFSDFSDG-details-copy-btn-large,#myModalNextCoupon .atEQPOIVFSDFSDG-details-copy-btn-large{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;white-space:nowrap!important;}'
           ].join('');
           document.head.appendChild(style);
         }
@@ -227,11 +295,40 @@ const accessTradeEmbedHtml = `<!doctype html>
             control.setAttribute('aria-label', 'Tìm kiếm');
           }
         }
+        function patchDetailButtons() {
+          var desktopButtons = document.querySelectorAll(
+            '#myModalDesktop .atEQPOIVFSDFSDG-details-dealact-copy, #myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-dealact-copy'
+          );
+          for (var i = 0; i < desktopButtons.length; i += 1) {
+            var desktopButton = desktopButtons[i];
+            desktopButton.textContent = 'L\\u1EA5y link';
+            desktopButton.setAttribute('aria-label', 'L\\u1EA5y link');
+          }
+
+          var mobileButtons = document.querySelectorAll(
+            '#myModal .atEQPOIVFSDFSDG-details-dealact-copy-vmb a, #myModalNextCoupon .atEQPOIVFSDFSDG-details-dealact-copy-vmb a, #myModal .atEQPOIVFSDFSDG-details-copy-btn-large, #myModalNextCoupon .atEQPOIVFSDFSDG-details-copy-btn-large'
+          );
+          for (var j = 0; j < mobileButtons.length; j += 1) {
+            var mobileButton = mobileButtons[j];
+            mobileButton.setAttribute('aria-label', 'L\\u1EA5y link');
+            if (mobileButton.classList.contains('atEQPOIVFSDFSDG-details-copy-btn-large')) {
+              mobileButton.textContent = 'L\\u1EA5y link';
+              continue;
+            }
+            var image = mobileButton.querySelector('img');
+            mobileButton.textContent = 'L\\u1EA5y link';
+            if (image) {
+              mobileButton.prepend(image);
+            }
+          }
+        }
         fitLayout();
         labelSearchButton();
+        patchDetailButtons();
         setInterval(function () {
           fitLayout();
           labelSearchButton();
+          patchDetailButtons();
         }, 500);
       })();
     </script>

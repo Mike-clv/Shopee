@@ -104,15 +104,29 @@ const accessTradeEmbedHtml = `<!doctype html>
       .atEQPOIVFSDFSDG-container-btncopy {
         display: flex !important;
         justify-content: flex-end !important;
-        align-items: center !important;
+        align-items: flex-end !important;
+        align-self: end !important;
+        width: auto !important;
+        margin-left: auto !important;
+        padding: 0 8px 0 0 !important;
+        box-sizing: border-box !important;
       }
       .atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy {
         display: inline-flex !important;
+        position: relative !important;
         align-items: center !important;
         justify-content: center !important;
         min-width: 86px !important;
-        min-height: 30px !important;
+        height: 30px !important;
+        margin: 0 !important;
         padding: 6px 12px !important;
+        border: none !important;
+        border-radius: 4px !important;
+        background: #6C5CE7 !important;
+        box-sizing: border-box !important;
+        float: none !important;
+        inset: auto !important;
+        transform: none !important;
         color: #fff !important;
         font-size: 13px !important;
         font-weight: 700 !important;
@@ -128,23 +142,6 @@ const accessTradeEmbedHtml = `<!doctype html>
         color: #fff;
         font-size: 13px;
         font-weight: 700;
-      }
-      .at-fixed-card-link-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        min-width: 86px !important;
-        min-height: 30px !important;
-        padding: 6px 12px !important;
-        border: none !important;
-        border-radius: 4px !important;
-        background: #6C5CE7 !important;
-        color: #fff !important;
-        font-size: 13px !important;
-        font-weight: 700 !important;
-        line-height: 1 !important;
-        white-space: nowrap !important;
-        cursor: pointer !important;
       }
       #myModalDesktop .atEQPOIVFSDFSDG-at-modal-content,
       #myModalNextCouponDesktop .atEQPOIVFSDFSDG-at-modal-content {
@@ -301,10 +298,9 @@ const accessTradeEmbedHtml = `<!doctype html>
             '.atEQPOIVFSDFSDG-icon-search{display:inline-flex!important;}',
             '.atEQPOIVFSDFSDG-second-block{margin-top:0!important;margin-bottom:0!important;}',
             '.atEQPOIVFSDFSDG-coupon-pagination{padding-top:4px!important;padding-bottom:4px!important;}',
-            '.atEQPOIVFSDFSDG-container-btncopy{display:flex!important;justify-content:flex-end!important;align-items:center!important;}',
-            '.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:86px!important;min-height:30px!important;padding:6px 12px!important;color:#fff!important;font-size:13px!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important;text-indent:0!important;overflow:visible!important;opacity:1!important;visibility:visible!important;}',
+            '.atEQPOIVFSDFSDG-container-btncopy{display:flex!important;justify-content:flex-end!important;align-items:flex-end!important;align-self:end!important;width:auto!important;margin-left:auto!important;padding:0 8px 0 0!important;box-sizing:border-box!important;}',
+            '.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy{display:inline-flex!important;position:relative!important;align-items:center!important;justify-content:center!important;min-width:86px!important;height:30px!important;margin:0!important;padding:6px 12px!important;border:none!important;border-radius:4px!important;background:#6C5CE7!important;box-sizing:border-box!important;float:none!important;inset:auto!important;transform:none!important;color:#fff!important;font-size:13px!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important;text-indent:0!important;overflow:visible!important;opacity:1!important;visibility:visible!important;}',
             '.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy:empty::after{content:"Lấy link";color:#fff;font-size:13px;font-weight:700;}',
-            '.at-fixed-card-link-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:86px!important;min-height:30px!important;padding:6px 12px!important;border:none!important;border-radius:4px!important;background:#6C5CE7!important;color:#fff!important;font-size:13px!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important;cursor:pointer!important;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-at-modal-content,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-at-modal-content{width:min(460px,calc(100vw - 48px))!important;max-width:460px!important;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-details-action,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-details-action{display:flex!important;align-items:center!important;gap:12px!important;}',
             '#myModalDesktop .atEQPOIVFSDFSDG-code-coupon,#myModalNextCouponDesktop .atEQPOIVFSDFSDG-code-coupon{flex:1 1 auto!important;min-width:0!important;}',
@@ -361,40 +357,51 @@ const accessTradeEmbedHtml = `<!doctype html>
           }
         }
         function patchDetailButtons() {
+          var staleListFallbackButtons = document.querySelectorAll('.at-fixed-card-link-btn');
+          for (var l = 0; l < staleListFallbackButtons.length; l += 1) {
+            staleListFallbackButtons[l].remove();
+          }
+
           var listButtons = document.querySelectorAll('.atEQPOIVFSDFSDG-container-btncopy .atEQPOIVFSDFSDG-dealact-copy');
           for (var k = 0; k < listButtons.length; k += 1) {
             var listButton = listButtons[k];
             listButton.textContent = 'L\\u1EA5y link';
             listButton.setAttribute('aria-label', 'L\\u1EA5y link');
-          }
+            listButton.style.display = 'inline-flex';
+            listButton.style.position = 'relative';
+            listButton.style.alignItems = 'center';
+            listButton.style.justifyContent = 'center';
+            listButton.style.minWidth = '86px';
+            listButton.style.height = '30px';
+            listButton.style.margin = '0';
+            listButton.style.padding = '6px 12px';
+            listButton.style.border = 'none';
+            listButton.style.borderRadius = '4px';
+            listButton.style.background = '#6C5CE7';
+            listButton.style.boxSizing = 'border-box';
+            listButton.style.color = '#fff';
+            listButton.style.fontSize = '13px';
+            listButton.style.fontWeight = '700';
+            listButton.style.lineHeight = '1';
+            listButton.style.whiteSpace = 'nowrap';
+            listButton.style.textIndent = '0';
+            listButton.style.overflow = 'visible';
+            listButton.style.opacity = '1';
+            listButton.style.visibility = 'visible';
+            listButton.style.float = 'none';
+            listButton.style.inset = 'auto';
+            listButton.style.transform = 'none';
 
-          var listButtonContainers = document.querySelectorAll('.atEQPOIVFSDFSDG-container-btncopy');
-          for (var m = 0; m < listButtonContainers.length; m += 1) {
-            var listContainer = listButtonContainers[m];
-            var sourceButton = listContainer.querySelector('.atEQPOIVFSDFSDG-dealact-copy');
-            if (!sourceButton) continue;
-
-            sourceButton.textContent = 'L\\u1EA5y link';
-            sourceButton.setAttribute('aria-label', 'L\\u1EA5y link');
-            sourceButton.style.display = 'none';
-
-            var fallbackListButton = listContainer.querySelector('.at-fixed-card-link-btn');
-            if (!fallbackListButton) {
-              fallbackListButton = document.createElement('button');
-              fallbackListButton.type = 'button';
-              fallbackListButton.className = 'at-fixed-card-link-btn';
-              fallbackListButton.addEventListener('click', function(event) {
-                var original = event.currentTarget._originalButton;
-                if (original) {
-                  original.click();
-                }
-              });
-              listContainer.appendChild(fallbackListButton);
-            }
-
-            fallbackListButton._originalButton = sourceButton;
-            fallbackListButton.textContent = 'L\\u1EA5y link';
-            fallbackListButton.setAttribute('aria-label', 'L\\u1EA5y link');
+            var listContainer = listButton.parentElement;
+            if (!listContainer) continue;
+            listContainer.style.display = 'flex';
+            listContainer.style.justifyContent = 'flex-end';
+            listContainer.style.alignItems = 'flex-end';
+            listContainer.style.alignSelf = 'end';
+            listContainer.style.width = 'auto';
+            listContainer.style.marginLeft = 'auto';
+            listContainer.style.paddingRight = '8px';
+            listContainer.style.boxSizing = 'border-box';
           }
 
           function ensureDesktopButton(modalSelector) {

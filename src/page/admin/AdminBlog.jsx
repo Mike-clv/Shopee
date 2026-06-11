@@ -21,6 +21,7 @@ import {
   sortContentByPriority,
   toDateTimeLocalValue,
 } from '@/lib/content-admin';
+import { convertAffiliateFieldValue } from '@/lib/affiliate-admin';
 
 const emptyPost = {
   title: '',
@@ -51,6 +52,7 @@ export default function AdminBlog() {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [orderedPosts, setOrderedPosts] = useState([]);
+  const [convertingField, setConvertingField] = useState('');
   const qc = useQueryClient();
 
   const { data: posts = [] } = useQuery({
@@ -143,6 +145,40 @@ export default function AdminBlog() {
     const nextItems = reorderItems(visiblePosts, result.source.index, result.destination.index);
     setOrderedPosts(nextItems);
     reorderMutation.mutate(nextItems, { onError: () => setOrderedPosts(previousItems) });
+  };
+
+  const convertAffiliateField = async (field, rawValue) => {
+    const trimmed = String(rawValue || '').trim();
+    if (!trimmed) return;
+
+    setConvertingField(field);
+    try {
+      const result = await convertAffiliateFieldValue(trimmed);
+      setEditing((current) => {
+        if (!current) return current;
+        const currentValue = String(current[field] || '').trim();
+        if (currentValue !== trimmed) return current;
+        return { ...current, [field]: result.cloakedUrl || trimmed };
+      });
+
+      if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
+        toast.success('Da chuyen sang link boc qua ten mien cua anh');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Khong the chuyen doi link affiliate');
+    } finally {
+      setConvertingField((current) => (current === field ? '' : current));
+    }
+  };
+
+  const handleAffiliatePaste = (field) => async (event) => {
+    const pastedText = event.clipboardData?.getData('text') || '';
+    if (!pastedText.trim()) return;
+
+    event.preventDefault();
+    const nextValue = pastedText.trim();
+    setEditing((current) => (current ? { ...current, [field]: nextValue } : current));
+    await convertAffiliateField(field, nextValue);
   };
 
   return (
@@ -296,8 +332,15 @@ export default function AdminBlog() {
                 <Input
                   value={editing.cover_target_url || ''}
                   onChange={(e) => setEditing({ ...editing, cover_target_url: e.target.value })}
+                  onBlur={(e) => {
+                    void convertAffiliateField('cover_target_url', e.target.value);
+                  }}
+                  onPaste={(e) => {
+                    void handleAffiliatePaste('cover_target_url')(e);
+                  }}
                   placeholder="https://link-affiliate-cua-anh.com"
                 />
+                {convertingField === 'cover_target_url' && <p className="mt-1 text-xs text-muted-foreground">Dang chuyen link san pham sang link boc...</p>}
                 <p className="mt-2 text-xs text-muted-foreground">
                   Nếu điền link này, khi người dùng bấm vào ảnh bìa ở trang chi tiết bài viết sẽ mở sang URL anh gắn.
                 </p>
@@ -336,6 +379,9 @@ export default function AdminBlog() {
               <div>
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={12} />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Khi luu bai, cac link san pham Shopee, Lazada, Tiki, TikTok Shop trong markdown se tu dong doi sang link boc `/go/...`.
+                </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Nút `Ảnh + link` sẽ chèn mẫu `[![mo-ta-anh](https://url-anh)](https://link-affiliate)` để bấm vào ảnh trong nội dung cũng ra đúng link của anh.
                 </p>

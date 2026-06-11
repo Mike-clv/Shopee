@@ -1,5 +1,6 @@
 import { getPrisma } from './prisma.js';
 import { mockData } from './mock-data.js';
+import { cloakAffiliateFields } from './accesstrade/deeplink.js';
 
 const commonFields = ['id', 'created_date', 'updated_date'];
 
@@ -212,14 +213,16 @@ export async function listResource(resource, filters = {}, sort, limit) {
 export async function createResource(resource, input) {
   const config = getConfig(resource);
   const prisma = getPrisma();
-  const data = sanitizeInput(config, input, { includeId: true });
+  const transformedInput = await cloakAffiliateFields(resource, input);
+  const data = sanitizeInput(config, transformedInput, { includeId: true });
   return prisma[config.model].create({ data });
 }
 
 export async function updateResource(resource, id, input) {
   const config = getConfig(resource);
   const prisma = getPrisma();
-  const data = sanitizeInput(config, input);
+  const transformedInput = await cloakAffiliateFields(resource, input);
+  const data = sanitizeInput(config, transformedInput);
   return prisma[config.model].update({ where: { id }, data });
 }
 

@@ -21,6 +21,7 @@ import {
   validateAdminCredentials,
 } from './services/auth-service.js';
 import { cleanupStaleAccessTradeSyncLogs, syncAccessTrade } from './services/accesstrade/sync.js';
+import { createAffiliateRouter } from './routes/affiliate-router.js';
 import { publishScheduledContent } from './services/publish-service.js';
 import { saveImageUpload } from './services/upload-service.js';
 import {
@@ -309,6 +310,12 @@ app.post('/api/accesstrade/sync', requireSameOrigin, requireAdmin, adminMutation
     next(error);
   }
 });
+
+app.use(createAffiliateRouter({
+  requireAdmin,
+  requireSameOrigin,
+  adminMutationRateLimit,
+}));
 
 app.post('/api/uploads/image', requireSameOrigin, requireAdmin, uploadRateLimit, upload.single('file'), async (req, res, next) => {
   try {

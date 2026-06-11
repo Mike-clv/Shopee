@@ -146,4 +146,10 @@ export const localClient = {
       });
     },
   },
+  affiliate: {
+    cloak: (url) => request('/api/affiliate/convert', {
+      method: 'POST',
+      body: { url },
+    }),
+  },
 };

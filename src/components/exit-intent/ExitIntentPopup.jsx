@@ -2,7 +2,7 @@ import React from 'react';
 import { Gift, TicketPercent } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import useExitIntent from './useExitIntent';
 
 function isExternalUrl(url) {
@@ -51,14 +51,14 @@ export default function ExitIntentPopup({ config }) {
           </div>
 
           <DialogDescription className="text-sm leading-6 text-muted-foreground">
-            {config.description || 'Nhận nhanh mã giảm giá và deal đang được áp dụng trên web.'}
+            {config.description || 'Nhận nhanh mã giảm giá và ưu đãi đang được áp dụng trên web.'}
           </DialogDescription>
 
           {config.imageUrl ? (
             <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-card">
               <img
                 src={config.imageUrl}
-                alt={config.title || 'Exit intent popup'}
+                alt={config.title || 'Popup giữ khách'}
                 className="h-44 w-full object-cover"
                 loading="lazy"
                 decoding="async"

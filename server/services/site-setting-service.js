@@ -4,25 +4,51 @@ export const EXIT_INTENT_POPUP_KEY = 'exit_intent_popup';
 
 const DEFAULT_EXIT_INTENT_POPUP = {
   enabled: false,
-  title: 'Dung bo lo ma giam gia hot hom nay',
-  description: 'Nhan nhanh ma giam gia va deal dang duoc ap dung tren web.',
+  title: 'Đừng bỏ lỡ mã giảm giá hot hôm nay',
+  description: 'Nhận nhanh mã giảm giá và ưu đãi đang được áp dụng trên web.',
   couponCode: '',
-  buttonLabel: 'Xem ma giam gia',
+  buttonLabel: 'Xem mã giảm giá',
   buttonUrl: '/tim-kiem?embed=1',
   imageUrl: '',
+};
+
+const LEGACY_EXIT_INTENT_POPUP_TEXT_MAP = {
+  title: new Map([
+    ['Dung bo lo ma giam gia hot hom nay', DEFAULT_EXIT_INTENT_POPUP.title],
+  ]),
+  description: new Map([
+    ['Nhan nhanh ma giam gia va deal dang duoc ap dung tren web.', DEFAULT_EXIT_INTENT_POPUP.description],
+  ]),
+  buttonLabel: new Map([
+    ['Xem ma giam gia', DEFAULT_EXIT_INTENT_POPUP.buttonLabel],
+  ]),
 };
 
 function sanitizeString(value, maxLength = 500) {
   return String(value || '').trim().slice(0, maxLength);
 }
 
+function normalizeLegacyExitIntentText(field, value, fallbackValue) {
+  const normalizedValue = sanitizeString(value, 1000);
+  if (!normalizedValue) {
+    return fallbackValue;
+  }
+
+  const fieldMap = LEGACY_EXIT_INTENT_POPUP_TEXT_MAP[field];
+  if (fieldMap?.has(normalizedValue)) {
+    return fieldMap.get(normalizedValue);
+  }
+
+  return normalizedValue;
+}
+
 export function normalizeExitIntentPopupValue(input = {}) {
   return {
     enabled: Boolean(input.enabled),
-    title: sanitizeString(input.title || DEFAULT_EXIT_INTENT_POPUP.title, 120),
-    description: sanitizeString(input.description || DEFAULT_EXIT_INTENT_POPUP.description, 500),
+    title: normalizeLegacyExitIntentText('title', input.title, DEFAULT_EXIT_INTENT_POPUP.title).slice(0, 120),
+    description: normalizeLegacyExitIntentText('description', input.description, DEFAULT_EXIT_INTENT_POPUP.description).slice(0, 500),
     couponCode: sanitizeString(input.couponCode, 120),
-    buttonLabel: sanitizeString(input.buttonLabel || DEFAULT_EXIT_INTENT_POPUP.buttonLabel, 60),
+    buttonLabel: normalizeLegacyExitIntentText('buttonLabel', input.buttonLabel, DEFAULT_EXIT_INTENT_POPUP.buttonLabel).slice(0, 60),
     buttonUrl: sanitizeString(input.buttonUrl || DEFAULT_EXIT_INTENT_POPUP.buttonUrl, 1000),
     imageUrl: sanitizeString(input.imageUrl, 1000),
   };

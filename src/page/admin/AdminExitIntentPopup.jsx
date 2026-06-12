@@ -127,9 +127,9 @@ export default function AdminExitIntentPopup() {
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
                 <MousePointerClick className="h-5 w-5" />
               </div>
-              <h3 className="mt-4 font-heading text-xl font-bold">{form.title || 'Tiêu đề popup'}</h3>
+              <h3 className="mt-4 font-heading text-xl font-bold">{form.title || 'Đừng bỏ lỡ mã giảm giá hot hôm nay'}</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {form.description || 'Nội dung popup sẽ hiện tại đây.'}
+                {form.description || 'Nhận nhanh mã giảm giá và ưu đãi đang được áp dụng trên web.'}
               </p>
               {form.imageUrl ? (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">

@@ -17,14 +17,15 @@ import {
   buildGlobalCouponRedirectPath,
   formatGlobalCouponExpiry,
   GLOBAL_COUPON_PLATFORM_LABELS,
-  GLOBAL_COUPON_PLATFORM_OPTIONS,
   GLOBAL_COUPON_TYPE_LABELS,
   GLOBAL_COUPON_TYPE_OPTIONS,
 } from '@/lib/global-coupons';
 
 const emptyCoupon = {
   id: '',
-  platform: 'shopee',
+  platform: 'other',
+  brand_id: '',
+  brand_name: '',
   title: '',
   description: '',
   coupon_code: '',
@@ -76,30 +77,57 @@ function CouponRow({ coupon, index, onEdit, onDelete }) {
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="rounded-full">{GLOBAL_COUPON_PLATFORM_LABELS[coupon.platform] || coupon.platform}</Badge>
-                  <Badge variant="outline" className="rounded-full">{GLOBAL_COUPON_TYPE_LABELS[coupon.type] || coupon.type}</Badge>
+                  <Badge variant="secondary" className="rounded-full">
+                    {GLOBAL_COUPON_PLATFORM_LABELS[coupon.platform] || coupon.platform || 'Khác'}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full">
+                    {GLOBAL_COUPON_TYPE_LABELS[coupon.type] || coupon.type}
+                  </Badge>
+                  {coupon.brand_name ? (
+                    <Badge variant="secondary" className="rounded-full bg-primary/10 text-primary hover:bg-primary/10">
+                      {coupon.brand_name}
+                    </Badge>
+                  ) : null}
                   {coupon.is_evergreen ? (
-                    <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Lưu lâu dài</Badge>
+                    <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                      Ưu đãi lưu lâu
+                    </Badge>
                   ) : null}
                   {coupon.expires_at ? (
-                    <Badge variant="secondary" className="rounded-full">Hết hạn: {formatGlobalCouponExpiry(coupon.expires_at)}</Badge>
+                    <Badge variant="secondary" className="rounded-full">
+                      Hết hạn: {formatGlobalCouponExpiry(coupon.expires_at)}
+                    </Badge>
                   ) : null}
                 </div>
 
-                <h3 className="mt-3 line-clamp-2 font-heading text-lg font-bold">{coupon.title || 'Coupon chưa đặt tên'}</h3>
+                <h3 className="mt-3 line-clamp-2 font-heading text-lg font-bold">
+                  {coupon.title || 'Coupon chưa đặt tên'}
+                </h3>
+
                 {coupon.description ? (
-                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{coupon.description}</p>
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                    {coupon.description}
+                  </p>
                 ) : null}
 
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl border border-border bg-secondary/20 px-3 py-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Mã hiển thị</p>
-                    <p className="mt-1 break-all text-sm font-semibold">{coupon.coupon_code || 'Không dùng mã - chỉ bấm kích hoạt'}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Mã hiển thị
+                    </p>
+                    <p className="mt-1 break-all text-sm font-semibold">
+                      {coupon.coupon_code || 'Không dùng mã - chỉ bấm kích hoạt'}
+                    </p>
                   </div>
+
                   <div className="rounded-2xl border border-border bg-secondary/20 px-3 py-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Link bọc</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Link bọc
+                    </p>
                     <div className="mt-1 flex items-center gap-2">
-                      <code className="min-w-0 flex-1 truncate text-xs">{buildGlobalCouponRedirectPath(coupon.id || 'draft')}</code>
+                      <code className="min-w-0 flex-1 truncate text-xs">
+                        {buildGlobalCouponRedirectPath(coupon.id || 'draft')}
+                      </code>
                       {coupon.id ? (
                         <a
                           href={buildGlobalCouponRedirectPath(coupon.id)}
@@ -121,7 +149,13 @@ function CouponRow({ coupon, index, onEdit, onDelete }) {
               <Button type="button" variant="outline" size="icon" className="rounded-2xl" onClick={onEdit}>
                 <Pencil className="h-4 w-4" />
               </Button>
-              <Button type="button" variant="outline" size="icon" className="rounded-2xl text-destructive hover:text-destructive" onClick={onDelete}>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="rounded-2xl text-destructive hover:text-destructive"
+                onClick={onDelete}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -133,7 +167,7 @@ function CouponRow({ coupon, index, onEdit, onDelete }) {
 }
 
 export default function AdminGlobalCoupons() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   const [coupons, setCoupons] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -143,6 +177,11 @@ export default function AdminGlobalCoupons() {
   const { data = [], isLoading } = useQuery({
     queryKey: ['admin-global-coupons'],
     queryFn: () => localClient.settings.getAdminGlobalCoupons(),
+  });
+
+  const { data: brands = [] } = useQuery({
+    queryKey: ['admin-global-coupon-brands'],
+    queryFn: () => localClient.entities.Brand.filter({ is_active: true }, 'sort_order', 100),
   });
 
   useEffect(() => {
@@ -156,14 +195,23 @@ export default function AdminGlobalCoupons() {
     onSuccess: (savedCoupons) => {
       setCoupons(savedCoupons);
       setIsDirty(false);
-      qc.invalidateQueries({ queryKey: ['admin-global-coupons'] });
-      qc.invalidateQueries({ queryKey: ['homepage'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-global-coupons'] });
+      queryClient.invalidateQueries({ queryKey: ['homepage'] });
       toast.success('Đã lưu danh sách coupon chọn lọc');
     },
     onError: (error) => {
       toast.error(error.message || 'Không thể lưu coupon chọn lọc');
     },
   });
+
+  const brandOptions = useMemo(
+    () => brands.map((brand) => ({
+      id: brand.id,
+      name: brand.name,
+      platform: brand.platform || 'other',
+    })),
+    [brands],
+  );
 
   const summary = useMemo(() => ({
     total: coupons.length,
@@ -187,7 +235,31 @@ export default function AdminGlobalCoupons() {
     setShowForm(true);
   };
 
+  const handleBrandChange = (value) => {
+    const selectedBrand = brandOptions.find((brand) => brand.id === value);
+    if (!selectedBrand) {
+      setForm((current) => ({
+        ...current,
+        brand_id: '',
+        brand_name: '',
+        platform: 'other',
+      }));
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      brand_id: selectedBrand.id,
+      brand_name: selectedBrand.name,
+      platform: selectedBrand.platform || 'other',
+    }));
+  };
+
   const handleSaveLocal = () => {
+    if (!form.brand_id) {
+      toast.error('Vui lòng chọn thương hiệu');
+      return;
+    }
     if (!form.title.trim()) {
       toast.error('Vui lòng nhập tiêu đề coupon');
       return;
@@ -236,7 +308,7 @@ export default function AdminGlobalCoupons() {
         <div>
           <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Mã giảm giá chọn lọc</h1>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Tạo danh sách mã toàn sàn, miễn phí vận chuyển và ưu đãi lưu lâu dài để đẩy nổi bật ở trang chủ. Anh có thể kéo-thả để đổi thứ tự ưu tiên hiển thị.
+            Tạo danh sách mã toàn sàn, miễn phí vận chuyển và ưu đãi lưu lâu dài để đẩy nổi bật ở trang chủ. Anh có thể kéo thả để đổi thứ tự ưu tiên hiển thị.
           </p>
         </div>
 
@@ -245,7 +317,12 @@ export default function AdminGlobalCoupons() {
             <Plus className="mr-2 h-4 w-4" />
             Thêm coupon
           </Button>
-          <Button type="button" className="h-12 rounded-2xl" onClick={() => saveMutation.mutate(coupons)} disabled={saveMutation.isPending || !isDirty}>
+          <Button
+            type="button"
+            className="h-12 rounded-2xl"
+            onClick={() => saveMutation.mutate(coupons)}
+            disabled={saveMutation.isPending || !isDirty}
+          >
             <Save className="mr-2 h-4 w-4" />
             {saveMutation.isPending ? 'Đang lưu...' : 'Lưu toàn bộ'}
           </Button>
@@ -261,7 +338,7 @@ export default function AdminGlobalCoupons() {
         </Card>
         <Card className="rounded-3xl">
           <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Lưu lâu dài</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Ưu đãi lưu lâu</p>
             <p className="mt-2 text-3xl font-bold">{summary.evergreen}</p>
           </CardContent>
         </Card>
@@ -285,7 +362,9 @@ export default function AdminGlobalCoupons() {
             <p className="text-sm text-muted-foreground">Đang tải danh sách coupon...</p>
           ) : coupons.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-border px-6 py-12 text-center">
-              <p className="text-sm text-muted-foreground">Chưa có coupon chọn lọc nào. Thêm coupon đầu tiên để hiển thị trên trang chủ.</p>
+              <p className="text-sm text-muted-foreground">
+                Chưa có coupon chọn lọc nào. Thêm coupon đầu tiên để hiển thị trên trang chủ.
+              </p>
             </div>
           ) : (
             <DragDropContext onDragEnd={handleDragEnd}>
@@ -319,17 +398,23 @@ export default function AdminGlobalCoupons() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Nền tảng</Label>
-                <Select value={form.platform} onValueChange={(value) => setForm((current) => ({ ...current, platform: value }))}>
+                <Label>Thương hiệu</Label>
+                <Select value={form.brand_id || 'none'} onValueChange={handleBrandChange}>
                   <SelectTrigger className="rounded-2xl">
-                    <SelectValue />
+                    <SelectValue placeholder="Chọn thương hiệu đang hiển thị trên web" />
                   </SelectTrigger>
                   <SelectContent>
-                    {GLOBAL_COUPON_PLATFORM_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    <SelectItem value="none">Chọn thương hiệu</SelectItem>
+                    {brandOptions.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Hiện đang lấy toàn bộ thương hiệu đang bật trên web để anh chọn nhanh.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -340,46 +425,82 @@ export default function AdminGlobalCoupons() {
                   </SelectTrigger>
                   <SelectContent>
                     {GLOBAL_COUPON_TYPE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
+            <div className="rounded-2xl border border-border bg-secondary/15 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nền tảng suy ra</p>
+              <p className="mt-1 text-sm font-semibold">
+                {GLOBAL_COUPON_PLATFORM_LABELS[form.platform] || form.platform || 'Khác'}
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label>Tiêu đề</Label>
-              <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} className="rounded-2xl" />
+              <Input
+                value={form.title}
+                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                className="rounded-2xl"
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Mô tả</Label>
-              <Textarea rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} className="rounded-2xl" />
+              <Textarea
+                rows={4}
+                value={form.description}
+                onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+                className="rounded-2xl"
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Mã coupon hiển thị</Label>
-                <Input value={form.coupon_code} onChange={(event) => setForm((current) => ({ ...current, coupon_code: event.target.value }))} className="rounded-2xl" />
+                <Input
+                  value={form.coupon_code}
+                  onChange={(event) => setForm((current) => ({ ...current, coupon_code: event.target.value }))}
+                  className="rounded-2xl"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>Hết hạn lúc</Label>
-                <Input type="datetime-local" value={form.expires_at || ''} onChange={(event) => setForm((current) => ({ ...current, expires_at: event.target.value }))} className="rounded-2xl" />
+                <Input
+                  type="datetime-local"
+                  value={form.expires_at || ''}
+                  onChange={(event) => setForm((current) => ({ ...current, expires_at: event.target.value }))}
+                  className="rounded-2xl"
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label>Affiliate URL hoặc link sản phẩm</Label>
-              <Input value={form.affiliate_url} onChange={(event) => setForm((current) => ({ ...current, affiliate_url: event.target.value }))} className="rounded-2xl" />
+              <Input
+                value={form.affiliate_url}
+                onChange={(event) => setForm((current) => ({ ...current, affiliate_url: event.target.value }))}
+                className="rounded-2xl"
+              />
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/20 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold">Mã lưu lâu dài</p>
-                <p className="text-xs text-muted-foreground">Bật nếu muốn đổi nút sang kiểu “Bấm lưu trên ứng dụng” thay vì sao chép mã.</p>
+                <p className="text-sm font-semibold">Mã ưu đãi lưu lâu</p>
+                <p className="text-xs text-muted-foreground">
+                  Bật nếu muốn đổi nút sang kiểu “Bấm lưu trên ứng dụng” thay vì sao chép mã.
+                </p>
               </div>
-              <Switch checked={!!form.is_evergreen} onCheckedChange={(value) => setForm((current) => ({ ...current, is_evergreen: value }))} />
+              <Switch
+                checked={!!form.is_evergreen}
+                onCheckedChange={(value) => setForm((current) => ({ ...current, is_evergreen: value }))}
+              />
             </div>
 
             <div className="rounded-2xl border border-dashed border-border bg-secondary/10 px-4 py-3">

@@ -2,6 +2,8 @@ export const GLOBAL_COUPON_PLATFORM_OPTIONS = [
   { value: 'shopee', label: 'Shopee' },
   { value: 'lazada', label: 'Lazada' },
   { value: 'tiki', label: 'Tiki' },
+  { value: 'tiktok_shop', label: 'TikTok Shop' },
+  { value: 'other', label: 'Khác' },
 ];
 
 export const GLOBAL_COUPON_TYPE_OPTIONS = [
@@ -26,7 +28,9 @@ export function isGlobalCouponExpired(expiresAt, now = Date.now()) {
 }
 
 export function formatGlobalCouponExpiry(expiresAt) {
-  if (!expiresAt) return '';
+  if (!expiresAt) {
+    return '';
+  }
 
   const timestamp = new Date(expiresAt);
   if (Number.isNaN(timestamp.getTime())) {

@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: 'Tại sao mã giảm giá không áp dụng được?',
-    a: 'Nguyên nhân phổ biến là mã đã hết hạn, đơn hàng chưa đạt giá trị tối thiểu, sản phẩm không thuộc ngành hàng áp dụng hoặc tài khoản đã dùng mã trước đó. Anh nên xem kỹ điều kiện ngay trên từng voucher.',
+    a: 'Nguyên nhân phổ biến là mã đã hết hạn, đơn hàng chưa đạt giá trị tối thiểu, sản phẩm không thuộc ngành hàng áp dụng hoặc tài khoản đã dùng mã trước đó. Anh/chị nên xem kỹ điều kiện ngay trên từng voucher.',
   },
   {
     q: 'Mã giảm giá được cập nhật khi nào?',
@@ -36,10 +36,11 @@ export default function FAQSection() {
               <Badge variant="secondary" className="rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                 Hỗ trợ nhanh
               </Badge>
+
               <div>
-                <h2 className="text-2xl font-bold font-heading sm:text-3xl">Câu hỏi thường gặp</h2>
+                <h2 className="font-heading text-2xl font-bold sm:text-3xl">Câu hỏi thường gặp</h2>
                 <p className="mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                  Em gom sẵn những câu hỏi người dùng hay gặp nhất để khu vực hỗ trợ trông gọn, rõ và đáng tin hơn khi nhìn trên cả desktop lẫn điện thoại.
+                  Tổng hợp nhanh những thắc mắc phổ biến để anh/chị dễ tra cứu cách dùng mã, kiểm tra điều kiện áp dụng và săn ưu đãi hiệu quả hơn.
                 </p>
               </div>
 
@@ -48,24 +49,29 @@ export default function FAQSection() {
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <ShieldCheck className="h-5 w-5" />
                   </div>
-                  <p className="text-sm font-semibold">Nguồn hiển thị rõ ràng</p>
-                  <p className="mt-1 text-xs leading-6 text-muted-foreground">Ưu tiên hiển thị dữ liệu đang hoạt động, tránh làm người dùng bị rối vì mã cũ.</p>
+                  <p className="text-sm font-semibold">Thông tin luôn dễ theo dõi</p>
+                  <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                    Các ưu đãi đang hoạt động sẽ được ưu tiên hiển thị để anh/chị dễ chọn nhanh và hạn chế gặp mã không còn hiệu lực.
+                  </p>
                 </div>
+
                 <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <p className="text-sm font-semibold">Mẹo dùng mã gọn gàng</p>
-                  <p className="mt-1 text-xs leading-6 text-muted-foreground">Xem nhanh cách lấy mã, áp điều kiện và kiểm tra ưu đãi trước khi mua.</p>
+                  <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                    Xem nhanh cách lấy mã, áp điều kiện và kiểm tra ưu đãi trước khi mua.
+                  </p>
                 </div>
               </div>
             </div>
 
             <Accordion type="single" collapsible className="space-y-3">
-              {faqs.map((faq, i) => (
+              {faqs.map((faq, index) => (
                 <AccordionItem
-                  key={i}
-                  value={`faq-${i}`}
+                  key={index}
+                  value={`faq-${index}`}
                   className="overflow-hidden rounded-2xl border border-border/80 bg-card/95 px-5 shadow-sm transition-all data-[state=open]:border-primary/30 data-[state=open]:shadow-[0_18px_40px_-28px_rgba(249,115,22,0.75)]"
                 >
                   <AccordionTrigger className="py-5 text-left text-sm font-semibold hover:no-underline sm:text-[15px]">

@@ -155,7 +155,7 @@ export default function AdminLayout() {
       </div>
 
       <div className="flex">
-        <aside className="sticky top-0 hidden min-h-screen w-60 flex-col border-r border-border bg-card lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-border bg-card lg:flex">
           <div className="border-b border-border p-4">
             <div className="mb-3 flex items-center gap-2">
               <Link to="/" className="flex min-w-0 flex-1 items-center gap-2 text-sm text-muted-foreground hover:text-primary">

@@ -29,8 +29,8 @@ export default function AdminStats() {
     .map(([name, value]) => ({ name, value }));
 
   const typeData = [
-    { name: 'Click', value: clicks.filter(click => click.event_type === 'click').length },
-    { name: 'Copy', value: clicks.filter(click => click.event_type === 'copy').length },
+    { name: 'Lượt nhấn', value: clicks.filter(click => click.event_type === 'click').length },
+    { name: 'Sao chép', value: clicks.filter(click => click.event_type === 'copy').length },
   ];
 
   const topVouchers = [...vouchers]
@@ -40,14 +40,14 @@ export default function AdminStats() {
   return (
     <div className="p-3 sm:p-6">
       <div className="mb-5 sm:mb-6">
-        <h1 className="font-heading text-xl font-bold sm:text-2xl">Thống Kê Chi Tiết</h1>
+        <h1 className="font-heading text-xl font-bold sm:text-2xl">Thống kê chi tiết</h1>
         <p className="mt-1 text-sm text-muted-foreground">Biểu đồ được nới chiều ngang hợp lý hơn để nhìn rõ trên mobile.</p>
       </div>
 
       <div className="mb-6 grid gap-4 sm:gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="text-base">Click/Copy theo loại</CardTitle>
+            <CardTitle className="text-base">Lượt nhấn và sao chép theo loại</CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3 sm:px-6 sm:pb-6">
             <ResponsiveContainer width="100%" height={220}>
@@ -94,7 +94,7 @@ export default function AdminStats() {
 
       <Card>
         <CardHeader className="pb-2 sm:pb-4">
-          <CardTitle className="text-base">Top 10 Voucher Nhiều Click</CardTitle>
+          <CardTitle className="text-base">Top 10 voucher có nhiều lượt nhấn</CardTitle>
         </CardHeader>
         <CardContent className="px-3 pb-3 sm:px-6 sm:pb-6">
           <div className="space-y-3">

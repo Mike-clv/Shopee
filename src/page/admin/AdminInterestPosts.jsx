@@ -158,10 +158,10 @@ export default function AdminInterestPosts() {
       });
 
       if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
-        toast.success('Da chuyen sang link boc qua ten mien cua anh');
+        toast.success('Đã chuyển sang link bọc qua tên miền của anh');
       }
     } catch (error) {
-      toast.error(error.message || 'Khong the chuyen doi link affiliate');
+      toast.error(error.message || 'Không thể chuyển đổi link affiliate');
     } finally {
       setConvertingField((current) => (current === field ? '' : current));
     }
@@ -306,7 +306,7 @@ export default function AdminInterestPosts() {
           <DialogHeader>
             <DialogTitle>{editing?.id ? 'Sửa Bài Quan Tâm' : 'Thêm Bài Quan Tâm'}</DialogTitle>
             <DialogDescription>
-              Tạo bài gợi ý sản phẩm, gắn thumbnail, nội dung và link affiliate để hiển thị ngoài trang chủ.
+              Tạo bài gợi ý sản phẩm, gắn ảnh thu nhỏ, nội dung và link affiliate để hiển thị ngoài trang chủ.
             </DialogDescription>
           </DialogHeader>
 
@@ -329,12 +329,12 @@ export default function AdminInterestPosts() {
               </div>
 
               <div className="space-y-2">
-                <Label>Ảnh thumbnail URL hoặc /uploads/ten-file.jpg</Label>
+                <Label>Ảnh thu nhỏ URL hoặc /uploads/ten-file.jpg</Label>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Input value={editing.thumbnail_image || ''} onChange={(e) => setEditing({ ...editing, thumbnail_image: e.target.value })} />
                   <ImageUploadButton
                     className="w-full sm:w-auto"
-                    label="Upload thumbnail"
+                    label="Tải ảnh thu nhỏ"
                     onUploaded={(url) => setEditing((current) => ({ ...current, thumbnail_image: url }))}
                   />
                 </div>
@@ -353,7 +353,7 @@ export default function AdminInterestPosts() {
                     void handleAffiliatePaste('target_url')(e);
                   }}
                 />
-                {convertingField === 'target_url' && <p className="mt-1 text-xs text-muted-foreground">Dang chuyen link san pham sang link boc...</p>}
+                {convertingField === 'target_url' && <p className="mt-1 text-xs text-muted-foreground">Đang chuyển link sản phẩm sang link bọc...</p>}
                 <p className="mt-2 text-xs text-muted-foreground">
                   Link này sẽ được dùng cho nút ưu đãi và cả ảnh bìa của bài Quan tâm khi người dùng bấm vào.
                 </p>
@@ -368,7 +368,7 @@ export default function AdminInterestPosts() {
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={10} />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Khi luu bai, cac link san pham Shopee, Lazada, Tiki, TikTok Shop trong markdown se tu dong doi sang link boc `/go/...`.
+                  Khi lưu bài, các link sản phẩm Shopee, Lazada, Tiki, TikTok Shop trong markdown sẽ tự động đổi sang link bọc `/go/...`.
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Nút `Ảnh + link` sẽ chèn mẫu `[![mo-ta-anh](https://url-anh)](https://link-affiliate)` để người dùng bấm vào ảnh trong nội dung cũng ra đúng link của anh.

@@ -3,17 +3,17 @@ export const TRACKED_PRODUCT_PLATFORM_OPTIONS = [
   { value: 'lazada', label: 'Lazada' },
   { value: 'tiki', label: 'Tiki' },
   { value: 'tiktok-shop', label: 'TikTok Shop' },
-  { value: 'other', label: 'Khac' },
+  { value: 'other', label: 'Khác' },
 ];
 
 export function getTrackedProductPlatformLabel(platform) {
-  return TRACKED_PRODUCT_PLATFORM_OPTIONS.find((item) => item.value === platform)?.label || 'Khac';
+  return TRACKED_PRODUCT_PLATFORM_OPTIONS.find((item) => item.value === platform)?.label || 'Khác';
 }
 
 export function formatTrackedPrice(value, currency = 'VND') {
   const amount = Number(value);
   if (!Number.isFinite(amount)) {
-    return 'Chua co du lieu';
+    return 'Chưa có dữ liệu';
   }
 
   return new Intl.NumberFormat('vi-VN', {
@@ -36,9 +36,9 @@ export function formatCompactTrackedPrice(value) {
 }
 
 export function formatTrackedDateTime(value) {
-  if (!value) return 'Chua cap nhat';
+  if (!value) return 'Chưa cập nhật';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Chua cap nhat';
+  if (Number.isNaN(date.getTime())) return 'Chưa cập nhật';
   return date.toLocaleString('vi-VN');
 }
 

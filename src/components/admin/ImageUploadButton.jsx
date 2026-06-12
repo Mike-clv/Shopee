@@ -29,7 +29,7 @@ export default function ImageUploadButton({
       onUploaded?.(result.url, file);
       toast.success('Đã tải ảnh lên thành công');
     } catch (error) {
-      toast.error(error.message || 'Upload ảnh thất bại');
+      toast.error(error.message || 'Tải ảnh lên thất bại');
     } finally {
       setIsUploading(false);
     }

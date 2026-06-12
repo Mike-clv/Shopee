@@ -20,10 +20,10 @@ const platformOptions = [
 const typeOptions = [
   { value: 'all', label: 'Tất cả loại' },
   { value: 'coupon', label: 'Mã giảm giá' },
-  { value: 'deal', label: 'Deal' },
+  { value: 'deal', label: 'Ưu đãi' },
   { value: 'cashback', label: 'Hoàn tiền' },
-  { value: 'freeship', label: 'Freeship' },
-  { value: 'flash_sale', label: 'Flash Sale' },
+  { value: 'freeship', label: 'Miễn phí vận chuyển' },
+  { value: 'flash_sale', label: 'Siêu sale' },
   { value: 'exclusive', label: 'Độc quyền' },
 ];
 

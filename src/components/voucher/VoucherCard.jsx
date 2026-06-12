@@ -21,10 +21,10 @@ import BrandLogo from '@/components/brand/BrandLogo';
 
 const typeConfig = {
   coupon: { label: 'Mã giảm giá', icon: Percent, color: 'bg-orange-100 text-orange-700' },
-  deal: { label: 'Deal', icon: Zap, color: 'bg-blue-100 text-blue-700' },
+  deal: { label: 'Ưu đãi', icon: Zap, color: 'bg-blue-100 text-blue-700' },
   cashback: { label: 'Hoàn tiền', icon: Gift, color: 'bg-green-100 text-green-700' },
-  freeship: { label: 'Freeship', icon: Truck, color: 'bg-purple-100 text-purple-700' },
-  flash_sale: { label: 'Flash Sale', icon: Zap, color: 'bg-red-100 text-red-700' },
+  freeship: { label: 'Miễn phí vận chuyển', icon: Truck, color: 'bg-purple-100 text-purple-700' },
+  flash_sale: { label: 'Siêu sale', icon: Zap, color: 'bg-red-100 text-red-700' },
   exclusive: { label: 'Độc quyền', icon: Star, color: 'bg-amber-100 text-amber-700' },
 };
 
@@ -96,7 +96,7 @@ export default function VoucherCard({ voucher, variant = 'default' }) {
       try {
         await navigator.clipboard.writeText(voucher.code);
         setCopied(true);
-        toast.success(`Đã copy mã: ${voucher.code}`);
+        toast.success(`Đã sao chép mã: ${voucher.code}`);
         setTimeout(() => setCopied(false), 3000);
       } catch {
         toast.info('Vui lòng copy mã thủ công');

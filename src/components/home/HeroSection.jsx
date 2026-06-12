@@ -8,9 +8,9 @@ import AccessTradeCouponEmbed from '@/components/accesstrade/AccessTradeCouponEm
 
 const dealTypes = [
   { name: 'Mã giảm giá', path: '/ma-giam-gia', icon: Percent },
-  { name: 'Deal hot', path: '/ma-giam-gia?filter=hot', icon: Flame, hot: true },
-  { name: 'Freeship', path: '/ma-giam-gia?type=freeship', icon: Truck },
-  { name: 'Flash Sale', path: '/ma-giam-gia?type=flash_sale', icon: Zap },
+  { name: 'Mã hot', path: '/ma-giam-gia?filter=hot', icon: Flame, hot: true },
+  { name: 'Miễn phí vận chuyển', path: '/ma-giam-gia?type=freeship', icon: Truck },
+  { name: 'Siêu sale', path: '/ma-giam-gia?type=flash_sale', icon: Zap },
 ];
 
 const platforms = [
@@ -49,7 +49,7 @@ export default function HeroSection() {
           <h2 className="hero-title-pro text-3xl sm:text-4xl lg:text-5xl font-bold font-heading text-foreground leading-tight mb-4">
             Săn <span className="hero-highlight">Mã Giảm Giá</span> &amp;{' '}
             <br />
-            Deal Hot Mỗi Ngày
+            Ưu Đãi Nổi Bật Mỗi Ngày
           </h2>
           <p className="hero-subtitle text-muted-foreground text-base sm:text-lg mb-8 max-w-lg mx-auto">
             Tổng hợp voucher, coupon, deal từ Shopee, Lazada, Tiki, TikTok Shop và hàng trăm thương hiệu

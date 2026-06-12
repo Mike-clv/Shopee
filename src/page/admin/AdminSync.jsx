@@ -15,6 +15,13 @@ function isFreshRunningLog(log) {
   return Date.now() - new Date(log.started_at).getTime() < STALE_WINDOW_MS;
 }
 
+const syncTypeLabels = {
+  all: 'Toàn bộ',
+  campaigns: 'Chiến dịch',
+  vouchers: 'Voucher',
+  transactions: 'Giao dịch',
+};
+
 export default function AdminSync() {
   const qc = useQueryClient();
 
@@ -37,13 +44,13 @@ export default function AdminSync() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['sync-logs'] });
       if (data.success) {
-        toast.success(`Sync thành công: ${data.items_synced || 0} mục`);
+        toast.success(`Đồng bộ thành công: ${data.items_synced || 0} mục`);
       } else {
         toast.info(data.message || 'Cần cấu hình API key');
       }
     },
     onError: (error) => {
-      toast.error(`Sync thất bại: ${error.message || 'Lỗi không xác định'}`);
+      toast.error(`Đồng bộ thất bại: ${error.message || 'Lỗi không xác định'}`);
     },
   });
 
@@ -59,9 +66,9 @@ export default function AdminSync() {
     <div className="p-4 sm:p-6">
       <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Đồng Bộ AccessTrade</h1>
+          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Đồng bộ AccessTrade</h1>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Theo dõi tiến trình sync rõ hơn trên điện thoại, ít rối mắt hơn và dễ bấm thao tác hơn.
+            Theo dõi tiến trình đồng bộ rõ hơn trên điện thoại, ít rối mắt hơn và dễ bấm thao tác hơn.
           </p>
         </div>
         <Button asChild variant="outline" className="h-12 gap-2 rounded-2xl">
@@ -74,19 +81,19 @@ export default function AdminSync() {
 
       <Card className="mb-6 rounded-3xl">
         <CardHeader>
-          <CardTitle className="text-base">Cấu hình AccessTrade API</CardTitle>
+          <CardTitle className="text-base">Cấu hình API AccessTrade</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-2xl bg-secondary p-4">
             <p className="text-sm leading-6 text-muted-foreground">
-              AccessTrade chạy qua API nội bộ. Nếu chưa có API key, thao tác sync sẽ ghi log và trả thông báo cần cấu hình trong `.env`.
+              AccessTrade chạy qua API nội bộ. Nếu chưa có API key, thao tác đồng bộ sẽ ghi log và trả thông báo cần cấu hình trong `.env`.
             </p>
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>• API Base: <code>https://api.accesstrade.vn/v1</code></p>
             <p>• Auth header: <code>Authorization: Token &lt;access_key&gt;</code></p>
             <p>• Campaigns: <code>GET /campaigns?approval=successful</code></p>
-            <p>• Vouchers/Coupons/Deals: <code>GET /offers_informations/coupon</code></p>
+            <p>• Voucher/Mã giảm giá/Ưu đãi: <code>GET /offers_informations/coupon</code></p>
             <p>• Tracking links: dùng link affiliate trả về từ AccessTrade</p>
           </div>
         </CardContent>
@@ -94,7 +101,7 @@ export default function AdminSync() {
 
       {hasRunningSync ? (
         <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          Đang có một phiên sync chạy hoặc vừa mới khởi động. Hệ thống sẽ tự cập nhật lịch sử sync cho anh.
+          Đang có một phiên đồng bộ chạy hoặc vừa mới khởi động. Hệ thống sẽ tự cập nhật lịch sử đồng bộ cho anh.
         </div>
       ) : null}
 
@@ -108,15 +115,15 @@ export default function AdminSync() {
             className="h-auto min-h-24 flex-col gap-2 rounded-3xl py-4 text-sm shadow-sm"
           >
             <RefreshCw className={`h-5 w-5 ${(syncMutation.isPending || hasRunningSync) ? 'animate-spin' : ''}`} />
-            <span className="capitalize">{hasRunningSync ? 'Đang sync...' : `Sync ${type}`}</span>
+            <span>{hasRunningSync ? 'Đang đồng bộ...' : `Đồng bộ ${syncTypeLabels[type]}`}</span>
           </Button>
         ))}
       </div>
 
-      <h2 className="mb-4 font-heading text-lg font-bold">Lịch Sử Sync</h2>
+      <h2 className="mb-4 font-heading text-lg font-bold">Lịch sử đồng bộ</h2>
       <div className="space-y-3">
         {syncLogs.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">Chưa có lịch sử sync</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">Chưa có lịch sử đồng bộ</p>
         ) : (
           syncLogs.map((log) => {
             const cfg = statusConfig[log.status] || statusConfig.running;
@@ -135,7 +142,7 @@ export default function AdminSync() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium capitalize">{log.sync_type}</span>
+                      <span className="text-sm font-medium">{syncTypeLabels[log.sync_type] || log.sync_type}</span>
                       <Badge className={`rounded-full text-[10px] ${cfg.color}`}>{cfg.label}</Badge>
                     </div>
                     <p className="text-sm leading-6 text-muted-foreground">{log.message}</p>

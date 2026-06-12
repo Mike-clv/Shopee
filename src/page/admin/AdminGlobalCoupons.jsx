@@ -79,7 +79,7 @@ function CouponRow({ coupon, index, onEdit, onDelete }) {
                   <Badge variant="secondary" className="rounded-full">{GLOBAL_COUPON_PLATFORM_LABELS[coupon.platform] || coupon.platform}</Badge>
                   <Badge variant="outline" className="rounded-full">{GLOBAL_COUPON_TYPE_LABELS[coupon.type] || coupon.type}</Badge>
                   {coupon.is_evergreen ? (
-                    <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Evergreen</Badge>
+                    <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Lưu lâu dài</Badge>
                   ) : null}
                   {coupon.expires_at ? (
                     <Badge variant="secondary" className="rounded-full">Hết hạn: {formatGlobalCouponExpiry(coupon.expires_at)}</Badge>
@@ -234,9 +234,9 @@ export default function AdminGlobalCoupons() {
     <div className="p-4 sm:p-6">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Coupon chọn lọc</h1>
+          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Mã giảm giá chọn lọc</h1>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Tạo danh sách mã toàn sàn, freeship và evergreen để đẩy nổi bật ở trang chủ. Anh có thể kéo-thả để đổi thứ tự ưu tiên hiển thị.
+            Tạo danh sách mã toàn sàn, miễn phí vận chuyển và ưu đãi lưu lâu dài để đẩy nổi bật ở trang chủ. Anh có thể kéo-thả để đổi thứ tự ưu tiên hiển thị.
           </p>
         </div>
 
@@ -261,13 +261,13 @@ export default function AdminGlobalCoupons() {
         </Card>
         <Card className="rounded-3xl">
           <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Evergreen</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Lưu lâu dài</p>
             <p className="mt-2 text-3xl font-bold">{summary.evergreen}</p>
           </CardContent>
         </Card>
         <Card className="rounded-3xl">
           <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Freeship</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Miễn phí vận chuyển</p>
             <p className="mt-2 text-3xl font-bold">{summary.freeship}</p>
           </CardContent>
         </Card>
@@ -376,14 +376,14 @@ export default function AdminGlobalCoupons() {
 
             <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/20 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold">Coupon evergreen</p>
-                <p className="text-xs text-muted-foreground">Bật nếu muốn đổi nút sang kiểu “Bấm lưu trên App” thay vì copy mã.</p>
+                <p className="text-sm font-semibold">Mã lưu lâu dài</p>
+                <p className="text-xs text-muted-foreground">Bật nếu muốn đổi nút sang kiểu “Bấm lưu trên ứng dụng” thay vì sao chép mã.</p>
               </div>
               <Switch checked={!!form.is_evergreen} onCheckedChange={(value) => setForm((current) => ({ ...current, is_evergreen: value }))} />
             </div>
 
             <div className="rounded-2xl border border-dashed border-border bg-secondary/10 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Preview link bọc</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Xem trước link bọc</p>
               <code className="mt-2 block break-all text-sm">
                 {form.id ? buildGlobalCouponRedirectPath(form.id) : 'ID sẽ tự sinh khi anh lưu toàn bộ'}
               </code>

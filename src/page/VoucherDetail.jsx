@@ -14,8 +14,8 @@ import Seo from '@/components/Seo';
 import { BASE_KEYWORDS, VOUCHER_PAGE_KEYWORDS, mergeKeywords } from '@/lib/site';
 
 const typeLabels = {
-  coupon: 'Mã giảm giá', deal: 'Deal', cashback: 'Hoàn tiền',
-  freeship: 'Freeship', flash_sale: 'Flash Sale', exclusive: 'Độc quyền',
+  coupon: 'Mã giảm giá', deal: 'Ưu đãi', cashback: 'Hoàn tiền',
+  freeship: 'Miễn phí vận chuyển', flash_sale: 'Siêu sale', exclusive: 'Độc quyền',
 };
 
 export default function VoucherDetail() {
@@ -75,7 +75,7 @@ export default function VoucherDetail() {
       await navigator.clipboard.writeText(voucher.code);
       setCopied(true);
       setShowModal(true);
-      toast.success('Đã copy mã: ' + voucher.code);
+      toast.success('Đã sao chép mã: ' + voucher.code);
       setTimeout(() => setCopied(false), 3000);
     } catch {
       setShowModal(true);
@@ -159,8 +159,8 @@ export default function VoucherDetail() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               {voucher.brand_name && <span className="text-sm font-medium text-muted-foreground">{voucher.brand_name}</span>}
-              {voucher.is_hot && <Badge className="bg-red-100 text-red-700 text-[10px]"><Flame className="w-3 h-3 mr-0.5" /> Hot</Badge>}
-              {voucher.is_verified && <Badge className="bg-green-100 text-green-700 text-[10px]"><BadgeCheck className="w-3 h-3 mr-0.5" /> Verified</Badge>}
+              {voucher.is_hot && <Badge className="bg-red-100 text-red-700 text-[10px]"><Flame className="mr-0.5 h-3 w-3" /> Mã hot</Badge>}
+              {voucher.is_verified && <Badge className="bg-green-100 text-green-700 text-[10px]"><BadgeCheck className="mr-0.5 h-3 w-3" /> Đã xác minh</Badge>}
               {voucher.is_exclusive && <Badge className="bg-amber-100 text-amber-700 text-[10px]"><Star className="w-3 h-3 mr-0.5" /> Độc quyền</Badge>}
             </div>
             <h1 className="text-xl sm:text-2xl font-bold font-heading mb-2">{voucher.title}</h1>
@@ -183,7 +183,7 @@ export default function VoucherDetail() {
               <div className="flex gap-3">
                 <Button onClick={handleCopy} size="lg" variant="outline" className="rounded-full gap-2">
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Đã copy' : 'Copy mã'}
+                  {copied ? 'Đã sao chép' : 'Sao chép mã'}
                 </Button>
                 <Button onClick={handleGoToShop} size="lg" className="rounded-full gap-2">
                   <ExternalLink className="w-4 h-4" />
@@ -193,7 +193,7 @@ export default function VoucherDetail() {
             </div>
           ) : (
             <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-3">Deal không cần mã - nhấn để xem ưu đãi</p>
+              <p className="mb-3 text-sm text-muted-foreground">Ưu đãi không cần mã - bấm để xem chi tiết</p>
               <Button onClick={handleGoToShop} size="lg" className="rounded-full gap-2 px-8">
                 <ExternalLink className="w-4 h-4" />
                 Xem deal ngay

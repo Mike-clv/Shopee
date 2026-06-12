@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { Tag } from 'lucide-react';
 
 const footerLinks = {
-  'Mã Giảm Giá': [
-    { name: 'Mã Hot Hôm Nay', path: '/ma-giam-gia?filter=hot' },
-    { name: 'Mã Mới Nhất', path: '/ma-giam-gia?filter=newest' },
-    { name: 'Mã Sắp Hết Hạn', path: '/ma-giam-gia?filter=expiring' },
-    { name: 'Deal Freeship', path: '/ma-giam-gia?filter=freeship' },
+  'Mã giảm giá': [
+    { name: 'Mã Hot hôm nay', path: '/ma-giam-gia?filter=hot' },
+    { name: 'Mã mới nhất', path: '/ma-giam-gia?filter=newest' },
+    { name: 'Mã sắp hết hạn', path: '/ma-giam-gia?filter=expiring' },
+    { name: 'Miễn phí vận chuyển', path: '/ma-giam-gia?filter=freeship' },
   ],
   'Sàn TMĐT': [
     { name: 'Shopee', path: '/san/shopee' },
@@ -15,13 +15,13 @@ const footerLinks = {
     { name: 'Tiki', path: '/san/tiki' },
     { name: 'TikTok Shop', path: '/san/tiktok-shop' },
   ],
-  'Thông Tin': [
-    { name: 'Giới Thiệu', path: '/gioi-thieu' },
+  'Thông tin': [
+    { name: 'Giới thiệu', path: '/gioi-thieu' },
     { name: 'Blog', path: '/blog' },
-    { name: 'Theo Doi Gia', path: '/theo-doi-gia' },
-    { name: 'Tinh Tra Gop', path: '/tinh-tra-gop' },
-    { name: 'Liên Hệ', path: '/lien-he' },
-    { name: 'Chính Sách', path: '/chinh-sach' },
+    { name: 'Theo dõi giá', path: '/theo-doi-gia' },
+    { name: 'Công cụ tính lãi suất', path: '/tinh-tra-gop' },
+    { name: 'Liên hệ', path: '/lien-he' },
+    { name: 'Chính sách', path: '/chinh-sach' },
   ],
 };
 
@@ -67,10 +67,10 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-4">
             <Link to="/chinh-sach" className="text-xs text-muted-foreground transition-colors hover:text-primary">
-              Chính Sách Bảo Mật
+              Chính sách bảo mật
             </Link>
             <Link to="/dieu-khoan" className="text-xs text-muted-foreground transition-colors hover:text-primary">
-              Điều Khoản
+              Điều khoản
             </Link>
           </div>
         </div>

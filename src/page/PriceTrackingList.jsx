@@ -15,12 +15,12 @@ import {
 } from '@/lib/price-tracking';
 
 const PAGE_KEYWORDS = [
-  'theo doi gia san pham',
-  'lich su gia san pham',
-  'gia shopee hom nay',
-  'gia lazada hom nay',
-  'gia tiki hom nay',
-  'gia tiktok shop hom nay',
+  'theo dõi giá sản phẩm',
+  'lịch sử giá sản phẩm',
+  'giá shopee hôm nay',
+  'giá lazada hôm nay',
+  'giá tiki hôm nay',
+  'giá tiktok shop hôm nay',
 ];
 
 export default function PriceTrackingList() {
@@ -32,26 +32,26 @@ export default function PriceTrackingList() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <Seo
-        title="Theo doi gia san pham | Lich su bien dong gia"
-        description="Theo doi gia san pham dang quan tam, xem lich su bien dong gia va cap nhat moi nhat tren tung san."
+        title="Theo dõi giá sản phẩm | Lịch sử biến động giá"
+        description="Theo dõi giá sản phẩm đang quan tâm, xem lịch sử biến động giá và cập nhật mới nhất trên từng sàn."
         path="/theo-doi-gia"
         keywords={mergeKeywords(BASE_KEYWORDS, PAGE_KEYWORDS)}
       />
 
       <div className="mb-8">
-        <h1 className="font-heading text-3xl font-bold">Theo doi gia san pham</h1>
+        <h1 className="font-heading text-3xl font-bold">Theo dõi giá sản phẩm</h1>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground">
-          Xem nhanh gia hien tai va mo trang chi tiet de theo doi lich su bien dong gia cua tung san pham.
+          Xem nhanh giá hiện tại và mở trang chi tiết để theo dõi lịch sử biến động giá của từng sản phẩm.
         </p>
       </div>
 
       {isLoading ? (
         <Card className="rounded-3xl">
-          <CardContent className="p-6 text-sm text-muted-foreground">Dang tai danh sach san pham dang theo doi gia...</CardContent>
+          <CardContent className="p-6 text-sm text-muted-foreground">Đang tải danh sách sản phẩm đang theo dõi giá...</CardContent>
         </Card>
       ) : products.length === 0 ? (
         <Card className="rounded-3xl">
-          <CardContent className="p-6 text-sm text-muted-foreground">Chua co san pham nao duoc theo doi gia.</CardContent>
+          <CardContent className="p-6 text-sm text-muted-foreground">Chưa có sản phẩm nào được theo dõi giá.</CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -68,22 +68,22 @@ export default function PriceTrackingList() {
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl border border-border bg-secondary/20 p-4">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Gia hien tai</p>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Giá hiện tại</p>
                     <p className="mt-2 text-base font-semibold">{formatTrackedPrice(product.current_price, product.currency || 'VND')}</p>
                   </div>
                   <div className="rounded-2xl border border-border bg-secondary/20 p-4">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Lan cap nhat</p>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Lần cập nhật</p>
                     <p className="mt-2 text-sm font-semibold">{formatTrackedDateTime(product.last_checked_at)}</p>
                   </div>
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2">
                   <Button asChild className="rounded-2xl">
-                    <Link to={`/theo-doi-gia/${product.slug || product.id}`}>Xem lich su gia</Link>
+                    <Link to={`/theo-doi-gia/${product.slug || product.id}`}>Xem lịch sử giá</Link>
                   </Button>
                   <Button asChild variant="outline" className="rounded-2xl">
                     <a href={product.product_url} target="_blank" rel="noopener noreferrer">
-                      Mo san pham
+                      Mở sản phẩm
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </a>
                   </Button>
@@ -92,7 +92,7 @@ export default function PriceTrackingList() {
                 {product.last_error ? (
                   <div className="mt-4 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
                     <RefreshCw className="h-3.5 w-3.5" />
-                    He thong se thu lai o lan cron tiep theo neu san dang thay doi giao dien.
+                    Hệ thống sẽ thử lại ở lần cron tiếp theo nếu sàn đang thay đổi giao diện.
                   </div>
                 ) : null}
               </CardContent>

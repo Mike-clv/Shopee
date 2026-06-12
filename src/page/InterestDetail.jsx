@@ -60,9 +60,7 @@ export default function InterestDetail() {
         type="article"
         keywords={mergeKeywords(BASE_KEYWORDS, [
           post.title,
-          'co the ban quan tam',
           'có thể bạn quan tâm',
-          'goi y mua sam',
           'gợi ý mua sắm',
         ])}
         jsonLd={{

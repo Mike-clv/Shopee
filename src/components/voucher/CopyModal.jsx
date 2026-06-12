@@ -12,7 +12,7 @@ export default function CopyModal({ voucher, onClose, copied: initialCopied }) {
     try {
       await navigator.clipboard.writeText(voucher.code);
       setCopied(true);
-      toast.success('Đã copy mã thành công!');
+      toast.success('Đã sao chép mã thành công!');
       setTimeout(() => setCopied(false), 3000);
     } catch {
       toast.info('Vui lòng copy mã thủ công từ ô bên dưới');
@@ -47,7 +47,7 @@ export default function CopyModal({ voucher, onClose, copied: initialCopied }) {
                 onClick={handleCopy}
               >
                 {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
-                {copied ? 'Đã copy' : 'Copy'}
+                {copied ? 'Đã sao chép' : 'Sao chép'}
               </Button>
             </div>
           </div>

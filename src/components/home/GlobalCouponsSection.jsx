@@ -21,13 +21,13 @@ const TAB_ITEMS = [
   },
   {
     value: 'freeship',
-    label: 'Mã Freeship',
+    label: 'Mã miễn phí vận chuyển',
     icon: Truck,
     filter: (coupon) => coupon.type === 'freeship',
   },
   {
     value: 'evergreen',
-    label: 'Mã Evergreen',
+    label: 'Mã lưu lâu dài',
     icon: Sparkles,
     filter: (coupon) => coupon.is_evergreen,
   },
@@ -57,9 +57,9 @@ function CouponActionCard({ coupon }) {
     if (!coupon.is_evergreen && coupon.coupon_code) {
       const copied = await copyCouponCode(coupon.coupon_code);
       if (copied) {
-        toast.success(`Đã copy mã ${coupon.coupon_code}`);
+        toast.success(`Đã sao chép mã ${coupon.coupon_code}`);
       } else {
-        toast.info('Không copy tự động được, hệ thống sẽ mở link ưu đãi ngay bây giờ.');
+        toast.info('Không thể sao chép tự động, hệ thống sẽ mở link ưu đãi ngay bây giờ.');
       }
     }
 
@@ -77,7 +77,7 @@ function CouponActionCard({ coupon }) {
             <Badge variant="outline" className="rounded-full">Ngành hàng</Badge>
           ) : null}
           {coupon.is_evergreen ? (
-            <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Evergreen</Badge>
+            <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Lưu lâu dài</Badge>
           ) : null}
         </div>
 
@@ -107,12 +107,12 @@ function CouponActionCard({ coupon }) {
         </div>
 
         <Button type="button" className="mt-5 h-11 w-full rounded-2xl" onClick={handleAction}>
-          {coupon.is_evergreen ? (
-            <>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Bấm lưu trên App
-            </>
-          ) : coupon.coupon_code ? (
+            {coupon.is_evergreen ? (
+              <>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Bấm lưu trên ứng dụng
+              </>
+            ) : coupon.coupon_code ? (
             <>
               <Copy className="mr-2 h-4 w-4" />
               Lấy mã
@@ -165,10 +165,10 @@ export default function GlobalCouponsSection({ coupons = [] }) {
           <CardHeader className="pb-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <Badge className="rounded-full bg-primary/10 text-primary hover:bg-primary/10">Coupon chọn lọc</Badge>
+                <Badge className="rounded-full bg-primary/10 text-primary hover:bg-primary/10">Mã chọn lọc</Badge>
                 <CardTitle className="mt-4 font-heading text-2xl sm:text-3xl">Mã nổi bật nên ghim ngay</CardTitle>
                 <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-                  Gom sẵn các mã toàn sàn, freeship và ưu đãi evergreen để người dùng bấm là đi qua link affiliate bọc của website.
+                  Gom sẵn các mã toàn sàn, miễn phí vận chuyển và ưu đãi lưu lâu dài để người dùng bấm là đi qua link affiliate bọc của website.
                 </p>
               </div>
 

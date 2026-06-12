@@ -11,7 +11,7 @@ import {
 
 const chartConfig = {
   price: {
-    label: 'Gia',
+    label: 'Giá',
     color: 'hsl(var(--primary))',
   },
 };
@@ -31,7 +31,7 @@ function TooltipCard({ active, payload }) {
         {formatTrackedPrice(item.price, item.currency)}
       </p>
       <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-        Nguon: {item.source === 'selector' ? 'Selector du phong' : 'JSON-LD'}
+        Nguồn: {item.source === 'selector' ? 'Selector dự phòng' : 'JSON-LD'}
       </p>
     </div>
   );
@@ -58,7 +58,7 @@ function PriceHistoryChartComponent({
   if (!chartData.length) {
     return (
       <div className={cn('flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-border bg-secondary/20 px-4 text-center text-sm text-muted-foreground', className)}>
-        Chua co du lieu lich su gia de hien thi bieu do.
+        Chưa có dữ liệu lịch sử giá để hiển thị biểu đồ.
       </div>
     );
   }

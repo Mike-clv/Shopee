@@ -1,24 +1,24 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { localClient } from '@/api/localClient';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Mail, ArrowLeft, Loader2 } from "lucide-react";
-import AuthLayout from "@/components/AuthLayout";
+import AuthLayout from '@/components/AuthLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     try {
       await localClient.auth.resetPasswordRequest(email);
     } catch {
-      // Always show success regardless
+      // Luôn báo thành công để tránh lộ trạng thái email.
     } finally {
       setLoading(false);
       setSent(true);
@@ -28,45 +28,46 @@ export default function ForgotPassword() {
   return (
     <AuthLayout
       icon={Mail}
-      title="Reset password"
-      subtitle="We'll send you a link to reset it"
-      footer={
-        <Link to="/login" className="text-primary font-medium hover:underline">
-          <ArrowLeft className="w-3 h-3 inline mr-1" />Back to log in
+      title="Quên mật khẩu"
+      subtitle="Em sẽ gửi cho anh liên kết đặt lại mật khẩu"
+      footer={(
+        <Link to="/login" className="font-medium text-primary hover:underline">
+          <ArrowLeft className="mr-1 inline h-3 w-3" />
+          Quay lại đăng nhập
         </Link>
-      }
+      )}
     >
       {sent ? (
-        <p className="text-sm text-foreground text-center">
-          If an account exists with that email, you'll receive a password reset link shortly.
+        <p className="text-center text-sm text-foreground">
+          Nếu email này đã có tài khoản, anh sẽ sớm nhận được liên kết đặt lại mật khẩu trong hộp thư.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label htmlFor="email">Địa chỉ email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 autoFocus
-                placeholder="you@example.com"
+                placeholder="anh@vidu.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 h-12"
+                onChange={(event) => setEmail(event.target.value)}
+                className="h-12 pl-10"
                 required
               />
             </div>
           </div>
-          <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+          <Button type="submit" className="h-12 w-full font-medium" disabled={loading}>
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sending...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang gửi...
               </>
             ) : (
-              "Send reset link"
+              'Gửi liên kết đặt lại mật khẩu'
             )}
           </Button>
         </form>

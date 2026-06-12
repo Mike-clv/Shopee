@@ -8,7 +8,7 @@ const faqs = [
   },
   {
     q: 'Làm sao để sử dụng mã giảm giá?',
-    a: 'Bước 1: Tìm mã phù hợp. Bước 2: Nhấn Lấy mã hoặc Copy. Bước 3: Mã được copy vào clipboard. Bước 4: Dán mã vào ô giảm giá khi thanh toán trên shop.',
+    a: 'Bước 1: Tìm mã phù hợp. Bước 2: Nhấn Lấy mã hoặc Sao chép. Bước 3: Mã được sao chép vào clipboard. Bước 4: Dán mã vào ô giảm giá khi thanh toán trên shop.',
   },
   {
     q: 'Tại sao mã giảm giá không áp dụng được?',

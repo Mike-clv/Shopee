@@ -25,18 +25,18 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: Tag, label: 'Vouchers', path: '/admin/vouchers' },
+  { icon: LayoutDashboard, label: 'Tổng quan', path: '/admin' },
+  { icon: Tag, label: 'Voucher', path: '/admin/vouchers' },
   { icon: Store, label: 'Thương hiệu', path: '/admin/brands' },
   { icon: FolderOpen, label: 'Danh mục', path: '/admin/categories' },
   { icon: FileText, label: 'Blog', path: '/admin/blog' },
   { icon: Images, label: 'Banner đầu trang', path: '/admin/banners' },
   { icon: Flame, label: 'Banner mã hot', path: '/admin/hot-banners' },
   { icon: Newspaper, label: 'Quan tâm', path: '/admin/interests' },
-  { icon: Percent, label: 'Coupon chọn lọc', path: '/admin/global-coupons' },
-  { icon: LineChart, label: 'Theo doi gia', path: '/admin/price-tracking' },
-  { icon: MousePointerClick, label: 'Exit Popup', path: '/admin/exit-intent-popup' },
-  { icon: RefreshCw, label: 'Sync', path: '/admin/sync' },
+  { icon: Percent, label: 'Mã chọn lọc', path: '/admin/global-coupons' },
+  { icon: LineChart, label: 'Theo dõi giá', path: '/admin/price-tracking' },
+  { icon: MousePointerClick, label: 'Popup giữ khách', path: '/admin/exit-intent-popup' },
+  { icon: RefreshCw, label: 'Đồng bộ', path: '/admin/sync' },
   { icon: BarChart3, label: 'Thống kê', path: '/admin/stats' },
 ];
 
@@ -51,7 +51,7 @@ export default function AdminLayout() {
       <div className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">Admin CMS</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">Khu quản trị CMS</p>
             <div className="mt-1 flex items-center gap-2">
               <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <CurrentIcon className="h-4 w-4" />
@@ -91,7 +91,7 @@ export default function AdminLayout() {
               <SheetContent side="right" className="w-[88vw] max-w-sm p-0">
                 <div className="flex h-full flex-col">
                   <SheetHeader className="border-b border-border px-5 py-4 text-left">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Admin CMS</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Khu quản trị CMS</p>
                     <SheetTitle className="text-left text-lg">{currentItem.label}</SheetTitle>
                   </SheetHeader>
 
@@ -173,7 +173,7 @@ export default function AdminLayout() {
                 Đăng xuất
               </Button>
             </div>
-            <h2 className="font-heading text-lg font-bold">Admin CMS</h2>
+            <h2 className="font-heading text-lg font-bold">Khu quản trị CMS</h2>
           </div>
 
           <nav className="flex-1 space-y-1 p-3">

@@ -14,12 +14,12 @@ const platforms = [
 ];
 
 const navLinks = [
-  { name: 'Mã Giảm Giá', path: '/ma-giam-gia' },
   { name: 'Mã Hot', path: '/ma-giam-gia?filter=hot', hot: true },
-  { name: 'Thương Hiệu', path: '/thuong-hieu' },
-  { name: 'Danh Mục', path: '/danh-muc' },
-  { name: 'Quan Tâm', path: '/quan-tam' },
+  { name: 'Thương hiệu', path: '/thuong-hieu' },
+  { name: 'Danh mục', path: '/danh-muc' },
+  { name: 'Quan tâm', path: '/quan-tam' },
   { name: 'Blog', path: '/blog' },
+  { name: 'Công cụ tính lãi suất', path: '/tinh-tra-gop' },
 ];
 
 export default function Header() {
@@ -116,7 +116,7 @@ export default function Header() {
           {isAdmin && (
             <Link to="/admin" className="ml-2 hidden items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20 lg:flex">
               <Settings className="h-4 w-4" />
-              Admin
+              Khu quản trị
             </Link>
           )}
 
@@ -154,7 +154,7 @@ export default function Header() {
                         className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
                       >
                         <Settings className="h-4 w-4" />
-                        Quản trị Admin
+                        Khu quản trị
                       </Link>
                     )}
                     <div className="mt-4 border-t border-border pt-4">

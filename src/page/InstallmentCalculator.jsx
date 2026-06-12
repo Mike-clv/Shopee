@@ -12,29 +12,29 @@ import { BASE_KEYWORDS, mergeKeywords } from '@/lib/site';
 const bankRecommendations = [
   {
     name: 'VPBank',
-    description: 'Goi vay tieu dung linh hoat, thu tuc nhanh cho nhom khach hang can xoay von online.',
-    aprHint: 'Tu 1.5%/thang',
+    description: 'Gói vay tiêu dùng linh hoạt, thủ tục nhanh cho nhóm khách hàng cần xoay vốn online.',
+    aprHint: 'Từ 1.5%/tháng',
     url: 'https://www.vpbank.com.vn/',
   },
   {
     name: 'Techcombank',
-    description: 'Phu hop nguoi muon so sanh lai suat va uu tien ung dung ngan hang so.',
-    aprHint: 'Tu 1.2%/thang',
+    description: 'Phù hợp người muốn so sánh lãi suất và ưu tiên ứng dụng ngân hàng số.',
+    aprHint: 'Từ 1.2%/tháng',
     url: 'https://www.techcombank.com/',
   },
   {
     name: 'MBBank',
-    description: 'Manh o nhom vay tieu dung online, co he thong app de theo doi lich tra no kha gon.',
-    aprHint: 'Tu 1.25%/thang',
+    description: 'Mạnh ở nhóm vay tiêu dùng online, có hệ thống app để theo dõi lịch trả nợ khá gọn.',
+    aprHint: 'Từ 1.25%/tháng',
     url: 'https://www.mbbank.com.vn/',
   },
 ];
 
 const PAGE_KEYWORDS = [
-  'tinh lai vay tra gop',
-  'tinh du no giam dan',
-  'cong cu tinh tra gop',
-  'bang tinh lai vay',
+  'tính lãi vay trả góp',
+  'tính dư nợ giảm dần',
+  'công cụ tính trả góp',
+  'bảng tính lãi vay',
 ];
 
 export default function InstallmentCalculator() {
@@ -53,45 +53,45 @@ export default function InstallmentCalculator() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <Seo
-        title="Cong cu tinh lai suat vay tra gop du no giam dan"
-        description="Tinh nhanh lich tra no, tong lai va tong thanh toan theo du no giam dan ngay tren website."
+        title="Công cụ tính lãi suất vay trả góp dư nợ giảm dần"
+        description="Tính nhanh lịch trả nợ, tổng lãi và tổng thanh toán theo dư nợ giảm dần ngay trên website."
         path="/tinh-tra-gop"
         keywords={mergeKeywords(BASE_KEYWORDS, PAGE_KEYWORDS)}
       />
 
       <div className="mb-8">
-        <h1 className="font-heading text-3xl font-bold">Tinh lai suat vay tra gop</h1>
+        <h1 className="font-heading text-3xl font-bold">Công cụ tính lãi suất vay trả góp</h1>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground">
-          Nhap du lieu la thay ngay lich thanh toan theo du no giam dan. Cong cu nay phu hop de uoc luong nhanh truoc khi chon goi tra gop.
+          Nhập dữ liệu là thấy ngay lịch thanh toán theo dư nợ giảm dần. Công cụ này phù hợp để ước lượng nhanh trước khi chọn gói trả góp.
         </p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[420px,minmax(0,1fr)]">
         <Card className="rounded-3xl">
           <CardHeader>
-            <CardTitle>Thong so dau vao</CardTitle>
-            <CardDescription>Cap nhat so tien vay, lai suat va so thang. Ket qua thay doi ngay lap tuc.</CardDescription>
+            <CardTitle>Thông số đầu vào</CardTitle>
+            <CardDescription>Cập nhật số tiền vay, lãi suất và số tháng. Kết quả thay đổi ngay lập tức.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>So tien vay</Label>
+              <Label>Số tiền vay</Label>
               <Input type="number" value={principal} onChange={(event) => setPrincipal(Number(event.target.value) || 0)} />
             </div>
             <div className="space-y-2">
-              <Label>Lai suat nam (%)</Label>
+              <Label>Lãi suất năm (%)</Label>
               <Input type="number" step="0.1" value={annualRate} onChange={(event) => setAnnualRate(Number(event.target.value) || 0)} />
             </div>
             <div className="space-y-2">
-              <Label>So thang vay</Label>
+              <Label>Số tháng vay</Label>
               <Input type="number" value={months} onChange={(event) => setMonths(Number(event.target.value) || 1)} />
             </div>
             <div className="space-y-2">
-              <Label>Phi co dinh hang thang (neu co)</Label>
+              <Label>Phí cố định hàng tháng (nếu có)</Label>
               <Input type="number" value={monthlyFee} onChange={(event) => setMonthlyFee(Number(event.target.value) || 0)} />
             </div>
 
             <div className="rounded-2xl border border-border bg-secondary/20 p-4 text-sm leading-6 text-muted-foreground">
-              Cong thuc dang dung: tien goc moi thang gan nhu co dinh, tien lai tinh tren du no con lai, phi co dinh neu co se duoc cong vao moi ky thanh toan.
+              Công thức đang dùng: tiền gốc mỗi tháng gần như cố định, tiền lãi tính trên dư nợ còn lại, phí cố định nếu có sẽ được cộng vào mỗi kỳ thanh toán.
             </div>
           </CardContent>
         </Card>
@@ -100,25 +100,25 @@ export default function InstallmentCalculator() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Card className="rounded-3xl">
               <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Tra thang dau</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Trả tháng đầu</p>
                 <p className="mt-2 text-lg font-bold">{formatTrackedPrice(result.firstMonthPayment)}</p>
               </CardContent>
             </Card>
             <Card className="rounded-3xl">
               <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Lai thang dau</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Lãi tháng đầu</p>
                 <p className="mt-2 text-lg font-bold">{formatTrackedPrice(result.firstMonthInterest)}</p>
               </CardContent>
             </Card>
             <Card className="rounded-3xl">
               <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Tong tien lai</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Tổng tiền lãi</p>
                 <p className="mt-2 text-lg font-bold">{formatTrackedPrice(result.totalInterest)}</p>
               </CardContent>
             </Card>
             <Card className="rounded-3xl">
               <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Tong thanh toan</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Tổng thanh toán</p>
                 <p className="mt-2 text-lg font-bold">{formatTrackedPrice(result.totalPayment)}</p>
               </CardContent>
             </Card>
@@ -127,12 +127,12 @@ export default function InstallmentCalculator() {
           <Card className="rounded-3xl">
             <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle>Bang lich thanh toan</CardTitle>
-                <CardDescription>Xem chi tiet tien goc, tien lai va du no con lai theo tung thang.</CardDescription>
+                <CardTitle>Bảng lịch thanh toán</CardTitle>
+                <CardDescription>Xem chi tiết tiền gốc, tiền lãi và dư nợ còn lại theo từng tháng.</CardDescription>
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-xs text-muted-foreground">
                 <ArrowRightLeft className="h-3.5 w-3.5" />
-                Tu dong cap nhat
+                Tự động cập nhật
               </div>
             </CardHeader>
             <CardContent>
@@ -140,13 +140,13 @@ export default function InstallmentCalculator() {
                 <table className="min-w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left text-muted-foreground">
-                      <th className="pb-3 pr-4 font-medium">Thang</th>
-                      <th className="pb-3 pr-4 font-medium">Du no dau ky</th>
-                      <th className="pb-3 pr-4 font-medium">Tien goc</th>
-                      <th className="pb-3 pr-4 font-medium">Tien lai</th>
-                      <th className="pb-3 pr-4 font-medium">Phi</th>
-                      <th className="pb-3 pr-4 font-medium">Tong tra</th>
-                      <th className="pb-3 font-medium">Du no cuoi ky</th>
+                      <th className="pb-3 pr-4 font-medium">Tháng</th>
+                      <th className="pb-3 pr-4 font-medium">Dư nợ đầu kỳ</th>
+                      <th className="pb-3 pr-4 font-medium">Tiền gốc</th>
+                      <th className="pb-3 pr-4 font-medium">Tiền lãi</th>
+                      <th className="pb-3 pr-4 font-medium">Phí</th>
+                      <th className="pb-3 pr-4 font-medium">Tổng trả</th>
+                      <th className="pb-3 font-medium">Dư nợ cuối kỳ</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -169,8 +169,8 @@ export default function InstallmentCalculator() {
 
           <Card className="rounded-3xl">
             <CardHeader>
-              <CardTitle>Ngan hang khuyen nghi</CardTitle>
-              <CardDescription>Anh co the chen link dieu huong/affiliate vao cac box nay ve sau.</CardDescription>
+              <CardTitle>Ngân hàng khuyến nghị</CardTitle>
+              <CardDescription>Anh có thể chèn link điều hướng hoặc affiliate vào các ô này về sau.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-3">
               {bankRecommendations.map((bank) => (
@@ -182,7 +182,7 @@ export default function InstallmentCalculator() {
                   <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">{bank.aprHint}</p>
                   <p className="mt-3 text-sm leading-6 text-muted-foreground">{bank.description}</p>
                   <Button asChild className="mt-5 w-full rounded-2xl">
-                    <a href={bank.url} target="_blank" rel="noopener noreferrer">Xem goi vay</a>
+                    <a href={bank.url} target="_blank" rel="noopener noreferrer">Xem gói vay</a>
                   </Button>
                 </div>
               ))}

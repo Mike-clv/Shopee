@@ -6,7 +6,7 @@ export const GLOBAL_COUPON_PLATFORM_OPTIONS = [
 
 export const GLOBAL_COUPON_TYPE_OPTIONS = [
   { value: 'all_site', label: 'Mã toàn sàn' },
-  { value: 'freeship', label: 'Freeship' },
+  { value: 'freeship', label: 'Miễn phí vận chuyển' },
   { value: 'category', label: 'Ngành hàng' },
 ];
 

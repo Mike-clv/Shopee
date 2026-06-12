@@ -44,7 +44,7 @@ export default function PriceTrackingDetail() {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <Card className="rounded-3xl">
-          <CardContent className="p-6 text-sm text-muted-foreground">Dang tai thong tin san pham...</CardContent>
+          <CardContent className="p-6 text-sm text-muted-foreground">Đang tải thông tin sản phẩm...</CardContent>
         </Card>
       </div>
     );
@@ -54,7 +54,7 @@ export default function PriceTrackingDetail() {
     return (
       <div className="mx-auto max-w-5xl px-4 py-12">
         <Card className="rounded-3xl">
-          <CardContent className="p-6 text-center text-sm text-muted-foreground">Khong tim thay san pham dang theo doi gia.</CardContent>
+          <CardContent className="p-6 text-center text-sm text-muted-foreground">Không tìm thấy sản phẩm đang theo dõi giá.</CardContent>
         </Card>
       </div>
     );
@@ -63,23 +63,23 @@ export default function PriceTrackingDetail() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <Seo
-        title={`Lich su gia ${product.name}`}
-        description={`Theo doi lich su bien dong gia cua ${product.name} va xem gia cap nhat moi nhat.`}
+        title={`Lịch sử giá ${product.name}`}
+        description={`Theo dõi lịch sử biến động giá của ${product.name} và xem giá cập nhật mới nhất.`}
         path={`/theo-doi-gia/${product.slug || product.id}`}
         keywords={mergeKeywords(BASE_KEYWORDS, [
-          `lich su gia ${product.name}`,
-          `theo doi gia ${product.name}`,
-          `${product.name} gia bao nhieu`,
+          `lịch sử giá ${product.name}`,
+          `theo dõi giá ${product.name}`,
+          `${product.name} giá bao nhiêu`,
         ])}
       />
 
       <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Link to="/" className="flex items-center gap-1 hover:text-primary">
           <Home className="h-3.5 w-3.5" />
-          Trang chu
+          Trang chủ
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
-        <Link to="/theo-doi-gia" className="hover:text-primary">Theo doi gia</Link>
+        <Link to="/theo-doi-gia" className="hover:text-primary">Theo dõi giá</Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-foreground">{product.name}</span>
       </nav>
@@ -91,13 +91,13 @@ export default function PriceTrackingDetail() {
               <Badge variant="secondary" className="rounded-full">{getTrackedProductPlatformLabel(product.platform)}</Badge>
               <h1 className="mt-3 font-heading text-3xl font-bold">{product.name}</h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
-                He thong uu tien doc gia tu du lieu JSON-LD cua trang san pham. Neu san thay doi giao dien, selector du phong se duoc su dung de giam nguy co mat du lieu.
+                Hệ thống ưu tiên đọc giá từ dữ liệu JSON-LD của trang sản phẩm. Nếu sàn thay đổi giao diện, selector dự phòng sẽ được sử dụng để giảm nguy cơ mất dữ liệu.
               </p>
             </div>
 
             <Button asChild className="rounded-2xl">
               <a href={product.product_url} target="_blank" rel="noopener noreferrer">
-                Mo trang san pham
+                Mở trang sản phẩm
                 <ExternalLink className="ml-2 h-4 w-4" />
               </a>
             </Button>
@@ -105,15 +105,15 @@ export default function PriceTrackingDetail() {
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-border bg-secondary/20 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Gia hien tai</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Giá hiện tại</p>
               <p className="mt-2 text-lg font-bold">{formatTrackedPrice(product.current_price, product.currency || 'VND')}</p>
             </div>
             <div className="rounded-2xl border border-border bg-secondary/20 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Lan cap nhat</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Lần cập nhật</p>
               <p className="mt-2 text-sm font-semibold">{formatTrackedDateTime(product.last_checked_at)}</p>
             </div>
             <div className="rounded-2xl border border-border bg-secondary/20 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Khoang thoi gian</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Khoảng thời gian</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {[7, 30, 90].map((days) => (
                   <Button
@@ -123,7 +123,7 @@ export default function PriceTrackingDetail() {
                     className="h-8 rounded-full px-3 text-xs"
                     onClick={() => setHistoryDays(days)}
                   >
-                    {days} ngay
+                    {days} ngày
                   </Button>
                 ))}
               </div>
@@ -144,26 +144,26 @@ export default function PriceTrackingDetail() {
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr),280px]">
         <Card className="rounded-3xl">
           <CardContent className="p-6">
-            <h2 className="font-heading text-xl font-bold">Lich su cap nhat gan nhat</h2>
+            <h2 className="font-heading text-xl font-bold">Lịch sử cập nhật gần nhất</h2>
             <div className="mt-4 overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="pb-3 pr-4 font-medium">Thoi gian</th>
-                    <th className="pb-3 pr-4 font-medium">Gia</th>
-                    <th className="pb-3 font-medium">Nguon</th>
+                    <th className="pb-3 pr-4 font-medium">Thời gian</th>
+                    <th className="pb-3 pr-4 font-medium">Giá</th>
+                    <th className="pb-3 font-medium">Nguồn</th>
                   </tr>
                 </thead>
                 <tbody>
                   {latestEntries.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="py-4 text-muted-foreground">Chua co ban ghi lich su gia.</td>
+                      <td colSpan={3} className="py-4 text-muted-foreground">Chưa có bản ghi lịch sử giá.</td>
                     </tr>
                   ) : latestEntries.map((entry) => (
                     <tr key={entry.id} className="border-b border-border/60">
                       <td className="py-3 pr-4">{formatTrackedDateTime(entry.captured_at)}</td>
                       <td className="py-3 pr-4 font-semibold">{formatTrackedPrice(entry.price, product.currency || 'VND')}</td>
-                      <td className="py-3">{entry.source === 'selector' ? 'Selector du phong' : 'JSON-LD'}</td>
+                      <td className="py-3">{entry.source === 'selector' ? 'Selector dự phòng' : 'JSON-LD'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -174,11 +174,11 @@ export default function PriceTrackingDetail() {
 
         <Card className="rounded-3xl">
           <CardContent className="p-6">
-            <h2 className="font-heading text-xl font-bold">Ghi chu van hanh</h2>
+            <h2 className="font-heading text-xl font-bold">Ghi chú vận hành</h2>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
-              <li>• Cron production tren Vercel chi xu ly toi da 3 san pham moi lan goi.</li>
-              <li>• He thong uu tien JSON-LD de giam nguy co selector bi vo.</li>
-              <li>• Neu giao dien san thay doi, lan cron sau se tiep tuc thu lai.</li>
+              <li>• Cron production trên Vercel chỉ xử lý tối đa 3 sản phẩm mỗi lần gọi.</li>
+              <li>• Hệ thống ưu tiên JSON-LD để giảm nguy cơ selector bị vỡ.</li>
+              <li>• Nếu giao diện sàn thay đổi, lần cron sau sẽ tiếp tục thử lại.</li>
             </ul>
           </CardContent>
         </Card>

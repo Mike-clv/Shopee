@@ -162,10 +162,10 @@ export default function AdminBlog() {
       });
 
       if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
-        toast.success('Da chuyen sang link boc qua ten mien cua anh');
+        toast.success('Đã chuyển sang link bọc qua tên miền của anh');
       }
     } catch (error) {
-      toast.error(error.message || 'Khong the chuyen doi link affiliate');
+      toast.error(error.message || 'Không thể chuyển đổi link affiliate');
     } finally {
       setConvertingField((current) => (current === field ? '' : current));
     }
@@ -320,7 +320,7 @@ export default function AdminBlog() {
                   />
                   <ImageUploadButton
                     className="w-full sm:w-auto"
-                    label="Upload ảnh bìa"
+                    label="Tải ảnh bìa"
                     onUploaded={(url) => setEditing((current) => ({ ...current, cover_image: url }))}
                   />
                 </div>
@@ -340,7 +340,7 @@ export default function AdminBlog() {
                   }}
                   placeholder="https://link-affiliate-cua-anh.com"
                 />
-                {convertingField === 'cover_target_url' && <p className="mt-1 text-xs text-muted-foreground">Dang chuyen link san pham sang link boc...</p>}
+                {convertingField === 'cover_target_url' && <p className="mt-1 text-xs text-muted-foreground">Đang chuyển link sản phẩm sang link bọc...</p>}
                 <p className="mt-2 text-xs text-muted-foreground">
                   Nếu điền link này, khi người dùng bấm vào ảnh bìa ở trang chi tiết bài viết sẽ mở sang URL anh gắn.
                 </p>
@@ -380,7 +380,7 @@ export default function AdminBlog() {
                 <Label>Nội dung bài viết</Label>
                 <MarkdownEditor value={editing.content || ''} onChange={(value) => setEditing({ ...editing, content: value })} rows={12} />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Khi luu bai, cac link san pham Shopee, Lazada, Tiki, TikTok Shop trong markdown se tu dong doi sang link boc `/go/...`.
+                  Khi lưu bài, các link sản phẩm Shopee, Lazada, Tiki, TikTok Shop trong markdown sẽ tự động đổi sang link bọc `/go/...`.
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Nút `Ảnh + link` sẽ chèn mẫu `[![mo-ta-anh](https://url-anh)](https://link-affiliate)` để bấm vào ảnh trong nội dung cũng ra đúng link của anh.

@@ -71,19 +71,26 @@ function reorderItems(items, startIndex, endIndex) {
 }
 
 function StatusBadge({ status }) {
+  const labels = {
+    active: 'Còn hạn',
+    expiring_soon: 'Sắp hết hạn',
+    expired: 'Hết hạn',
+    draft: 'Nháp',
+  };
+
   return (
     <Badge variant={status === 'active' ? 'default' : 'secondary'} className="rounded-full text-[10px]">
-      {status}
+      {labels[status] || status}
     </Badge>
   );
 }
 
 function VoucherFlags({ voucher }) {
   const flags = [];
-  if (voucher.is_hot) flags.push({ label: 'Hot', className: 'bg-red-50 text-red-600' });
-  if (voucher.is_verified) flags.push({ label: 'Verified', className: 'bg-green-50 text-green-600' });
-  if (voucher.is_exclusive) flags.push({ label: 'Exclusive', className: 'bg-amber-50 text-amber-600' });
-  if (voucher.is_featured) flags.push({ label: 'Featured', className: 'bg-blue-50 text-blue-600' });
+  if (voucher.is_hot) flags.push({ label: 'Nổi bật', className: 'bg-red-50 text-red-600' });
+  if (voucher.is_verified) flags.push({ label: 'Đã xác minh', className: 'bg-green-50 text-green-600' });
+  if (voucher.is_exclusive) flags.push({ label: 'Độc quyền', className: 'bg-amber-50 text-amber-600' });
+  if (voucher.is_featured) flags.push({ label: 'Ưu tiên hiển thị', className: 'bg-blue-50 text-blue-600' });
 
   if (flags.length === 0) return null;
 
@@ -494,7 +501,7 @@ export default function AdminVouchers() {
                       <SelectItem value="percent">Giảm %</SelectItem>
                       <SelectItem value="fixed">Giảm tiền</SelectItem>
                       <SelectItem value="cashback">Hoàn tiền</SelectItem>
-                      <SelectItem value="freeship">Freeship</SelectItem>
+                      <SelectItem value="freeship">Miễn phí vận chuyển</SelectItem>
                       <SelectItem value="gift">Quà tặng</SelectItem>
                     </SelectContent>
                   </Select>
@@ -517,10 +524,10 @@ export default function AdminVouchers() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="coupon">Mã giảm giá</SelectItem>
-                      <SelectItem value="deal">Deal</SelectItem>
+                      <SelectItem value="deal">Ưu đãi</SelectItem>
                       <SelectItem value="cashback">Hoàn tiền</SelectItem>
-                      <SelectItem value="freeship">Freeship</SelectItem>
-                      <SelectItem value="flash_sale">Flash Sale</SelectItem>
+                      <SelectItem value="freeship">Miễn phí vận chuyển</SelectItem>
+                      <SelectItem value="flash_sale">Siêu sale</SelectItem>
                       <SelectItem value="exclusive">Độc quyền</SelectItem>
                     </SelectContent>
                   </Select>
@@ -616,19 +623,19 @@ export default function AdminVouchers() {
               <div className="flex flex-wrap gap-6">
                 <div className="flex items-center gap-2">
                   <Switch checked={editing.is_hot} onCheckedChange={(value) => updateField('is_hot', value)} />
-                  <Label>Hot</Label>
+                  <Label>Mã hot</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch checked={editing.is_verified} onCheckedChange={(value) => updateField('is_verified', value)} />
-                  <Label>Verified</Label>
+                  <Label>Đã xác minh</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch checked={editing.is_exclusive} onCheckedChange={(value) => updateField('is_exclusive', value)} />
-                  <Label>Exclusive</Label>
+                  <Label>Độc quyền</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch checked={editing.is_featured} onCheckedChange={(value) => updateField('is_featured', value)} />
-                  <Label>Featured</Label>
+                  <Label>Ưu tiên hiển thị</Label>
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-4">

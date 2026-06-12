@@ -105,7 +105,7 @@ export default function MarkdownEditor({ value = '', onChange, rows = 10 }) {
 
         <Button type="button" variant="outline" size="sm" className="h-8 gap-1" onClick={() => setPreview(!preview)}>
           {preview ? <Pencil className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-          {preview ? 'Viết' : 'Preview'}
+          {preview ? 'Viết' : 'Xem trước'}
         </Button>
       </div>
 

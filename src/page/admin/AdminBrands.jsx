@@ -297,7 +297,7 @@ export default function AdminBrands() {
               </div>
 
               <div className="rounded-2xl border border-border bg-secondary/40 p-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">Preview logo</p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">Xem trước logo</p>
                 <div className="flex items-center gap-3">
                   <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border bg-card">
                     <BrandLogo

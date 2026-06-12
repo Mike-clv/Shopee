@@ -137,7 +137,7 @@ export function BannerManager({
               </div>
               {editing.image_url && (
                 <div className="rounded-lg border border-border bg-secondary overflow-hidden">
-                  <img src={editing.image_url} alt={editing.title || 'Preview'} className="w-full h-auto object-contain" />
+                  <img src={editing.image_url} alt={editing.title || 'Xem trước'} className="w-full h-auto object-contain" />
                 </div>
               )}
               <div className="flex justify-end gap-3">

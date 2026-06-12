@@ -88,9 +88,9 @@ export default function AdminPriceTracking() {
       qc.invalidateQueries({ queryKey: ['tracked-products'] });
       setShowForm(false);
       setEditing(null);
-      toast.success('Da luu san pham theo doi gia');
+      toast.success('Đã lưu sản phẩm theo dõi giá');
     },
-    onError: (error) => toast.error(error.message || 'Khong the luu san pham theo doi gia'),
+    onError: (error) => toast.error(error.message || 'Không thể lưu sản phẩm theo dõi giá'),
   });
 
   const deleteMutation = useMutation({
@@ -102,9 +102,9 @@ export default function AdminPriceTracking() {
       if (selectedId === deletedId) {
         setSelectedId('');
       }
-      toast.success('Da xoa san pham theo doi gia');
+      toast.success('Đã xóa sản phẩm theo dõi giá');
     },
-    onError: (error) => toast.error(error.message || 'Khong the xoa san pham'),
+    onError: (error) => toast.error(error.message || 'Không thể xóa sản phẩm'),
   });
 
   const runNowMutation = useMutation({
@@ -114,9 +114,9 @@ export default function AdminPriceTracking() {
       qc.invalidateQueries({ queryKey: ['tracked-products'] });
       qc.invalidateQueries({ queryKey: ['tracked-product-history', id] });
       qc.invalidateQueries({ queryKey: ['tracked-product-history'] });
-      toast.success('Da chay lay gia ngay cho san pham nay');
+      toast.success('Đã chạy lấy giá ngay cho sản phẩm này');
     },
-    onError: (error) => toast.error(error.message || 'Khong the chay lay gia ngay'),
+    onError: (error) => toast.error(error.message || 'Không thể chạy lấy giá ngay'),
   });
 
   const summary = useMemo(() => ({
@@ -130,9 +130,9 @@ export default function AdminPriceTracking() {
     <div className="p-4 sm:p-6">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Theo doi gia san pham</h1>
+          <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Theo dõi giá sản phẩm</h1>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Them URL san pham, uu tien lay gia tu JSON-LD, va chi dung selector khi can du phong.
+            Thêm URL sản phẩm, ưu tiên lấy giá từ JSON-LD, và chỉ dùng selector khi cần dự phòng.
           </p>
         </div>
         <Button
@@ -146,26 +146,26 @@ export default function AdminPriceTracking() {
           className="h-12 gap-2 rounded-2xl shadow-sm"
         >
           <Plus className="h-4 w-4" />
-          Them san pham
+          Thêm sản phẩm
         </Button>
       </div>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-3xl">
           <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Tong san pham</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Tổng sản phẩm</p>
             <p className="mt-2 text-3xl font-bold">{summary.total}</p>
           </CardContent>
         </Card>
         <Card className="rounded-3xl">
           <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Dang hoat dong</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Đang hoạt động</p>
             <p className="mt-2 text-3xl font-bold">{summary.active}</p>
           </CardContent>
         </Card>
         <Card className="rounded-3xl">
           <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Chua check lan nao</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Chưa check lần nào</p>
             <p className="mt-2 text-3xl font-bold">{summary.neverChecked}</p>
           </CardContent>
         </Card>
@@ -181,11 +181,11 @@ export default function AdminPriceTracking() {
         <div className="space-y-4">
           {isLoading ? (
             <Card className="rounded-3xl">
-              <CardContent className="p-6 text-sm text-muted-foreground">Dang tai danh sach san pham theo doi gia...</CardContent>
+              <CardContent className="p-6 text-sm text-muted-foreground">Đang tải danh sách sản phẩm theo dõi giá...</CardContent>
             </Card>
           ) : trackedProducts.length === 0 ? (
             <Card className="rounded-3xl">
-              <CardContent className="p-6 text-sm text-muted-foreground">Chua co san pham nao trong danh sach theo doi gia.</CardContent>
+              <CardContent className="p-6 text-sm text-muted-foreground">Chưa có sản phẩm nào trong danh sách theo dõi giá.</CardContent>
             </Card>
           ) : (
             trackedProducts.map((product) => (
@@ -206,17 +206,17 @@ export default function AdminPriceTracking() {
                         </button>
                         <Badge variant="secondary" className="rounded-full">{getTrackedProductPlatformLabel(product.platform)}</Badge>
                         <Badge className={`rounded-full ${product.is_active ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-secondary text-muted-foreground hover:bg-secondary'}`}>
-                          {product.is_active ? 'Dang theo doi' : 'Da tat'}
+                          {product.is_active ? 'Đang theo dõi' : 'Đã tắt'}
                         </Badge>
                       </div>
 
                       <div className="mt-3 grid gap-3 sm:grid-cols-3">
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Gia hien tai</p>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Giá hiện tại</p>
                           <p className="mt-1 text-sm font-semibold">{formatTrackedPrice(product.current_price, product.currency || 'VND')}</p>
                         </div>
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Lan check gan nhat</p>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Lần check gần nhất</p>
                           <p className="mt-1 text-sm font-semibold">{formatTrackedDateTime(product.last_checked_at)}</p>
                         </div>
                         <div>
@@ -227,7 +227,7 @@ export default function AdminPriceTracking() {
 
                       <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{product.product_url}</p>
                       {product.price_selector ? (
-                        <p className="mt-2 text-xs text-muted-foreground">Selector du phong: <code>{product.price_selector}</code></p>
+                        <p className="mt-2 text-xs text-muted-foreground">Selector dự phòng: <code>{product.price_selector}</code></p>
                       ) : null}
                       {product.last_error ? (
                         <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
@@ -245,7 +245,7 @@ export default function AdminPriceTracking() {
                         onClick={() => setSelectedId(product.id)}
                       >
                         <LineChartIcon className="mr-2 h-4 w-4" />
-                        Xem chart
+                        Xem biểu đồ
                       </Button>
                       <Button
                         type="button"
@@ -255,7 +255,7 @@ export default function AdminPriceTracking() {
                         disabled={runNowMutation.isPending}
                       >
                         <RefreshCw className={`mr-2 h-4 w-4 ${runNowMutation.isPending ? 'animate-spin' : ''}`} />
-                        Chay ngay
+                        Chạy ngay
                       </Button>
                       <Button
                         type="button"
@@ -271,14 +271,14 @@ export default function AdminPriceTracking() {
                         }}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
-                        Sua
+                        Sửa
                       </Button>
                       <Button
                         type="button"
                         variant="ghost"
                         className="rounded-2xl text-destructive hover:text-destructive"
                         onClick={() => {
-                          if (window.confirm('Xoa san pham theo doi gia nay?')) {
+                          if (window.confirm('Xóa sản phẩm theo dõi giá này?')) {
                             deleteMutation.mutate(product.id);
                           }
                         }}
@@ -296,9 +296,9 @@ export default function AdminPriceTracking() {
         <Card className="rounded-3xl">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Lich su gia</CardTitle>
+              <CardTitle>Lịch sử giá</CardTitle>
               <CardDescription>
-                {selectedProduct ? `Theo doi bien dong gia cua ${selectedProduct.name}` : 'Chon san pham de xem lich su gia'}
+                {selectedProduct ? `Theo dõi biến động giá của ${selectedProduct.name}` : 'Chọn sản phẩm để xem lịch sử giá'}
               </CardDescription>
             </div>
             <Select value={historyDays} onValueChange={setHistoryDays}>
@@ -306,9 +306,9 @@ export default function AdminPriceTracking() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7">7 ngay</SelectItem>
-                <SelectItem value="30">30 ngay</SelectItem>
-                <SelectItem value="90">90 ngay</SelectItem>
+                <SelectItem value="7">7 ngày</SelectItem>
+                <SelectItem value="30">30 ngày</SelectItem>
+                <SelectItem value="90">90 ngày</SelectItem>
               </SelectContent>
             </Select>
           </CardHeader>
@@ -317,11 +317,11 @@ export default function AdminPriceTracking() {
               <>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl border border-border bg-secondary/20 p-4">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Gia hien tai</p>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Giá hiện tại</p>
                     <p className="mt-2 text-xl font-bold">{formatTrackedPrice(selectedProduct.current_price, selectedProduct.currency || 'VND')}</p>
                   </div>
                   <div className="rounded-2xl border border-border bg-secondary/20 p-4">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Lan cap nhat</p>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Lần cập nhật</p>
                     <p className="mt-2 text-sm font-semibold">{formatTrackedDateTime(selectedProduct.last_checked_at)}</p>
                   </div>
                 </div>
@@ -336,13 +336,13 @@ export default function AdminPriceTracking() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
                 >
-                  Mo trang san pham goc
+                  Mở trang sản phẩm gốc
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </>
             ) : (
               <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted-foreground">
-                Chua co san pham nao de hien thi chart.
+                Chưa có sản phẩm nào để hiển thị biểu đồ.
               </div>
             )}
           </CardContent>
@@ -352,15 +352,15 @@ export default function AdminPriceTracking() {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editing?.id ? 'Sua san pham theo doi gia' : 'Them san pham theo doi gia'}</DialogTitle>
-            <DialogDescription>Nhap URL san pham. He thong se uu tien lay gia tu JSON-LD, selector chi dung de fallback.</DialogDescription>
+            <DialogTitle>{editing?.id ? 'Sửa sản phẩm theo dõi giá' : 'Thêm sản phẩm theo dõi giá'}</DialogTitle>
+            <DialogDescription>Nhập URL sản phẩm. Hệ thống sẽ ưu tiên lấy giá từ JSON-LD, selector chỉ dùng làm phương án dự phòng.</DialogDescription>
           </DialogHeader>
 
           {editing ? (
             <div className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
-                  <Label>Ten san pham</Label>
+                  <Label>Tên sản phẩm</Label>
                   <Input value={editing.name} onChange={(event) => setEditing((current) => ({ ...current, name: event.target.value }))} />
                 </div>
                 <div className="space-y-2">
@@ -368,7 +368,7 @@ export default function AdminPriceTracking() {
                   <Input value={editing.slug || ''} onChange={(event) => setEditing((current) => ({ ...current, slug: event.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label>San</Label>
+                  <Label>Sàn</Label>
                   <Select value={editing.platform || 'other'} onValueChange={(value) => setEditing((current) => ({ ...current, platform: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -381,15 +381,15 @@ export default function AdminPriceTracking() {
                   </Select>
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <Label>URL san pham</Label>
+                  <Label>URL sản phẩm</Label>
                   <Textarea rows={3} value={editing.product_url} onChange={(event) => setEditing((current) => ({ ...current, product_url: event.target.value }))} />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <Label>Selector du phong</Label>
+                  <Label>Selector dự phòng</Label>
                   <Input value={editing.price_selector || ''} onChange={(event) => setEditing((current) => ({ ...current, price_selector: event.target.value }))} placeholder=".product-price, [data-price]" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Thua tu</Label>
+                  <Label>Thứ tự</Label>
                   <Input type="number" value={editing.sort_order || 0} onChange={(event) => setEditing((current) => ({ ...current, sort_order: Number(event.target.value) || 0 }))} />
                 </div>
                 <div className="space-y-2">
@@ -400,19 +400,19 @@ export default function AdminPriceTracking() {
 
               <div className="flex items-center justify-between rounded-2xl border border-border px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold">Dang theo doi</p>
-                  <p className="text-xs text-muted-foreground">Tat neu tam thoi khong muon cron chay cho san pham nay.</p>
+                  <p className="text-sm font-semibold">Đang theo dõi</p>
+                  <p className="text-xs text-muted-foreground">Tắt nếu tạm thời không muốn cron chạy cho sản phẩm này.</p>
                 </div>
                 <Switch checked={!!editing.is_active} onCheckedChange={(value) => setEditing((current) => ({ ...current, is_active: value }))} />
               </div>
 
               <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setShowForm(false)}>Huy</Button>
+                <Button variant="outline" onClick={() => setShowForm(false)}>Hủy</Button>
                 <Button
                   onClick={() => saveMutation.mutate(editing)}
                   disabled={saveMutation.isPending || !editing.name || !editing.product_url}
                 >
-                  {saveMutation.isPending ? 'Dang luu...' : 'Luu san pham'}
+                  {saveMutation.isPending ? 'Đang lưu...' : 'Lưu sản phẩm'}
                 </Button>
               </div>
             </div>

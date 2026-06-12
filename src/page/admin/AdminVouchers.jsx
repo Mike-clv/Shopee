@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Filter, GripVertical, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, GripVertical, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
 import { Badge } from '@/components/ui/badge';
@@ -442,7 +442,7 @@ export default function AdminVouchers() {
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2">
                                     <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
-                                      #{index + 1}
+                                      #{(page - 1) * ITEMS_PER_PAGE + index + 1}
                                     </span>
                                     <p className="line-clamp-2 text-sm font-semibold leading-5">{voucher.title}</p>
                                   </div>
@@ -544,7 +544,7 @@ export default function AdminVouchers() {
                                 <td className="p-3">
                                   <div className="flex items-center gap-2">
                                     <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-secondary px-2 text-[11px] font-bold text-muted-foreground">
-                                      #{index + 1}
+                                      #{(page - 1) * ITEMS_PER_PAGE + index + 1}
                                     </span>
                                     <div className="min-w-0">
                                       <p className="line-clamp-1 font-medium">{voucher.title}</p>
@@ -599,6 +599,18 @@ export default function AdminVouchers() {
       {/* Phân trang */}
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-center gap-1">
+          {/* Trang đầu */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 rounded-xl"
+            disabled={page <= 1}
+            onClick={() => setPage(1)}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+
+          {/* Trang trước */}
           <Button
             variant="outline"
             size="icon"
@@ -634,6 +646,7 @@ export default function AdminVouchers() {
             );
           })}
 
+          {/* Trang sau */}
           <Button
             variant="outline"
             size="icon"
@@ -642,6 +655,17 @@ export default function AdminVouchers() {
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           >
             <ChevronRight className="h-4 w-4" />
+          </Button>
+
+          {/* Trang cuối */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 rounded-xl"
+            disabled={page >= totalPages}
+            onClick={() => setPage(totalPages)}
+          >
+            <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       )}

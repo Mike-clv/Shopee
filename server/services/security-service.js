@@ -217,6 +217,18 @@ export function requireSameOrigin(req, res, next) {
   const sourceHost = originHost || refererHost;
 
   if (!sourceHost || !requestHost || sourceHost !== requestHost) {
+    // Cho phép localhost cross-port trong development mode
+    // (Vite dev server chạy port khác API server)
+    if (!isProductionLike()) {
+      const extractHostname = (host) => host?.split(':')[0] || null;
+      const sourceHostname = extractHostname(sourceHost);
+      const requestHostname = extractHostname(requestHost);
+      const isLocalhost = (h) => h === 'localhost' || h === '127.0.0.1';
+      if (sourceHostname && requestHostname && isLocalhost(sourceHostname) && isLocalhost(requestHostname)) {
+        next();
+        return;
+      }
+    }
     res.status(403).json({ message: 'Origin không hợp lệ.' });
     return;
   }

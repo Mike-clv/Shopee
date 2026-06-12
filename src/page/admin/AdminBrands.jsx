@@ -78,6 +78,7 @@ export default function AdminBrands() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-brands-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-global-coupon-brands'] });
       qc.invalidateQueries({ queryKey: ['homepage'] });
       setShowForm(false);
       setEditing(null);
@@ -110,6 +111,7 @@ export default function AdminBrands() {
     mutationFn: (id) => localClient.entities.Brand.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-brands-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-global-coupon-brands'] });
       qc.invalidateQueries({ queryKey: ['homepage'] });
       toast.success('Đã xóa thương hiệu');
     },

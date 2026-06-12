@@ -174,14 +174,14 @@ export default function InstallmentCalculator() {
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-3">
               {bankRecommendations.map((bank) => (
-                <div key={bank.name} className="rounded-3xl border border-border bg-secondary/20 p-5">
+                <div key={bank.name} className="flex h-full flex-col rounded-3xl border border-border bg-secondary/20 p-5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <Landmark className="h-5 w-5" />
                   </div>
                   <h3 className="mt-4 font-heading text-lg font-bold">{bank.name}</h3>
                   <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">{bank.aprHint}</p>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{bank.description}</p>
-                  <Button asChild className="mt-5 w-full rounded-2xl">
+                  <p className="mt-3 min-h-[96px] text-sm leading-6 text-muted-foreground">{bank.description}</p>
+                  <Button asChild className="mt-auto min-h-12 w-full rounded-2xl px-5 text-sm font-semibold shadow-sm shadow-primary/20">
                     <a href={bank.url} target="_blank" rel="noopener noreferrer">Xem gói vay</a>
                   </Button>
                 </div>

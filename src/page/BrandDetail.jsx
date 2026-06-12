@@ -20,6 +20,38 @@ const platformNames = {
   other: 'Khác',
 };
 
+function getBrandDescription(brand) {
+  const raw = String(brand?.description || '').trim();
+  if (!raw) return '';
+
+  const normalized = raw.toLowerCase();
+  const blockedSignals = [
+    'accesstrade',
+    'publisher',
+    'publishers',
+    'thông báo',
+    'traffic',
+    'chiến dịch',
+    'xác thực publisher',
+    'tạm thời ngừng duyệt',
+    'quý publishers',
+    'kiểm tra và rà soát chất lượng',
+    'logo sàn',
+    'logo thương hiệu',
+    'khu vực thương hiệu nổi bật',
+  ];
+
+  if (blockedSignals.some((signal) => normalized.includes(signal))) {
+    return '';
+  }
+
+  if (raw.length > 220) {
+    return '';
+  }
+
+  return raw;
+}
+
 export default function BrandDetail() {
   const slug = window.location.pathname.split('/thuong-hieu/')[1];
 
@@ -41,13 +73,7 @@ export default function BrandDetail() {
   const websiteHost = brand?.website_url
     ? brand.website_url.replace(/^https?:\/\//i, '').replace(/\/.*$/, '')
     : '';
-  const sanitizedDescription = (() => {
-    const raw = String(brand?.description || '').trim();
-    if (!raw) return '';
-    if (/logo\s+(sàn|thuong hieu|thương hiệu)/i.test(raw)) return '';
-    if (/khu vực thương hiệu nổi bật/i.test(raw)) return '';
-    return raw;
-  })();
+  const displayDescription = getBrandDescription(brand);
 
   if (loadingBrand) {
     return (
@@ -74,7 +100,7 @@ export default function BrandDetail() {
     <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
       <Seo
         title={brand.seo_title || `Mã giảm giá ${brand.name} hôm nay, voucher ${brand.name}`}
-        description={brand.seo_description || brand.description || `Tổng hợp mã giảm giá, voucher và ưu đãi mới nhất của ${brand.name}.`}
+        description={brand.seo_description || displayDescription || `Tổng hợp mã giảm giá, voucher và ưu đãi mới nhất của ${brand.name}.`}
         path={`/thuong-hieu/${brand.slug}`}
         image={brand.logo || brand.brand_logo}
         keywords={mergeKeywords(BASE_KEYWORDS, BRAND_KEYWORDS, [
@@ -113,11 +139,11 @@ export default function BrandDetail() {
 
               <div className="min-w-0 flex-1 text-center sm:text-left">
                 <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                  {brand.platform && (
+                  {brand.platform ? (
                     <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
-                      {platformNames[brand.platform]}
+                      {platformNames[brand.platform] || 'Khác'}
                     </Badge>
-                  )}
+                  ) : null}
                   {brand.is_featured ? (
                     <Badge className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10">
                       Thương hiệu nổi bật
@@ -137,9 +163,9 @@ export default function BrandDetail() {
                   {voucherCount} mã giảm giá đang còn hiệu lực
                 </p>
 
-                {sanitizedDescription ? (
+                {displayDescription ? (
                   <p className="mt-2 text-sm leading-6 text-muted-foreground sm:max-w-2xl">
-                    {sanitizedDescription}
+                    {displayDescription}
                   </p>
                 ) : null}
               </div>
@@ -161,7 +187,7 @@ export default function BrandDetail() {
                   </div>
 
                   <a href={brand.website_url} target="_blank" rel="noopener noreferrer" className="mt-4 block">
-                    <Button className="h-12 w-full rounded-2xl gap-2 text-sm font-semibold shadow-[0_18px_40px_-20px_hsl(var(--primary))]">
+                    <Button className="h-12 w-full gap-2 rounded-2xl text-sm font-semibold shadow-[0_18px_40px_-20px_hsl(var(--primary))]">
                       Chuyển đến website
                       <ArrowUpRight className="h-4 w-4" />
                     </Button>
@@ -181,13 +207,14 @@ export default function BrandDetail() {
 
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold font-heading text-foreground sm:text-2xl">
+          <h2 className="font-heading text-xl font-bold text-foreground sm:text-2xl">
             Mã Giảm Giá {brand.name}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Danh sách ưu đãi đang còn hiệu lực của {brand.name}.
           </p>
         </div>
+
         {brand.website_url ? (
           <a
             href={brand.website_url}

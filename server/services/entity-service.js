@@ -223,6 +223,38 @@ export async function listResource(resource, filters = {}, sort, limit) {
   return fallbackList(config, filters, sort, limit);
 }
 
+/**
+ * Paginated version of listResource - returns { data, total, page, limit }
+ */
+export async function listResourcePaginated(resource, filters = {}, sort, limit, page = 1) {
+  const config = getConfig(resource);
+  const prisma = getPrisma();
+  const model = prisma[config.model];
+  const where = parseWhere(config, filters);
+  const orderBy = parseOrderBy(sort, config);
+  const take = Math.max(1, Number.parseInt(limit, 10) || 50);
+  const pageNum = Math.max(1, Number.parseInt(page, 10) || 1);
+  const skip = (pageNum - 1) * take;
+
+  try {
+    const total = await model.count({ where });
+    const rows = await model.findMany({
+      where,
+      ...(orderBy ? { orderBy } : {}),
+      take,
+      skip,
+    });
+
+    return { data: rows, total, page: pageNum, limit: take };
+  } catch (error) {
+    console.warn(`[${resource}] database read failed, using fallback:`, error.message);
+  }
+
+  const allRows = fallbackList(config, filters, sort, undefined);
+  const paginatedRows = allRows.slice(skip, skip + take);
+  return { data: paginatedRows, total: allRows.length, page: pageNum, limit: take };
+}
+
 export async function createResource(resource, input) {
   const config = getConfig(resource);
   const prisma = getPrisma();

@@ -57,6 +57,7 @@ function entityClient(name) {
 
   return {
     list: (sort, limit) => request(`/api/${path}${queryString({}, sort, limit)}`),
+    listPaginated: (sort, limit, page, filters = {}) => request(`/api/${path}${queryString({ ...filters, sort, limit, page })}`),
     filter: (filters = {}, sort, limit) => request(`/api/${path}${queryString(filters, sort, limit)}`),
     create: (data) => request(`/api/${path}`, { method: 'POST', body: data }),
     update: (id, data) => request(`/api/${path}/${encodeURIComponent(id)}`, { method: 'PUT', body: data }),

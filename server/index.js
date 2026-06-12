@@ -9,6 +9,7 @@ import {
   createResource,
   deleteResource,
   listResource,
+  listResourcePaginated,
   trackEvent,
   updateResource,
 } from './services/entity-service.js';
@@ -429,10 +430,16 @@ app.get('/api/:resource', maybeRateLimitPublicRead, async (req, res, next) => {
       }
     }
 
-    const { sort, limit, ...filters } = req.query;
+    const { sort, limit, page, ...filters } = req.query;
     const user = getSessionUser(req);
 
     if (user?.role === 'admin') {
+      // Hỗ trợ phân trang khi có tham số page
+      if (page) {
+        const result = await listResourcePaginated(resource, filters, sort, clampLimit(limit, 500), page);
+        res.json(result);
+        return;
+      }
       const rows = await listResource(resource, filters, sort, clampLimit(limit, 500));
       res.json(rows);
       return;

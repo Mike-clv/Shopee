@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { GripVertical, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Filter, GripVertical, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
 import { Badge } from '@/components/ui/badge';
@@ -105,17 +105,54 @@ function VoucherFlags({ voucher }) {
   );
 }
 
+const ITEMS_PER_PAGE = 50;
+
+const PLATFORM_OPTIONS = [
+  { value: '', label: 'Tất cả sàn' },
+  { value: 'shopee', label: 'Shopee' },
+  { value: 'lazada', label: 'Lazada' },
+  { value: 'tiki', label: 'Tiki' },
+  { value: 'tiktok_shop', label: 'TikTok Shop' },
+  { value: 'other', label: 'Khác' },
+];
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'Tất cả trạng thái' },
+  { value: 'active', label: 'Còn hạn' },
+  { value: 'expiring_soon', label: 'Sắp hết hạn' },
+  { value: 'expired', label: 'Hết hạn' },
+  { value: 'draft', label: 'Nháp' },
+];
+
 export default function AdminVouchers() {
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [filterPlatform, setFilterPlatform] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterBrand, setFilterBrand] = useState('');
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [orderedVouchers, setOrderedVouchers] = useState([]);
   const qc = useQueryClient();
 
-  const { data: vouchers = [], isLoading } = useQuery({
-    queryKey: ['admin-vouchers-list'],
-    queryFn: () => localClient.entities.Voucher.list('-sort_order', 200),
+  // Xây dựng filters cho API call
+  const apiFilters = useMemo(() => {
+    const filters = {};
+    if (filterPlatform) filters.platform = filterPlatform;
+    if (filterStatus) filters.status = filterStatus;
+    if (filterBrand) filters.brand_id = filterBrand;
+    return filters;
+  }, [filterPlatform, filterStatus, filterBrand]);
+
+  // Fetch vouchers phân trang từ server
+  const { data: voucherData, isLoading } = useQuery({
+    queryKey: ['admin-vouchers-paginated', page, apiFilters],
+    queryFn: () => localClient.entities.Voucher.listPaginated('-sort_order', ITEMS_PER_PAGE, page, apiFilters),
   });
+
+  const vouchers = useMemo(() => voucherData?.data || [], [voucherData]);
+  const totalVouchers = voucherData?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(totalVouchers / ITEMS_PER_PAGE));
 
   const { data: brands = [] } = useQuery({
     queryKey: ['admin-brands-select'],
@@ -133,6 +170,7 @@ export default function AdminVouchers() {
 
   const visibleVouchers = useMemo(() => sortVouchersByPriority(orderedVouchers), [orderedVouchers]);
 
+  // Search vẫn client-side trên data của page hiện tại
   const filtered = useMemo(() => {
     const keyword = search.trim().toLowerCase();
     if (!keyword) return visibleVouchers;
@@ -144,7 +182,24 @@ export default function AdminVouchers() {
     );
   }, [search, visibleVouchers]);
 
-  const isFiltering = search.trim().length > 0;
+  const isFiltering = search.trim().length > 0 || filterPlatform || filterStatus || filterBrand;
+
+  // Reset page khi thay đổi filter
+  const handleFilterChange = useCallback((setter) => (value) => {
+    setter(value);
+    setPage(1);
+  }, []);
+
+  // Đếm số filter đang active
+  const activeFilterCount = [filterPlatform, filterStatus, filterBrand].filter(Boolean).length;
+
+  // Xóa tất cả filter
+  const clearFilters = useCallback(() => {
+    setFilterPlatform('');
+    setFilterStatus('');
+    setFilterBrand('');
+    setPage(1);
+  }, []);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -155,6 +210,7 @@ export default function AdminVouchers() {
       return localClient.entities.Voucher.create(data);
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-paginated'] });
       qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
       qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
       qc.invalidateQueries({ queryKey: ['homepage'] });
@@ -172,6 +228,7 @@ export default function AdminVouchers() {
       items.map((item) => localClient.entities.Voucher.update(item.id, { sort_order: item.sort_order })),
     ),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-paginated'] });
       qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
       qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
       qc.invalidateQueries({ queryKey: ['homepage'] });
@@ -188,6 +245,7 @@ export default function AdminVouchers() {
   const deleteMutation = useMutation({
     mutationFn: (id) => localClient.entities.Voucher.delete(id),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-paginated'] });
       qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
       qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
       qc.invalidateQueries({ queryKey: ['homepage'] });
@@ -248,25 +306,90 @@ export default function AdminVouchers() {
         </Button>
       </div>
 
-      <div className="mb-4 space-y-2">
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Tìm voucher, mã, thương hiệu..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-12 rounded-2xl pl-10"
-          />
+      {/* Bộ lọc và tìm kiếm */}
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {/* Ô tìm kiếm */}
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Tìm voucher, mã, thương hiệu..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 rounded-xl pl-10"
+            />
+          </div>
+
+          {/* Filter Dropdowns */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Filter className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Lọc:</span>
+            </div>
+
+            {/* Filter Sàn */}
+            <Select value={filterPlatform || 'all'} onValueChange={(v) => handleFilterChange(setFilterPlatform)(v === 'all' ? '' : v)}>
+              <SelectTrigger className="h-9 w-auto min-w-[120px] rounded-xl text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PLATFORM_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value || 'all'} value={opt.value || 'all'}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filter Trạng thái */}
+            <Select value={filterStatus || 'all'} onValueChange={(v) => handleFilterChange(setFilterStatus)(v === 'all' ? '' : v)}>
+              <SelectTrigger className="h-9 w-auto min-w-[130px] rounded-xl text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value || 'all'} value={opt.value || 'all'}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filter Thương hiệu */}
+            <Select value={filterBrand || 'all'} onValueChange={(v) => handleFilterChange(setFilterBrand)(v === 'all' ? '' : v)}>
+              <SelectTrigger className="h-9 w-auto min-w-[130px] rounded-xl text-xs">
+                <SelectValue placeholder="Thương hiệu" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả thương hiệu</SelectItem>
+                {brands.map((brand) => (
+                  <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Nút xóa filter */}
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1 rounded-xl text-xs text-muted-foreground"
+                onClick={clearFilters}
+              >
+                <X className="h-3 w-3" />
+                Xóa lọc ({activeFilterCount})
+              </Button>
+            )}
+          </div>
         </div>
-        {isFiltering ? (
-          <p className="text-xs text-muted-foreground">
-            Đang lọc danh sách. Xóa từ khóa tìm kiếm để kéo thả sắp xếp voucher.
+
+        {/* Thông tin */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <p>
+            {isFiltering
+              ? `Đang lọc ${filtered.length} / ${totalVouchers} voucher.`
+              : `Kéo biểu tượng 6 chấm để đổi thứ tự ưu tiên hiển thị voucher.`
+            }
+            {' '}
+            Trang {page}/{totalPages} · Tổng {totalVouchers} voucher
           </p>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Kéo biểu tượng 6 chấm để đổi thứ tự ưu tiên hiển thị voucher.
-          </p>
-        )}
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -472,6 +595,56 @@ export default function AdminVouchers() {
           )}
         </Droppable>
       </DragDropContext>
+
+      {/* Phân trang */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 rounded-xl"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 7) {
+              pageNum = i + 1;
+            } else if (page <= 4) {
+              pageNum = i + 1;
+            } else if (page >= totalPages - 3) {
+              pageNum = totalPages - 6 + i;
+            } else {
+              pageNum = page - 3 + i;
+            }
+
+            return (
+              <Button
+                key={pageNum}
+                variant={pageNum === page ? 'default' : 'outline'}
+                size="icon"
+                className={`h-9 w-9 rounded-xl ${pageNum === page ? 'pointer-events-none' : ''}`}
+                onClick={() => setPage(pageNum)}
+              >
+                {pageNum}
+              </Button>
+            );
+          })}
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 rounded-xl"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-3xl">

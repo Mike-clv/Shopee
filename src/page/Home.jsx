@@ -4,6 +4,7 @@ import { localClient } from '@/api/localClient';
 import Seo from '@/components/Seo';
 import HeroSection from '../components/home/HeroSection';
 import AdBannerSlot from '../components/home/AdBannerSlot';
+import GlobalCouponsSection from '../components/home/GlobalCouponsSection';
 import VoucherSection from '../components/home/VoucherSection';
 import CategoryGrid from '../components/home/CategoryGrid';
 import BrandSection from '../components/home/BrandSection';
@@ -32,6 +33,7 @@ export default function Home() {
   const brands = homepage?.brands || [];
   const topBanners = homepage?.topBanners || [];
   const hotEmptyBanners = homepage?.hotEmptyBanners || [];
+  const globalCoupons = homepage?.globalCoupons || [];
   const blogPosts = homepage?.blogPosts || [];
   const interestPosts = homepage?.interestPosts || [];
 
@@ -56,6 +58,7 @@ export default function Home() {
       />
       <HeroSection />
       <AdBannerSlot banners={topBanners} />
+      <GlobalCouponsSection coupons={globalCoupons} />
 
       <VoucherSection
         title="🔥 Mã Giảm Giá Hot Hôm Nay"

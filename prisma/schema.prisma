@@ -205,6 +205,42 @@ model Banner {
   @@map("banners")
 }
 
+model TrackedProduct {
+  id                 String        @id @default(cuid())
+  name               String
+  slug               String        @unique
+  platform           String?
+  product_url        String        @db.Text
+  price_selector     String?
+  currency           String        @default("VND")
+  current_price      Decimal?      @db.Decimal(14, 2)
+  current_price_text String?
+  last_checked_at    DateTime?
+  last_error         String?       @db.Text
+  consecutive_error_count Int      @default(0)
+  is_active          Boolean       @default(true)
+  sort_order         Int           @default(0)
+  created_date       DateTime      @default(now())
+  updated_date       DateTime      @updatedAt
+  price_histories    PriceHistory[]
+
+  @@map("tracked_products")
+}
+
+model PriceHistory {
+  id                 String         @id @default(cuid())
+  tracked_product_id String
+  price              Decimal        @db.Decimal(14, 2)
+  price_text         String?
+  captured_at        DateTime       @default(now())
+  source             String         @default("jsonld")
+  source_url         String?        @db.Text
+  tracked_product    TrackedProduct @relation(fields: [tracked_product_id], references: [id], onDelete: Cascade)
+
+  @@index([tracked_product_id, captured_at(sort: Desc)])
+  @@map("price_histories")
+}
+
 model SiteSetting {
   id            String   @id @default(cuid())
   key           String   @unique

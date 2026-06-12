@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 
-let prisma;
+const globalForPrisma = globalThis;
 
 export function getPrisma() {
-  if (!prisma) {
-    prisma = new PrismaClient();
+  if (!globalForPrisma.__prismaClient) {
+    globalForPrisma.__prismaClient = new PrismaClient();
   }
-  return prisma;
+  return globalForPrisma.__prismaClient;
 }
 
 export async function canUseDatabase() {

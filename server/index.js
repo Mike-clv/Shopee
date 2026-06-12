@@ -22,7 +22,10 @@ import {
 } from './services/auth-service.js';
 import { cleanupStaleAccessTradeSyncLogs, syncAccessTrade } from './services/accesstrade/sync.js';
 import { createAffiliateRouter } from './routes/affiliate-router.js';
+import { createPriceTrackingRouter } from './routes/price-tracking-router.js';
+import { getGlobalCouponsSetting, getPublicGlobalCoupons, saveGlobalCouponsSetting } from './services/global-coupons-service.js';
 import { publishScheduledContent } from './services/publish-service.js';
+import { getExitIntentPopupSetting, saveExitIntentPopupSetting } from './services/site-setting-service.js';
 import { saveImageUpload } from './services/upload-service.js';
 import {
   applySecurityHeaders,
@@ -177,11 +180,13 @@ app.get('/robots.txt', (_req, res) => {
 
 app.get('/sitemap.xml', async (_req, res, next) => {
   try {
-    const [blogPosts, brands, categories, vouchers] = await Promise.all([
+    const [blogPosts, interestPosts, brands, categories, vouchers, trackedProducts] = await Promise.all([
       listResource('blog-posts', { status: 'published' }, 'sort_order', 500),
+      listResource('interest-posts', { status: 'published' }, 'sort_order', 500),
       listResource('brands', { is_active: true }, 'sort_order', 500),
       listResource('categories', { is_active: true }, 'sort_order', 500),
       listResource('vouchers', { status: 'active' }, '-updated_date', 1000),
+      listResource('tracked-products', { is_active: true }, 'sort_order', 500),
     ]);
 
     const staticUrls = [
@@ -191,6 +196,8 @@ app.get('/sitemap.xml', async (_req, res, next) => {
       formatSitemapUrl('/danh-muc', new Date(), '0.8'),
       formatSitemapUrl('/blog', new Date(), '0.8'),
       formatSitemapUrl('/quan-tam', new Date(), '0.75'),
+      formatSitemapUrl('/theo-doi-gia', new Date(), '0.7'),
+      formatSitemapUrl('/tinh-tra-gop', new Date(), '0.7'),
       formatSitemapUrl('/gioi-thieu', new Date(), '0.5'),
       formatSitemapUrl('/chinh-sach', new Date(), '0.4'),
       formatSitemapUrl('/san/shopee', new Date(), '0.8'),
@@ -201,9 +208,11 @@ app.get('/sitemap.xml', async (_req, res, next) => {
 
     const dynamicUrls = [
       ...blogPosts.map((post) => formatSitemapUrl(`/blog/${post.slug || post.id}`, post.updated_date || post.published_at, '0.7')),
+      ...interestPosts.map((post) => formatSitemapUrl(`/quan-tam/${post.slug || post.id}`, post.updated_date || post.published_at, '0.7')),
       ...brands.map((brand) => formatSitemapUrl(`/thuong-hieu/${brand.slug || brand.id}`, brand.updated_date, '0.7')),
       ...categories.map((category) => formatSitemapUrl(`/danh-muc/${category.slug || category.id}`, category.updated_date, '0.7')),
       ...vouchers.map((voucher) => formatSitemapUrl(`/ma-giam-gia/${voucher.slug || voucher.id}`, voucher.updated_date || voucher.created_date, '0.6')),
+      ...trackedProducts.map((product) => formatSitemapUrl(`/theo-doi-gia/${product.slug || product.id}`, product.updated_date || product.created_date, '0.6')),
     ];
 
     res.type('application/xml');
@@ -229,6 +238,7 @@ app.get('/api/homepage', maybeRateLimitPublicRead, async (_req, res, next) => {
       brands,
       topBanners,
       hotEmptyBanners,
+      globalCoupons,
       blogPosts,
       interestPosts,
     ] = await Promise.all([
@@ -238,6 +248,7 @@ app.get('/api/homepage', maybeRateLimitPublicRead, async (_req, res, next) => {
       listResource('brands', { is_featured: true, is_active: true }, 'sort_order', 12),
       listResource('banners', { is_active: true, placement: 'homepage_top' }, 'sort_order', 4),
       listResource('banners', { is_active: true, placement: 'hot_empty' }, 'sort_order', 4),
+      getPublicGlobalCoupons(),
       listResource('blog-posts', { status: 'published' }, 'sort_order', 100),
       listResource('interest-posts', { status: 'published' }, 'sort_order', 12),
     ]);
@@ -249,6 +260,7 @@ app.get('/api/homepage', maybeRateLimitPublicRead, async (_req, res, next) => {
       brands,
       topBanners,
       hotEmptyBanners,
+      globalCoupons,
       blogPosts,
       interestPosts,
     });
@@ -317,10 +329,64 @@ app.use(createAffiliateRouter({
   adminMutationRateLimit,
 }));
 
+app.use(createPriceTrackingRouter({
+  adminMutationRateLimit,
+  canRunCronWithoutSecret,
+  getSessionUser,
+  maybeRateLimitPublicRead,
+  requireAdmin,
+  requireSameOrigin,
+}));
+
 app.post('/api/uploads/image', requireSameOrigin, requireAdmin, uploadRateLimit, upload.single('file'), async (req, res, next) => {
   try {
     const result = await saveImageUpload(req.file);
     res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/exit-intent-popup', maybeRateLimitPublicRead, async (_req, res, next) => {
+  try {
+    const value = await getExitIntentPopupSetting();
+    res.json(value);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/admin/exit-intent-popup', requireAdmin, async (_req, res, next) => {
+  try {
+    const value = await getExitIntentPopupSetting();
+    res.json(value);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/admin/exit-intent-popup', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const value = await saveExitIntentPopupSetting(req.body || {});
+    res.json(value);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/admin/global-coupons', requireAdmin, async (_req, res, next) => {
+  try {
+    const value = await getGlobalCouponsSetting();
+    res.json(value);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/admin/global-coupons', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const value = await saveGlobalCouponsSetting(req.body || []);
+    res.json(value);
   } catch (error) {
     next(error);
   }

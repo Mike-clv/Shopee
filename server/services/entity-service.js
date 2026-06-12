@@ -100,6 +100,19 @@ export const resources = {
     intFields: ['sort_order'],
     dateFields: ['created_date', 'updated_date'],
   },
+  'tracked-products': {
+    model: 'trackedProduct',
+    fallback: mockData.trackedProducts || [],
+    fields: [
+      ...commonFields,
+      'name', 'slug', 'platform', 'product_url', 'price_selector', 'currency',
+      'current_price', 'current_price_text', 'last_checked_at', 'last_error', 'consecutive_error_count',
+      'is_active', 'sort_order',
+    ],
+    boolFields: ['is_active'],
+    intFields: ['sort_order', 'consecutive_error_count'],
+    dateFields: ['last_checked_at', 'created_date', 'updated_date'],
+  },
 };
 
 function getConfig(resource) {

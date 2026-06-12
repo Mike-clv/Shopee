@@ -3,6 +3,17 @@
   "framework": "vite",
   "buildCommand": "npx prisma generate && npx prisma migrate deploy && npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/price-tracking",
+      "schedule": "0 19 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/robots.txt",

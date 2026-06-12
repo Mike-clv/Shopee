@@ -34,6 +34,9 @@ import BlogList from '@/pages/BlogList';
 import BlogDetail from '@/pages/BlogDetail';
 import InterestList from '@/pages/InterestList';
 import InterestDetail from '@/pages/InterestDetail';
+import PriceTrackingList from '@/pages/PriceTrackingList';
+import PriceTrackingDetail from '@/pages/PriceTrackingDetail';
+import InstallmentCalculator from '@/pages/InstallmentCalculator';
 import AboutPage from '@/pages/AboutPage';
 import PolicyPage from '@/pages/PolicyPage';
 
@@ -46,6 +49,9 @@ import AdminBlog from '@/pages/admin/AdminBlog';
 import AdminBanners from '@/pages/admin/AdminBanners';
 import AdminHotBanners from '@/pages/admin/AdminHotBanners';
 import AdminInterestPosts from '@/pages/admin/AdminInterestPosts';
+import AdminGlobalCoupons from '@/pages/admin/AdminGlobalCoupons';
+import AdminPriceTracking from '@/pages/admin/AdminPriceTracking';
+import AdminExitIntentPopup from '@/pages/admin/AdminExitIntentPopup';
 import AdminSync from '@/pages/admin/AdminSync';
 import AdminStats from '@/pages/admin/AdminStats';
 
@@ -99,6 +105,9 @@ const AuthenticatedApp = () => {
           <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/quan-tam" element={<InterestList />} />
           <Route path="/quan-tam/:slug" element={<InterestDetail />} />
+          <Route path="/theo-doi-gia" element={<PriceTrackingList />} />
+          <Route path="/theo-doi-gia/:slug" element={<PriceTrackingDetail />} />
+          <Route path="/tinh-tra-gop" element={<InstallmentCalculator />} />
           <Route path="/gioi-thieu" element={<AboutPage />} />
           <Route path="/chinh-sach" element={<PolicyPage />} />
           <Route path="/dieu-khoan" element={<PolicyPage />} />
@@ -115,6 +124,9 @@ const AuthenticatedApp = () => {
             <Route path="/admin/banners" element={<AdminBanners />} />
             <Route path="/admin/hot-banners" element={<AdminHotBanners />} />
             <Route path="/admin/interests" element={<AdminInterestPosts />} />
+            <Route path="/admin/global-coupons" element={<AdminGlobalCoupons />} />
+            <Route path="/admin/price-tracking" element={<AdminPriceTracking />} />
+            <Route path="/admin/exit-intent-popup" element={<AdminExitIntentPopup />} />
             <Route path="/admin/sync" element={<AdminSync />} />
             <Route path="/admin/stats" element={<AdminStats />} />
           </Route>

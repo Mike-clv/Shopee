@@ -41,6 +41,12 @@ const publicReadPolicies = {
     allowedSortFields: ['sort_order', 'created_date', 'updated_date'],
     maxLimit: 20,
   },
+  'tracked-products': {
+    enforcedFilters: { is_active: true },
+    allowedFilterFields: ['id', 'slug', 'platform'],
+    allowedSortFields: ['sort_order', 'last_checked_at', 'created_date', 'updated_date'],
+    maxLimit: 50,
+  },
 };
 
 function parseIntSafe(value, fallback) {

@@ -18,6 +18,8 @@ const footerLinks = {
   'Thông Tin': [
     { name: 'Giới Thiệu', path: '/gioi-thieu' },
     { name: 'Blog', path: '/blog' },
+    { name: 'Theo Doi Gia', path: '/theo-doi-gia' },
+    { name: 'Tinh Tra Gop', path: '/tinh-tra-gop' },
     { name: 'Liên Hệ', path: '/lien-he' },
     { name: 'Chính Sách', path: '/chinh-sach' },
   ],

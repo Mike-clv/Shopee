@@ -421,6 +421,46 @@ Lưu ý:
 - gói Hobby của Vercel bị giới hạn cron
 - không nên đặt lịch quá dày kiểu mỗi 5 phút
 
+Và thêm endpoint cron cho module theo dõi giá:
+
+```txt
+/api/cron/price-tracking
+```
+
+Lưu ý riêng cho module theo dõi giá:
+
+- production chạy batch nhỏ, mỗi lần tối đa 3 sản phẩm
+- Vercel Cron dùng UTC. Để chạy lúc 02:00 giờ Việt Nam/Asia-Bangkok, `vercel.json` đang để `0 19 * * *`
+
+Biến môi trường mới:
+
+```env
+PRICE_TRACKING_BATCH_SIZE=3
+PRICE_TRACKING_CRON_ENABLED=false
+PRICE_TRACKING_TIMEOUT_MS=45000
+PUPPETEER_EXECUTABLE_PATH=
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+```
+
+Lưu ý thêm cho module theo dõi giá:
+
+- Nếu `TELEGRAM_BOT_TOKEN` và `TELEGRAM_CHAT_ID` được cấu hình, hệ thống sẽ gửi cảnh báo khi một sản phẩm lỗi cào giá 3 lần liên tiếp.
+- Để tránh spam, cảnh báo sẽ nhắc lại ở các mốc 6, 9, 12...
+- Ở cuối mỗi lần cron `/api/cron/price-tracking` chạy xong, hệ thống sẽ tự dọn các bản ghi `PriceHistory` cũ hơn 90 ngày.
+- SEO public cho `/theo-doi-gia/:slug` và `/tinh-tra-gop` đã chuyển sang `react-helmet-async` thông qua `HelmetProvider`.
+
+Route mới:
+
+- Public:
+  - `/theo-doi-gia`
+  - `/theo-doi-gia/:slug`
+  - `/tinh-tra-gop`
+- Admin:
+  - `/admin/price-tracking`
+  - `/admin/exit-intent-popup`
+  - `/admin/global-coupons`
+
 ## 17. Xử lý lỗi thường gặp
 
 ### 17.1. Điện thoại vào được port 3001 nhưng không vào được 5173
@@ -551,3 +591,41 @@ git push origin main
 
 - Hướng dẫn tổng hợp chính: `docs/HUONG_DAN_SU_DUNG.md`
 - Tài liệu tách khỏi Base44: `docs/BASE44_TO_OWNERSHIP_MIGRATION.md`
+
+## 20. Coupon chọn lọc trên trang chủ
+
+### 20.1. Vị trí quản lý
+
+- Vào trang admin: `/admin/global-coupons`
+- Dữ liệu được lưu trong bảng `SiteSetting`
+- Key cố định là: `global_coupons`
+
+### 20.2. Dùng để làm gì
+
+Mục này dành cho các mã giảm giá anh muốn ghim nổi bật ở trang chủ thay vì phụ thuộc hoàn toàn vào dữ liệu sync tự động.
+
+Ví dụ:
+- Mã toàn sàn Shopee
+- Mã freeship Lazada
+- Mã evergreen cần người dùng bấm lưu trên app
+
+### 20.3. Cách hoạt động
+
+1. Anh tạo hoặc sửa coupon trong trang admin
+2. Bấm `Lưu toàn bộ`
+3. Hệ thống tự tạo link bọc dạng:
+
+```txt
+/go/coupon-<id>
+```
+
+4. Khi người dùng bấm vào coupon ở trang chủ:
+   - coupon thường: web copy mã trước rồi điều hướng qua link bọc
+   - coupon evergreen: web hiển thị nút kiểu `Bấm lưu trên App` và đi thẳng qua link bọc
+
+### 20.4. Lưu ý dữ liệu
+
+- `platform` chỉ hỗ trợ: `shopee`, `lazada`, `tiki`
+- `type` chỉ hỗ trợ: `all_site`, `freeship`, `category`
+- Nếu `expires_at` đã qua hạn, trang chủ sẽ tự ẩn coupon đó
+- Nếu anh paste link sản phẩm gốc hoặc deep link AccessTrade, backend sẽ tự chuẩn hóa về đích redirect cuối cùng

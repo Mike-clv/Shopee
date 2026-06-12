@@ -8,6 +8,7 @@ const entityPaths = {
   CopyEvent: 'copy-events',
   SyncLog: 'sync-logs',
   Banner: 'banners',
+  TrackedProduct: 'tracked-products',
 };
 
 async function request(path, options = {}) {
@@ -77,6 +78,7 @@ export const localClient = {
     CopyEvent: entityClient('CopyEvent'),
     SyncLog: entityClient('SyncLog'),
     Banner: entityClient('Banner'),
+    TrackedProduct: entityClient('TrackedProduct'),
   },
   auth: {
     me: () => request('/api/auth/me'),
@@ -150,6 +152,26 @@ export const localClient = {
     cloak: (url) => request('/api/affiliate/convert', {
       method: 'POST',
       body: { url },
+    }),
+  },
+  priceTracking: {
+    history: (id, days = 30) => request(`/api/tracked-products/${encodeURIComponent(id)}/price-history?days=${encodeURIComponent(days)}`),
+    runNow: (id) => request(`/api/tracked-products/${encodeURIComponent(id)}/run-now`, {
+      method: 'POST',
+    }),
+    runCron: () => request('/api/cron/price-tracking'),
+  },
+  settings: {
+    getExitIntentPopup: () => request('/api/exit-intent-popup'),
+    getAdminExitIntentPopup: () => request('/api/admin/exit-intent-popup'),
+    saveAdminExitIntentPopup: (payload) => request('/api/admin/exit-intent-popup', {
+      method: 'PUT',
+      body: payload,
+    }),
+    getAdminGlobalCoupons: () => request('/api/admin/global-coupons'),
+    saveAdminGlobalCoupons: (payload) => request('/api/admin/global-coupons', {
+      method: 'PUT',
+      body: payload,
     }),
   },
 };

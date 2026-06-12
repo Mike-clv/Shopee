@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { getPrisma } from '../prisma.js';
+import { deleteSiteSettingValue } from '../site-setting-service.js';
 
 const DEFAULT_DEEPLINK_BASE = 'https://go.isclix.com/deep_link/6041223145843920598/4751584435713464237?sub4=oneatweb';
 const DEFAULT_SUPPORTED_HOSTS = [
@@ -106,7 +107,7 @@ function createCloakedSlug(url) {
   return `${hostLabel || 'link'}-${hash}`;
 }
 
-function buildSettingKey(slug) {
+export function buildCloakedLinkSettingKey(slug) {
   return `cloaked_link:${slug}`;
 }
 
@@ -126,7 +127,55 @@ export async function createDeepLink(originalUrl) {
   return buildAccessTradeDeepLink(originalUrl);
 }
 
-export async function ensureCloakedLink(inputUrl, { siteUrl = getSiteUrl() } = {}) {
+function normalizeSiteRelativeUrl(value, siteUrl = getSiteUrl()) {
+  if (!value) return '';
+
+  try {
+    return new URL(String(value).trim(), siteUrl).toString();
+  } catch {
+    return '';
+  }
+}
+
+async function resolveExistingCloakedLink(inputUrl, siteUrl = getSiteUrl()) {
+  const normalized = normalizeSiteRelativeUrl(inputUrl, siteUrl);
+  if (!isOwnCloakedUrl(normalized, siteUrl)) {
+    return null;
+  }
+
+  const parsed = new URL(normalized);
+  const slug = parsed.pathname.replace(/^\/go\//, '');
+  const record = await findCloakedLinkBySlug(slug);
+  if (!record?.deepLink) {
+    return null;
+  }
+
+  return {
+    slug,
+    originalUrl: record.originalUrl || record.deepLink,
+    deepLink: record.deepLink,
+    cloakedUrl: record.cloakedUrl || normalized,
+  };
+}
+
+export async function resolveAffiliateTarget(inputUrl, { siteUrl = getSiteUrl() } = {}) {
+  const candidateUrl = normalizeSiteRelativeUrl(inputUrl, siteUrl);
+  if (candidateUrl && isOwnCloakedUrl(candidateUrl, siteUrl)) {
+    const existingCloaked = await resolveExistingCloakedLink(candidateUrl, siteUrl);
+    if (!existingCloaked) {
+      const error = new Error('Link affiliate dang la link /go noi bo nhung khong tim thay du lieu redirect goc.');
+      error.status = 400;
+      throw error;
+    }
+
+    return existingCloaked;
+  }
+
+  const existingCloaked = await resolveExistingCloakedLink(inputUrl, siteUrl);
+  if (existingCloaked) {
+    return existingCloaked;
+  }
+
   const normalized = normalizeAbsoluteUrl(inputUrl);
   if (!normalized) {
     return {
@@ -134,17 +183,6 @@ export async function ensureCloakedLink(inputUrl, { siteUrl = getSiteUrl() } = {
       originalUrl: inputUrl || '',
       deepLink: inputUrl || '',
       cloakedUrl: inputUrl || '',
-      wasCloaked: false,
-    };
-  }
-
-  if (isOwnCloakedUrl(normalized, siteUrl)) {
-    const parsed = new URL(normalized);
-    return {
-      slug: parsed.pathname.replace(/^\/go\//, ''),
-      originalUrl: normalized,
-      deepLink: normalized,
-      cloakedUrl: normalized,
       wasCloaked: false,
     };
   }
@@ -159,28 +197,47 @@ export async function ensureCloakedLink(inputUrl, { siteUrl = getSiteUrl() } = {
     };
   }
 
-  const deepLink = buildAccessTradeDeepLink(normalized);
-  const slug = createCloakedSlug(normalized);
+  return {
+    slug: '',
+    originalUrl: normalized,
+    deepLink: buildAccessTradeDeepLink(normalized),
+    cloakedUrl: normalized,
+    wasCloaked: false,
+  };
+}
+
+export async function saveCloakedLink(slug, inputUrl, { siteUrl = getSiteUrl() } = {}) {
+  const resolved = await resolveAffiliateTarget(inputUrl, { siteUrl });
+  if (!slug || !resolved?.deepLink) {
+    return {
+      slug: slug || '',
+      originalUrl: resolved?.originalUrl || inputUrl || '',
+      deepLink: resolved?.deepLink || inputUrl || '',
+      cloakedUrl: resolved?.cloakedUrl || inputUrl || '',
+      wasCloaked: false,
+    };
+  }
+
   const cloakedUrl = `${siteUrl}/go/${slug}`;
   const prisma = getPrisma();
 
   await prisma.siteSetting.upsert({
-    where: { key: buildSettingKey(slug) },
+    where: { key: buildCloakedLinkSettingKey(slug) },
     update: {
       value: {
         slug,
-        originalUrl: normalized,
-        deepLink,
+        originalUrl: resolved.originalUrl,
+        deepLink: resolved.deepLink,
         cloakedUrl,
         updatedAt: new Date().toISOString(),
       },
     },
     create: {
-      key: buildSettingKey(slug),
+      key: buildCloakedLinkSettingKey(slug),
       value: {
         slug,
-        originalUrl: normalized,
-        deepLink,
+        originalUrl: resolved.originalUrl,
+        deepLink: resolved.deepLink,
         cloakedUrl,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -190,11 +247,42 @@ export async function ensureCloakedLink(inputUrl, { siteUrl = getSiteUrl() } = {
 
   return {
     slug,
-    originalUrl: normalized,
-    deepLink,
+    originalUrl: resolved.originalUrl,
+    deepLink: resolved.deepLink,
     cloakedUrl,
-    wasCloaked: cloakedUrl !== normalized,
+    wasCloaked: cloakedUrl !== resolved.originalUrl,
   };
+}
+
+export async function removeCloakedLinkBySlug(slug) {
+  if (!slug) return;
+  await deleteSiteSettingValue(buildCloakedLinkSettingKey(slug));
+}
+
+export async function ensureCloakedLink(inputUrl, { siteUrl = getSiteUrl(), slug } = {}) {
+  const resolved = await resolveAffiliateTarget(inputUrl, { siteUrl });
+  const normalized = normalizeAbsoluteUrl(resolved.originalUrl || inputUrl);
+  if (!normalized) {
+    return {
+      slug: '',
+      originalUrl: inputUrl || '',
+      deepLink: inputUrl || '',
+      cloakedUrl: inputUrl || '',
+      wasCloaked: false,
+    };
+  }
+
+  if (!shouldCloakUrl(normalized, { siteUrl }) && !isAccessTradeDeepLink(resolved.deepLink)) {
+    return {
+      slug: '',
+      originalUrl: normalized,
+      deepLink: resolved.deepLink,
+      cloakedUrl: normalized,
+      wasCloaked: false,
+    };
+  }
+
+  return saveCloakedLink(slug || createCloakedSlug(normalized), normalized, { siteUrl });
 }
 
 export async function findCloakedLinkBySlug(slug) {
@@ -202,7 +290,7 @@ export async function findCloakedLinkBySlug(slug) {
 
   const prisma = getPrisma();
   const record = await prisma.siteSetting.findUnique({
-    where: { key: buildSettingKey(slug) },
+    where: { key: buildCloakedLinkSettingKey(slug) },
   });
 
   const value = record?.value;

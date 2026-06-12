@@ -23,12 +23,13 @@ function formatSitemapUrl(pathname, lastmod, priority = '0.7') {
 }
 
 export default async function handler(_req, res) {
-  const [blogPosts, interestPosts, brands, categories, vouchers] = await Promise.all([
+  const [blogPosts, interestPosts, brands, categories, vouchers, trackedProducts] = await Promise.all([
     listResource('blog-posts', { status: 'published' }, '-published_at', 500),
     listResource('interest-posts', { status: 'published' }, '-published_at', 500),
     listResource('brands', { is_active: true }, 'sort_order', 500),
     listResource('categories', { is_active: true }, 'sort_order', 500),
     listResource('vouchers', { status: 'active' }, '-updated_date', 1000),
+    listResource('tracked-products', { is_active: true }, 'sort_order', 500),
   ]);
 
   const staticUrls = [
@@ -38,6 +39,8 @@ export default async function handler(_req, res) {
     formatSitemapUrl('/danh-muc', new Date(), '0.8'),
     formatSitemapUrl('/blog', new Date(), '0.8'),
     formatSitemapUrl('/quan-tam', new Date(), '0.8'),
+    formatSitemapUrl('/theo-doi-gia', new Date(), '0.7'),
+    formatSitemapUrl('/tinh-tra-gop', new Date(), '0.7'),
     formatSitemapUrl('/gioi-thieu', new Date(), '0.5'),
     formatSitemapUrl('/chinh-sach', new Date(), '0.4'),
     formatSitemapUrl('/san/shopee', new Date(), '0.8'),
@@ -52,6 +55,7 @@ export default async function handler(_req, res) {
     ...brands.map((brand) => formatSitemapUrl(`/thuong-hieu/${brand.slug || brand.id}`, brand.updated_date, '0.7')),
     ...categories.map((category) => formatSitemapUrl(`/danh-muc/${category.slug || category.id}`, category.updated_date, '0.7')),
     ...vouchers.map((voucher) => formatSitemapUrl(`/ma-giam-gia/${voucher.slug || voucher.id}`, voucher.updated_date || voucher.created_date, '0.6')),
+    ...trackedProducts.map((product) => formatSitemapUrl(`/theo-doi-gia/${product.slug || product.id}`, product.updated_date || product.created_date, '0.6')),
   ];
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');

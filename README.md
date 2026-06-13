@@ -1,4 +1,4 @@
-# Ma Giam Gia Pro
+# Website Ma Giam Gia Pro
 
 Website tong hop ma giam gia, voucher, coupon va deal hot cho Shopee, Lazada, Tiki, TikTok Shop. Source nay da tach khoi runtime/SDK cua Base44 va chay doc lap bang Vite React, Express API, Prisma va PostgreSQL.
 

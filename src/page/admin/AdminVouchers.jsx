@@ -72,14 +72,14 @@ function reorderItems(items, startIndex, endIndex) {
 
 function StatusBadge({ status }) {
   const labels = {
-    active: 'Còn hạn',
+    active: 'Đang hoạt động',
     expiring_soon: 'Sắp hết hạn',
-    expired: 'Hết hạn',
-    draft: 'Nháp',
+    expired: 'Đã hết hạn',
+    draft: 'Bản nháp',
   };
 
   return (
-    <Badge variant={status === 'active' ? 'default' : 'secondary'} className="rounded-full text-[10px]">
+    <Badge variant={status === 'active' ? 'default' : 'secondary'} className="rounded-full whitespace-nowrap px-3 py-1 text-[10px]">
       {labels[status] || status}
     </Badge>
   );
@@ -118,10 +118,10 @@ const PLATFORM_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Tất cả trạng thái' },
-  { value: 'active', label: 'Còn hạn' },
+  { value: 'active', label: 'Đang hoạt động' },
   { value: 'expiring_soon', label: 'Sắp hết hạn' },
-  { value: 'expired', label: 'Hết hạn' },
-  { value: 'draft', label: 'Nháp' },
+  { value: 'expired', label: 'Đã hết hạn' },
+  { value: 'draft', label: 'Bản nháp' },
 ];
 
 export default function AdminVouchers() {
@@ -204,7 +204,7 @@ export default function AdminVouchers() {
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (data.id) {
-        const { id, created_date, updated_date, created_by_id, ...rest } = data;
+        const { id, created_date: _createdDate, updated_date: _updatedDate, created_by_id: _createdById, ...rest } = data;
         return localClient.entities.Voucher.update(id, rest);
       }
       return localClient.entities.Voucher.create(data);
@@ -748,10 +748,10 @@ export default function AdminVouchers() {
                   <Select value={editing.status} onValueChange={(value) => updateField('status', value)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Còn hạn</SelectItem>
+                      <SelectItem value="active">Đang hoạt động</SelectItem>
                       <SelectItem value="expiring_soon">Sắp hết hạn</SelectItem>
-                      <SelectItem value="expired">Hết hạn</SelectItem>
-                      <SelectItem value="draft">Nháp</SelectItem>
+                      <SelectItem value="expired">Đã hết hạn</SelectItem>
+                      <SelectItem value="draft">Bản nháp</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

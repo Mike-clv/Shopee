@@ -24,14 +24,18 @@ const syncTypeLabels = {
 
 export default function AdminSync() {
   const qc = useQueryClient();
+  const stopAutoSyncRef = React.useRef(false);
+  const [autoSyncState, setAutoSyncState] = React.useState(null);
 
   const { data: syncLogs = [] } = useQuery({
     queryKey: ['sync-logs'],
     queryFn: () => localClient.entities.SyncLog.list('-created_date', 50),
-    refetchInterval: (query) => {
-      const logs = query.state.data || [];
-      return logs.some(isFreshRunningLog) ? 4000 : false;
-    },
+    refetchInterval: autoSyncState
+      ? 3000
+      : (query) => {
+          const logs = query.state.data || [];
+          return logs.some(isFreshRunningLog) ? 4000 : false;
+        },
   });
 
   const hasRunningSync = syncLogs.some(isFreshRunningLog);
@@ -41,20 +45,67 @@ export default function AdminSync() {
       const response = await localClient.functions.invoke('syncAccessTrade', { sync_type: syncType });
       return response.data;
     },
-    onSuccess: (data) => {
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ['sync-logs'] });
-      if (data.success && data.completed === false) {
-        toast.info(`Đã đồng bộ tạm thời ${data.items_synced || 0} mục. Lần chạy sau sẽ tiếp tục từ checkpoint.`);
-      } else if (data.success) {
-        toast.success(`Đồng bộ thành công: ${data.items_synced || 0} mục`);
-      } else {
-        toast.info(data.message || 'Cần cấu hình API key');
-      }
-    },
-    onError: (error) => {
-      toast.error(`Đồng bộ thất bại: ${error.message || 'Lỗi không xác định'}`);
     },
   });
+
+  const runSyncUntilComplete = React.useCallback(async (syncType) => {
+    stopAutoSyncRef.current = false;
+    let round = 0;
+
+    setAutoSyncState({
+      syncType,
+      round: 0,
+      itemsSynced: 0,
+      message: 'Đang khởi động phiên đồng bộ đầu tiên...',
+    });
+
+    try {
+      while (!stopAutoSyncRef.current) {
+        round += 1;
+        setAutoSyncState((current) => ({
+          ...current,
+          syncType,
+          round,
+          message: `Đang chạy lượt ${round}...`,
+        }));
+
+        const data = await syncMutation.mutateAsync(syncType);
+
+        if (!data?.success) {
+          setAutoSyncState(null);
+          toast.error(data?.message || 'Không thể tiếp tục đồng bộ AccessTrade.');
+          return;
+        }
+
+        setAutoSyncState({
+          syncType,
+          round,
+          itemsSynced: Number(data.items_synced || 0),
+          message: data.message || `Đã xử lý ${Number(data.items_synced || 0)} mục.`,
+        });
+
+        if (data.completed !== false) {
+          setAutoSyncState(null);
+          toast.success(`Đồng bộ hoàn tất sau ${round} lượt. Đã xử lý ${Number(data.items_synced || 0)} mục.`);
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+      }
+
+      setAutoSyncState(null);
+      toast.info('Đã dừng vòng đồng bộ tự động. Khi cần, anh bấm lại để chạy tiếp từ checkpoint.');
+    } catch (error) {
+      setAutoSyncState(null);
+      toast.error(`Đồng bộ thất bại: ${error.message || 'Lỗi không xác định'}`);
+    }
+  }, [syncMutation]);
+
+  const handleStopAutoSync = React.useCallback(() => {
+    stopAutoSyncRef.current = true;
+  }, []);
 
   const statusConfig = {
     running: { icon: RefreshCw, color: 'bg-blue-100 text-blue-700', label: 'Đang chạy' },
@@ -63,7 +114,8 @@ export default function AdminSync() {
     failed: { icon: AlertCircle, color: 'bg-red-100 text-red-700', label: 'Thất bại' },
   };
 
-  const disabled = syncMutation.isPending || hasRunningSync;
+  const isAutoSyncing = Boolean(autoSyncState);
+  const disabled = syncMutation.isPending || hasRunningSync || isAutoSyncing;
 
   return (
     <div className="p-4 sm:p-6">
@@ -71,7 +123,8 @@ export default function AdminSync() {
         <div>
           <h1 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">Đồng bộ AccessTrade</h1>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Theo dõi tiến trình đồng bộ rõ hơn trên điện thoại, ít rối mắt hơn và dễ bấm thao tác hơn.
+            Bấm một lần để hệ thống tự chia thành nhiều lượt đồng bộ liên tiếp cho đến khi hết checkpoint.
+            Cách này phù hợp với Vercel hơn và tránh bị ngắt giữa chừng.
           </p>
         </div>
         <Button asChild variant="outline" className="h-12 gap-2 rounded-2xl">
@@ -89,7 +142,8 @@ export default function AdminSync() {
         <CardContent className="space-y-4">
           <div className="rounded-2xl bg-secondary p-4">
             <p className="text-sm leading-6 text-muted-foreground">
-              AccessTrade chạy qua API nội bộ. Nếu chưa có API key, thao tác đồng bộ sẽ ghi log và trả thông báo cần cấu hình trong `.env`.
+              AccessTrade chạy qua API nội bộ. Nếu chưa có API key, thao tác đồng bộ sẽ ghi log và trả thông báo
+              cần cấu hình trong <code>.env</code>.
             </p>
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
@@ -102,7 +156,22 @@ export default function AdminSync() {
         </CardContent>
       </Card>
 
-      {hasRunningSync ? (
+      {isAutoSyncing ? (
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium">Hệ thống đang tự đồng bộ nhiều lượt liên tiếp.</p>
+              <p className="mt-1">{autoSyncState?.message}</p>
+              <p className="mt-1 text-xs text-amber-600">
+                Lượt hiện tại: {autoSyncState?.round || 0}. Anh cứ để tab này mở, web sẽ tự chạy tiếp cho đến khi xong.
+              </p>
+            </div>
+            <Button type="button" variant="outline" className="h-10 rounded-2xl" onClick={handleStopAutoSync}>
+              Dừng sau lượt hiện tại
+            </Button>
+          </div>
+        </div>
+      ) : hasRunningSync ? (
         <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
           Đang có một phiên đồng bộ chạy hoặc vừa mới khởi động. Hệ thống sẽ tự cập nhật lịch sử đồng bộ cho anh.
         </div>
@@ -113,12 +182,12 @@ export default function AdminSync() {
           <Button
             key={type}
             variant="outline"
-            onClick={() => syncMutation.mutate(type)}
+            onClick={() => runSyncUntilComplete(type)}
             disabled={disabled}
             className="h-auto min-h-24 flex-col gap-2 rounded-3xl py-4 text-sm shadow-sm"
           >
-            <RefreshCw className={`h-5 w-5 ${(syncMutation.isPending || hasRunningSync) ? 'animate-spin' : ''}`} />
-            <span>{hasRunningSync ? 'Đang đồng bộ...' : `Đồng bộ ${syncTypeLabels[type]}`}</span>
+            <RefreshCw className={`h-5 w-5 ${(syncMutation.isPending || hasRunningSync || isAutoSyncing) ? 'animate-spin' : ''}`} />
+            <span>{(hasRunningSync || isAutoSyncing) ? 'Đang tự đồng bộ...' : `Đồng bộ ${syncTypeLabels[type]}`}</span>
           </Button>
         ))}
       </div>
@@ -131,18 +200,17 @@ export default function AdminSync() {
           syncLogs.map((log) => {
             const cfg = statusConfig[log.status] || statusConfig.running;
             const Icon = cfg.icon;
+            const iconClassName =
+              log.status === 'running' || log.status === 'partial'
+                ? 'animate-spin text-blue-500'
+                : log.status === 'success'
+                  ? 'text-green-500'
+                  : 'text-red-500';
+
             return (
               <div key={log.id} className="rounded-3xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-start gap-3">
-                  <Icon
-                    className={`mt-0.5 h-5 w-5 shrink-0 ${
-                      log.status === 'running'
-                        ? 'animate-spin text-blue-500'
-                        : log.status === 'success'
-                          ? 'text-green-500'
-                          : 'text-red-500'
-                    }`}
-                  />
+                  <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${iconClassName}`} />
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <span className="text-sm font-medium">{syncTypeLabels[log.sync_type] || log.sync_type}</span>

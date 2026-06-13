@@ -231,7 +231,7 @@ function getBrandFromVoucher(item = {}) {
     description: compact(`Khuyến mại ${displayName} đồng bộ từ AccessTrade.`),
     website_url: item.link || null,
     accesstrade_campaign_id: item.campaign_id ? String(item.campaign_id) : null,
-    is_featured: true,
+    is_featured: platform !== 'other',
     is_active: true,
     sort_order: platform === 'other' ? 50 : 10,
   };
@@ -287,6 +287,71 @@ function getCouponCode(item = {}) {
   const coupons = Array.isArray(item.coupons) ? item.coupons : [];
   const coupon = coupons.find(entry => compact(entry?.coupon_code));
   return coupon?.coupon_code ? compact(coupon.coupon_code) : null;
+}
+
+function isWholeSiteShopeeVoucher(item = {}) {
+  const haystack = [
+    item.name,
+    item.content,
+    item.time_left,
+    item.campaign_name,
+    item.merchant,
+    item.domain,
+    ...(Array.isArray(item.coupons) ? item.coupons.flatMap((coupon) => [coupon?.coupon_code, coupon?.coupon_desc]) : []),
+  ]
+    .map((value) => String(value || '').toLowerCase())
+    .join(' ');
+
+  const positiveSignals = [
+    'toàn sàn',
+    'toan san',
+    'mã sàn',
+    'ma san',
+    'voucher sàn',
+    'voucher san',
+    'áp dụng toàn sàn',
+    'ap dung toan san',
+    'shopee',
+    'freeship',
+    'miễn phí vận chuyển',
+    'mien phi van chuyen',
+  ];
+
+  const negativeSignals = [
+    '[',
+    ']',
+    'shop yêu thích',
+    'shop yeu thich',
+    'shop thường',
+    'shop thuong',
+    'áp dụng cho shop',
+    'ap dung cho shop',
+    'áp dụng tại shop',
+    'ap dung tai shop',
+    'nhà bán',
+    'nha ban',
+    'gian hàng',
+    'gian hang',
+    'seller',
+    'cửa hàng',
+    'cua hang',
+    'store',
+  ];
+
+  if (negativeSignals.some((signal) => haystack.includes(signal))) {
+    return false;
+  }
+
+  return positiveSignals.some((signal) => haystack.includes(signal));
+}
+
+function shouldSyncVoucher(item = {}) {
+  const platform = inferPlatform(item);
+  if (platform !== 'shopee') {
+    return true;
+  }
+
+  return isWholeSiteShopeeVoucher(item);
 }
 
 function inferDiscount(item = {}, code) {
@@ -364,7 +429,7 @@ function mapVoucher(item, brandBySlug, categoryBySlug) {
     ...discount,
     start_date: startDate,
     end_date: endDate,
-    status: !isExpired && (item.status === undefined || Number(item.status) === 1) ? 'active' : 'expired',
+    status: isExpired ? 'expired' : 'draft',
     platform,
     brand_id: brandBySlug.get(brand.slug)?.id || null,
     brand_name: brandBySlug.get(brand.slug)?.name || brand.name,
@@ -416,7 +481,7 @@ function mapBrandFromCampaign(item) {
     description: stripHtml(item.description?.introduction || item.description?.action_point || `Campaign AccessTrade: ${campaign.name}`),
     website_url: item.url || null,
     accesstrade_campaign_id: campaign.external_id,
-    is_featured: true,
+    is_featured: campaign.platform !== 'other',
     is_active: campaign.is_active,
     sort_order: campaign.platform === 'other' ? 50 : 10,
   };
@@ -448,9 +513,7 @@ async function upsertBrands(prisma, brandInputs) {
         description: brand.description,
         website_url: brand.website_url,
         accesstrade_campaign_id: brand.accesstrade_campaign_id,
-        is_featured: brand.is_featured,
         is_active: brand.is_active,
-        sort_order: brand.sort_order,
       },
       create: brand,
     });
@@ -485,12 +548,38 @@ async function upsertCategories(prisma, categoryInputs) {
 }
 
 async function upsertVouchers(prisma, vouchers) {
+  const existingRows = await prisma.voucher.findMany({
+    where: { id: { in: vouchers.map((voucher) => voucher.id) } },
+    select: {
+      id: true,
+      status: true,
+      is_hot: true,
+      is_exclusive: true,
+      is_featured: true,
+      sort_order: true,
+    },
+  });
+  const existingById = new Map(existingRows.map((row) => [row.id, row]));
   let count = 0;
   for (const voucher of vouchers) {
+    const existing = existingById.get(voucher.id);
+    const nextVoucher = {
+      ...voucher,
+      status: voucher.status === 'expired'
+        ? 'expired'
+        : existing?.status && existing.status !== 'expired'
+          ? existing.status
+          : 'draft',
+      is_hot: existing?.is_hot ?? voucher.is_hot,
+      is_exclusive: existing?.is_exclusive ?? voucher.is_exclusive,
+      is_featured: existing?.is_featured ?? voucher.is_featured,
+      sort_order: Number.isFinite(Number(existing?.sort_order)) ? Number(existing.sort_order) : voucher.sort_order,
+    };
+
     await prisma.voucher.upsert({
       where: { id: voucher.id },
-      update: voucher,
-      create: voucher,
+      update: nextVoucher,
+      create: nextVoucher,
     });
     count += 1;
   }
@@ -707,17 +796,18 @@ async function syncVouchers(prisma) {
     label: 'Voucher',
     fetchPage: fetchVouchersPage,
     processRows: async (rows) => {
+      const filteredRows = rows.filter(shouldSyncVoucher);
       const brandInputs = [
-        ...rows.map(getBrandFromVoucher),
+        ...filteredRows.map(getBrandFromVoucher),
         ...getCanonicalPlatformBrands(),
       ];
       const categoryInputs = [
-        ...rows.map(getCategoryFromVoucher),
+        ...filteredRows.map(getCategoryFromVoucher),
         ...getCanonicalCategories(),
       ];
       const brandsBySlug = await upsertBrands(prisma, brandInputs);
       const categoriesBySlug = await upsertCategories(prisma, categoryInputs);
-      const vouchers = rows.map((item) => mapVoucher(item, brandsBySlug, categoriesBySlug)).filter(Boolean);
+      const vouchers = filteredRows.map((item) => mapVoucher(item, brandsBySlug, categoriesBySlug)).filter(Boolean);
       const items = await upsertVouchers(prisma, vouchers);
 
       return {

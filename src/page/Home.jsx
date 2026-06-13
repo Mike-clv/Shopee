@@ -71,14 +71,14 @@ export default function Home() {
 
       <CategoryGrid categories={categories} />
 
+      <BrandSection brands={brands} />
+
       <VoucherSection
         title="🆕 Mã Mới Nhất"
         vouchers={newVouchers}
         loading={isLoading}
         linkTo="/ma-giam-gia?filter=newest"
       />
-
-      <BrandSection brands={brands} />
 
       <InterestSection posts={interestPosts} />
 

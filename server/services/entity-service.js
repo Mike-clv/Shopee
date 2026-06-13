@@ -199,6 +199,40 @@ function fallbackList(config, filters, sort, limit) {
   return rows.slice(0, Number.parseInt(limit, 10) || rows.length);
 }
 
+async function syncVoucherCounts(prisma) {
+  const [brandCounts, categoryCounts] = await Promise.all([
+    prisma.voucher.groupBy({
+      by: ['brand_id'],
+      where: { status: 'active', brand_id: { not: null } },
+      _count: { _all: true },
+    }),
+    prisma.voucher.groupBy({
+      by: ['category_id'],
+      where: { status: 'active', category_id: { not: null } },
+      _count: { _all: true },
+    }),
+  ]);
+
+  await Promise.all([
+    prisma.brand.updateMany({ data: { voucher_count: 0 } }),
+    prisma.category.updateMany({ data: { voucher_count: 0 } }),
+  ]);
+
+  for (const item of brandCounts) {
+    await prisma.brand.update({
+      where: { id: item.brand_id },
+      data: { voucher_count: item._count._all },
+    }).catch(() => {});
+  }
+
+  for (const item of categoryCounts) {
+    await prisma.category.update({
+      where: { id: item.category_id },
+      data: { voucher_count: item._count._all },
+    }).catch(() => {});
+  }
+}
+
 export async function listResource(resource, filters = {}, sort, limit) {
   const config = getConfig(resource);
   const prisma = getPrisma();
@@ -260,7 +294,11 @@ export async function createResource(resource, input) {
   const prisma = getPrisma();
   const transformedInput = await cloakAffiliateFields(resource, input);
   const data = sanitizeInput(config, transformedInput, { includeId: true });
-  return prisma[config.model].create({ data });
+  const created = await prisma[config.model].create({ data });
+  if (resource === 'vouchers') {
+    await syncVoucherCounts(prisma);
+  }
+  return created;
 }
 
 export async function updateResource(resource, id, input) {
@@ -268,13 +306,20 @@ export async function updateResource(resource, id, input) {
   const prisma = getPrisma();
   const transformedInput = await cloakAffiliateFields(resource, input);
   const data = sanitizeInput(config, transformedInput);
-  return prisma[config.model].update({ where: { id }, data });
+  const updated = await prisma[config.model].update({ where: { id }, data });
+  if (resource === 'vouchers') {
+    await syncVoucherCounts(prisma);
+  }
+  return updated;
 }
 
 export async function deleteResource(resource, id) {
   const config = getConfig(resource);
   const prisma = getPrisma();
   await prisma[config.model].delete({ where: { id } });
+  if (resource === 'vouchers') {
+    await syncVoucherCounts(prisma);
+  }
   return { id };
 }
 

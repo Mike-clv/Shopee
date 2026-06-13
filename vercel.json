@@ -32,6 +32,10 @@
       "destination": "/api"
     },
     {
+      "source": "/go/(.*)",
+      "destination": "/api"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

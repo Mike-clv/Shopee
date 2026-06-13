@@ -382,9 +382,6 @@ export default function AdminBlog() {
                 <p className="mt-2 text-xs text-muted-foreground">
                   Khi lưu bài, các link sản phẩm Shopee, Lazada, Tiki, TikTok Shop trong markdown sẽ tự động đổi sang link bọc `/go/...`.
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Nút `MUA NGAY` sẽ chèn mẫu `[MUA NGAY](https://)`. Nút `Ảnh + link` sẽ chèn mẫu `[![mo-ta-anh](https://url-anh)](https://link-affiliate)` để bấm vào ảnh trong nội dung cũng ra đúng link của anh.
-                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

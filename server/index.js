@@ -324,6 +324,30 @@ app.post('/api/accesstrade/sync', requireSameOrigin, requireAdmin, adminMutation
   }
 });
 
+app.get('/api/cron/accesstrade-sync', async (req, res, next) => {
+  try {
+    if (process.env.CRON_SECRET) {
+      const authHeader = req.headers.authorization;
+      if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        res.status(401).json({ message: 'Unauthorized cron request.' });
+        return;
+      }
+    } else if (!canRunCronWithoutSecret()) {
+      res.status(503).json({ message: 'CRON_SECRET chưa được cấu hình trên production.' });
+      return;
+    }
+
+    const result = await syncAccessTrade('vouchers');
+    res.json({
+      ok: true,
+      ...result,
+      ranAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use(createAffiliateRouter({
   requireAdmin,
   requireSameOrigin,

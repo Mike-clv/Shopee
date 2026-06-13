@@ -1,15 +1,21 @@
 import { createHash } from 'node:crypto';
 import { getPrisma } from '../prisma.js';
 import { accessTradeFetch, isAccessTradeConfigured } from './client.js';
+import { deleteSiteSettingValue, getSiteSettingValue, upsertSiteSettingRawValue } from '../site-setting-service.js';
 
 const DEFAULT_PAGE_SIZE = Math.min(Number.parseInt(process.env.ACCESSTRADE_SYNC_PAGE_SIZE || '50', 10), 50);
 const MAX_PAGES = Number.parseInt(process.env.ACCESSTRADE_SYNC_MAX_PAGES || '0', 10);
 const MAX_ITEMS = Number.parseInt(process.env.ACCESSTRADE_SYNC_MAX_ITEMS || '0', 10);
-const TARGET_MARKETPLACE_WIDE_VOUCHERS = Math.max(
-  1,
-  Number.parseInt(process.env.ACCESSTRADE_SYNC_TARGET_VOUCHERS || '4', 10),
+const SYNC_RUNTIME_BUDGET_MS = Math.max(
+  15000,
+  Number.parseInt(process.env.ACCESSTRADE_SYNC_RUNTIME_MS || `${45 * 1000}`, 10),
+);
+const SYNC_RUNTIME_SAFETY_MS = Math.max(
+  3000,
+  Number.parseInt(process.env.ACCESSTRADE_SYNC_RUNTIME_SAFETY_MS || '6000', 10),
 );
 const STALE_SYNC_WINDOW_MS = Number.parseInt(process.env.ACCESSTRADE_SYNC_STALE_MS || `${15 * 60 * 1000}`, 10);
+const ACCESS_TRADE_SYNC_STATE_PREFIX = 'accesstrade_sync_state:';
 
 const platformNames = {
   shopee: 'Shopee',
@@ -69,6 +75,74 @@ function shortHash(value) {
   return createHash('sha1').update(String(value || '')).digest('hex').slice(0, 10);
 }
 
+function getSyncStateKey(syncType) {
+  return `${ACCESS_TRADE_SYNC_STATE_PREFIX}${syncType}`;
+}
+
+function uniqueIdList(values = []) {
+  return Array.from(new Set(
+    values
+      .map(value => String(value || '').trim())
+      .filter(Boolean)
+  ));
+}
+
+function normalizeSyncState(value, syncType) {
+  const base = {
+    version: 1,
+    syncType,
+    startedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    nextPage: 1,
+    totalPage: null,
+    scannedCount: 0,
+    itemsSynced: 0,
+    activeBrandIds: [],
+    activeCategoryIds: [],
+    completed: false,
+  };
+
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return base;
+  }
+
+  return {
+    ...base,
+    ...value,
+    syncType,
+    startedAt: value.startedAt || base.startedAt,
+    updatedAt: value.updatedAt || base.updatedAt,
+    nextPage: Math.max(1, Number.parseInt(value.nextPage, 10) || 1),
+    totalPage: value.totalPage ? Math.max(1, Number.parseInt(value.totalPage, 10) || 1) : null,
+    scannedCount: Math.max(0, Number.parseInt(value.scannedCount, 10) || 0),
+    itemsSynced: Math.max(0, Number.parseInt(value.itemsSynced, 10) || 0),
+    activeBrandIds: uniqueIdList(Array.isArray(value.activeBrandIds) ? value.activeBrandIds : []),
+    activeCategoryIds: uniqueIdList(Array.isArray(value.activeCategoryIds) ? value.activeCategoryIds : []),
+    completed: Boolean(value.completed),
+  };
+}
+
+async function saveSyncState(syncType, state) {
+  await upsertSiteSettingRawValue(getSyncStateKey(syncType), normalizeSyncState(state, syncType));
+}
+
+async function clearSyncState(syncType) {
+  await deleteSiteSettingValue(getSyncStateKey(syncType));
+}
+
+function createBatchSummaryMessage({
+  label,
+  itemsSynced,
+  scannedCount,
+  nextPage,
+  totalPage,
+  completed,
+}) {
+  const progress = totalPage ? `Trang ${Math.min(nextPage - 1, totalPage)}/${totalPage}` : `Đang ở trang ${nextPage}`;
+  const stateLabel = completed ? 'đã hoàn tất' : 'tạm dừng để tiếp tục ở lần chạy sau';
+  return `${label} ${stateLabel}. Đã xử lý ${itemsSynced} mục từ ${scannedCount} bản ghi gốc. ${progress}.`;
+}
+
 function safeId(prefix, value) {
   return `${prefix}_${slugify(value).slice(0, 80)}_${shortHash(value)}`;
 }
@@ -123,45 +197,6 @@ function inferPlatform(item = {}) {
   if (haystack.includes('tikivn') || haystack.includes('tiki.vn') || haystack.includes(' tiki')) return 'tiki';
   if (haystack.includes('sendo')) return 'sendo';
   return 'other';
-}
-
-function isMarketplaceWideVoucher(item = {}) {
-  const platform = inferPlatform(item);
-  if (!['shopee', 'lazada', 'tiki', 'tiktok_shop'].includes(platform)) return false;
-
-  const shopId = item.shop_id === undefined || item.shop_id === null || item.shop_id === ''
-    ? null
-    : Number(item.shop_id);
-  if (shopId !== null && Number.isFinite(shopId) && shopId !== 0) return false;
-
-  const title = compact(item.name || '');
-  const bracketMatch = title.match(/^\[([^\]]+)]/);
-  if (bracketMatch) {
-    const bracketText = slugify(bracketMatch[1]);
-    const platformTokens = {
-      shopee: ['shopee'],
-      lazada: ['lazada'],
-      tiki: ['tiki'],
-      tiktok_shop: ['tiktok', 'tik-tok', 'tiktok-shop'],
-    }[platform];
-    if (!platformTokens.some(token => bracketText.includes(token))) return false;
-  }
-
-  const merchant = String(item.merchant || '').toLowerCase();
-  const campaignName = String(item.campaign_name || '').toLowerCase();
-  const domain = String(item.domain || '').toLowerCase();
-  const platformSignals = {
-    shopee: ['shopee'],
-    lazada: ['lazada'],
-    tiki: ['tiki', 'tikivn'],
-    tiktok_shop: ['tiktok'],
-  }[platform];
-
-  return platformSignals.some(signal => (
-    merchant.includes(signal) ||
-    campaignName.includes(signal) ||
-    domain.includes(signal)
-  ));
 }
 
 function getCategoryFromVoucher(item = {}) {
@@ -387,59 +422,12 @@ function mapBrandFromCampaign(item) {
   };
 }
 
-async function fetchCampaigns() {
-  const pageSize = DEFAULT_PAGE_SIZE || 100;
-  const items = [];
-  let page = 1;
-
-  while (true) {
-    const response = await accessTradeFetch(`/campaigns?limit=${pageSize}&page=${page}&approval=successful`, { timeoutMs: 45000 });
-    const rows = Array.isArray(response.data) ? response.data : [];
-    items.push(...rows);
-
-    if (!rows.length) break;
-    if (MAX_ITEMS && items.length >= MAX_ITEMS) break;
-    if (MAX_PAGES && page >= MAX_PAGES) break;
-    if (response.total_page && page >= Number(response.total_page)) break;
-    if (rows.length < pageSize) break;
-    page += 1;
-  }
-
-  return MAX_ITEMS ? items.slice(0, MAX_ITEMS) : items;
+async function fetchCampaignsPage(page, pageSize = DEFAULT_PAGE_SIZE || 50) {
+  return accessTradeFetch(`/campaigns?limit=${pageSize}&page=${page}&approval=successful`, { timeoutMs: SYNC_RUNTIME_BUDGET_MS });
 }
 
-async function fetchVouchers() {
-  const pageSize = DEFAULT_PAGE_SIZE || 100;
-  const items = [];
-  let scannedCount = 0;
-  let page = 1;
-
-  while (true) {
-    const response = await accessTradeFetch(`/offers_informations/coupon?limit=${pageSize}&page=${page}`, { timeoutMs: 45000 });
-    const rows = Array.isArray(response.data) ? response.data : [];
-    scannedCount += rows.length;
-
-    for (const row of rows) {
-      if (isMarketplaceWideVoucher(row)) {
-        items.push(row);
-        if (items.length >= TARGET_MARKETPLACE_WIDE_VOUCHERS) {
-          break;
-        }
-      }
-    }
-
-    if (!rows.length || items.length >= TARGET_MARKETPLACE_WIDE_VOUCHERS) break;
-    if (MAX_ITEMS && items.length >= MAX_ITEMS) break;
-    if (MAX_PAGES && page >= MAX_PAGES) break;
-    if (response.count && items.length >= Number(response.count)) break;
-    if (rows.length < pageSize) break;
-    page += 1;
-  }
-
-  return {
-    items: MAX_ITEMS ? items.slice(0, MAX_ITEMS) : items,
-    scannedCount,
-  };
+async function fetchVouchersPage(page, pageSize = DEFAULT_PAGE_SIZE || 50) {
+  return accessTradeFetch(`/offers_informations/coupon?limit=${pageSize}&page=${page}`, { timeoutMs: SYNC_RUNTIME_BUDGET_MS });
 }
 
 async function upsertBrands(prisma, brandInputs) {
@@ -509,6 +497,134 @@ async function upsertVouchers(prisma, vouchers) {
   return count;
 }
 
+async function runCheckpointedPagedSync(prisma, {
+  syncType,
+  label,
+  pageSize = DEFAULT_PAGE_SIZE || 50,
+  fetchPage,
+  processRows,
+  finalize,
+}) {
+  const stateKey = getSyncStateKey(syncType);
+  const storedState = await getSiteSettingValue(stateKey, null);
+  let checkpoint = normalizeSyncState(storedState, syncType);
+
+  if (storedState && checkpoint.completed) {
+    await clearSyncState(syncType);
+    checkpoint = normalizeSyncState(null, syncType);
+  }
+
+  const startedAt = parseDate(checkpoint.startedAt) || new Date();
+  const batchStartedAt = Date.now();
+  let pageToFetch = Math.max(1, checkpoint.nextPage || 1);
+  let scannedCount = Math.max(0, checkpoint.scannedCount || 0);
+  let cumulativeItemsSynced = Math.max(0, checkpoint.itemsSynced || 0);
+  let totalPage = checkpoint.totalPage || null;
+  const activeBrandIds = new Set(checkpoint.activeBrandIds || []);
+  const activeCategoryIds = new Set(checkpoint.activeCategoryIds || []);
+
+  while (true) {
+    const elapsed = Date.now() - batchStartedAt;
+    if (elapsed >= SYNC_RUNTIME_BUDGET_MS - SYNC_RUNTIME_SAFETY_MS) {
+      break;
+    }
+
+    if ((MAX_PAGES && pageToFetch > MAX_PAGES) || (MAX_ITEMS && cumulativeItemsSynced >= MAX_ITEMS)) {
+      break;
+    }
+
+    const response = await fetchPage(pageToFetch, pageSize);
+    const rows = Array.isArray(response.data) ? response.data : [];
+    scannedCount += rows.length;
+
+    if (response.total_page) {
+      totalPage = Math.max(totalPage || 1, Number.parseInt(response.total_page, 10) || 1);
+    }
+
+    const pageResult = await processRows(rows, {
+      page: pageToFetch,
+      response,
+      startedAt,
+      activeBrandIds,
+      activeCategoryIds,
+    });
+
+    cumulativeItemsSynced += Math.max(0, Number.parseInt(pageResult?.itemsSynced, 10) || 0);
+    uniqueIdList(pageResult?.activeBrandIds || []).forEach((id) => activeBrandIds.add(id));
+    uniqueIdList(pageResult?.activeCategoryIds || []).forEach((id) => activeCategoryIds.add(id));
+
+    const reachedEnd = !rows.length
+      || (totalPage && pageToFetch >= totalPage)
+      || rows.length < pageSize;
+
+    pageToFetch += 1;
+
+    checkpoint = {
+      ...checkpoint,
+      startedAt: checkpoint.startedAt || startedAt.toISOString(),
+      updatedAt: new Date().toISOString(),
+      nextPage: pageToFetch,
+      totalPage,
+      scannedCount,
+      itemsSynced: cumulativeItemsSynced,
+      activeBrandIds: Array.from(activeBrandIds),
+      activeCategoryIds: Array.from(activeCategoryIds),
+      completed: reachedEnd,
+    };
+
+    if (reachedEnd) {
+      break;
+    }
+
+    await saveSyncState(syncType, checkpoint);
+  }
+
+  if (!checkpoint.completed) {
+    await saveSyncState(syncType, checkpoint);
+    return {
+      completed: false,
+      items_synced: cumulativeItemsSynced,
+      scanned_count: scannedCount,
+      checkpoint,
+      message: createBatchSummaryMessage({
+        label,
+        itemsSynced: cumulativeItemsSynced,
+        scannedCount,
+        nextPage: checkpoint.nextPage,
+        totalPage,
+        completed: false,
+      }),
+    };
+  }
+
+  if (typeof finalize === 'function') {
+    await finalize({
+      startedAt,
+      checkpoint,
+      cumulativeItemsSynced,
+      scannedCount,
+      totalPage,
+    });
+  }
+
+  await clearSyncState(syncType);
+
+  return {
+    completed: true,
+    items_synced: cumulativeItemsSynced,
+    scanned_count: scannedCount,
+    checkpoint: null,
+    message: createBatchSummaryMessage({
+      label,
+      itemsSynced: cumulativeItemsSynced,
+      scannedCount,
+      nextPage: checkpoint.nextPage,
+      totalPage,
+      completed: true,
+    }),
+  };
+}
+
 async function refreshCounts(prisma) {
   const brandCounts = await prisma.voucher.groupBy({
     by: ['brand_id'],
@@ -560,52 +676,73 @@ async function hideNonAccessTradeSampleData(prisma, activeBrandIds = [], activeC
 }
 
 async function syncCampaigns(prisma) {
-  const rawCampaigns = await fetchCampaigns();
-  const campaigns = rawCampaigns.map(mapCampaign).filter(Boolean);
-  const brands = rawCampaigns.map(mapBrandFromCampaign).filter(Boolean);
+  return runCheckpointedPagedSync(prisma, {
+    syncType: 'campaigns',
+    label: 'Chiến dịch',
+    fetchPage: fetchCampaignsPage,
+    processRows: async (rows) => {
+      const campaigns = rows.map(mapCampaign).filter(Boolean);
+      const brands = rows.map(mapBrandFromCampaign).filter(Boolean);
+      const savedBrands = await upsertBrands(prisma, brands);
 
-  for (const campaign of campaigns) {
-    await prisma.campaign.upsert({
-      where: { id: campaign.id },
-      update: campaign,
-      create: campaign,
-    });
-  }
+      for (const campaign of campaigns) {
+        await prisma.campaign.upsert({
+          where: { id: campaign.id },
+          update: campaign,
+          create: campaign,
+        });
+      }
 
-  await upsertBrands(prisma, brands);
-  return { items: campaigns.length, message: `Đã đồng bộ ${campaigns.length} campaigns từ AccessTrade.` };
+      return {
+        itemsSynced: campaigns.length,
+        activeBrandIds: Array.from(savedBrands.values()).map((brand) => brand.id),
+      };
+    },
+  });
 }
 
 async function syncVouchers(prisma) {
-  const { items: marketplaceWideVouchers, scannedCount } = await fetchVouchers();
-  const brandInputs = [
-    ...marketplaceWideVouchers.map(getBrandFromVoucher),
-    ...getCanonicalPlatformBrands(),
-  ];
-  const categoryInputs = [
-    ...marketplaceWideVouchers.map(getCategoryFromVoucher),
-    ...getCanonicalCategories(),
-  ];
-  const brandsBySlug = await upsertBrands(prisma, brandInputs);
-  const categoriesBySlug = await upsertCategories(prisma, categoryInputs);
-  const vouchers = marketplaceWideVouchers.map(item => mapVoucher(item, brandsBySlug, categoriesBySlug)).filter(Boolean);
+  return runCheckpointedPagedSync(prisma, {
+    syncType: 'vouchers',
+    label: 'Voucher',
+    fetchPage: fetchVouchersPage,
+    processRows: async (rows) => {
+      const brandInputs = [
+        ...rows.map(getBrandFromVoucher),
+        ...getCanonicalPlatformBrands(),
+      ];
+      const categoryInputs = [
+        ...rows.map(getCategoryFromVoucher),
+        ...getCanonicalCategories(),
+      ];
+      const brandsBySlug = await upsertBrands(prisma, brandInputs);
+      const categoriesBySlug = await upsertCategories(prisma, categoryInputs);
+      const vouchers = rows.map((item) => mapVoucher(item, brandsBySlug, categoriesBySlug)).filter(Boolean);
+      const items = await upsertVouchers(prisma, vouchers);
 
-  await prisma.voucher.updateMany({
-    where: { accesstrade_id: { not: null } },
-    data: { status: 'draft', is_hot: false, is_featured: false },
+      return {
+        itemsSynced: items,
+        activeBrandIds: Array.from(brandsBySlug.values()).map((brand) => brand.id),
+        activeCategoryIds: Array.from(categoriesBySlug.values()).map((category) => category.id),
+      };
+    },
+    finalize: async ({ startedAt, checkpoint }) => {
+      await prisma.voucher.updateMany({
+        where: {
+          accesstrade_id: { not: null },
+          last_synced_at: { lt: startedAt },
+        },
+        data: { status: 'draft', is_hot: false, is_featured: false },
+      });
+
+      await hideNonAccessTradeSampleData(
+        prisma,
+        Array.from(new Set(checkpoint.activeBrandIds || [])),
+        Array.from(new Set(checkpoint.activeCategoryIds || [])),
+      );
+      await refreshCounts(prisma);
+    },
   });
-  const items = await upsertVouchers(prisma, vouchers);
-  await hideNonAccessTradeSampleData(
-    prisma,
-    Array.from(brandsBySlug.values()).map(brand => brand.id),
-    Array.from(categoriesBySlug.values()).map(category => category.id)
-  );
-  await refreshCounts(prisma);
-
-  return {
-    items,
-    message: `Đã lọc và đồng bộ ${items}/${scannedCount} vouchers toàn sàn từ AccessTrade.`,
-  };
 }
 
 export async function cleanupStaleAccessTradeSyncLogs(prisma = getPrisma()) {
@@ -688,14 +825,23 @@ export async function syncAccessTrade(syncType = 'campaigns') {
       result = await syncVouchers(prisma);
     } else if (normalizedType === 'all') {
       const campaigns = await syncCampaigns(prisma);
-      const vouchers = await syncVouchers(prisma);
-      result = {
-        items: campaigns.items + vouchers.items,
-        message: `${campaigns.message} ${vouchers.message}`,
-      };
+      if (!campaigns.completed) {
+        result = campaigns;
+      } else {
+        const vouchers = await syncVouchers(prisma);
+        result = {
+          completed: vouchers.completed,
+          items_synced: (campaigns.items_synced || 0) + (vouchers.items_synced || 0),
+          scanned_count: (campaigns.scanned_count || 0) + (vouchers.scanned_count || 0),
+          message: `${campaigns.message} ${vouchers.message}`.trim(),
+          checkpoint: vouchers.checkpoint || null,
+        };
+      }
     } else if (normalizedType === 'transactions') {
       result = {
-        items: 0,
+        completed: true,
+        items_synced: 0,
+        scanned_count: 0,
         message: 'Sync transactions chưa bật vì cần chọn đúng report window theo tài khoản AccessTrade.',
       };
     } else {
@@ -705,17 +851,20 @@ export async function syncAccessTrade(syncType = 'campaigns') {
     const updatedLog = await prisma.syncLog.update({
       where: { id: log.id },
       data: {
-        status: 'success',
+        status: result.completed === false ? 'partial' : 'success',
         message: result.message,
-        items_synced: result.items,
+        items_synced: result.items_synced || 0,
         finished_at: new Date(),
       },
     });
 
     return {
       success: true,
+      completed: result.completed !== false,
       message: result.message,
-      items_synced: result.items,
+      items_synced: result.items_synced || 0,
+      scanned_count: result.scanned_count || 0,
+      checkpoint: result.checkpoint || null,
       log: updatedLog,
     };
   } catch (error) {

@@ -43,7 +43,9 @@ export default function AdminSync() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['sync-logs'] });
-      if (data.success) {
+      if (data.success && data.completed === false) {
+        toast.info(`Đã đồng bộ tạm thời ${data.items_synced || 0} mục. Lần chạy sau sẽ tiếp tục từ checkpoint.`);
+      } else if (data.success) {
         toast.success(`Đồng bộ thành công: ${data.items_synced || 0} mục`);
       } else {
         toast.info(data.message || 'Cần cấu hình API key');
@@ -56,6 +58,7 @@ export default function AdminSync() {
 
   const statusConfig = {
     running: { icon: RefreshCw, color: 'bg-blue-100 text-blue-700', label: 'Đang chạy' },
+    partial: { icon: RefreshCw, color: 'bg-amber-100 text-amber-700', label: 'Đang tiếp tục' },
     success: { icon: CheckCircle2, color: 'bg-green-100 text-green-700', label: 'Thành công' },
     failed: { icon: AlertCircle, color: 'bg-red-100 text-red-700', label: 'Thất bại' },
   };

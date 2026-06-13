@@ -73,6 +73,29 @@ function isAccessTradeDeepLink(url) {
   }
 }
 
+function extractOriginalUrlFromAccessTradeLink(url) {
+  const normalized = normalizeAbsoluteUrl(url);
+  if (!normalized || !isAccessTradeDeepLink(normalized)) return null;
+
+  try {
+    const parsed = new URL(normalized);
+
+    const urlEnc = parsed.searchParams.get('url_enc');
+    if (urlEnc) {
+      try {
+        return Buffer.from(urlEnc, 'base64').toString('utf-8');
+      } catch {}
+    }
+
+    const urlParam = parsed.searchParams.get('url');
+    if (urlParam) {
+      return decodeURIComponent(urlParam);
+    }
+  } catch {}
+
+  return null;
+}
+
 export function shouldCloakUrl(url, { siteUrl = getSiteUrl() } = {}) {
   const normalized = normalizeAbsoluteUrl(url);
   if (!normalized) return false;
@@ -189,6 +212,26 @@ export async function resolveAffiliateTarget(inputUrl, { siteUrl = getSiteUrl() 
   }
 
   if (!shouldCloakUrl(normalized, { siteUrl }) && !isAccessTradeDeepLink(normalized)) {
+    return {
+      slug: '',
+      originalUrl: normalized,
+      deepLink: normalized,
+      cloakedUrl: normalized,
+      wasCloaked: false,
+    };
+  }
+
+  if (isAccessTradeDeepLink(normalized)) {
+    const extractedUrl = extractOriginalUrlFromAccessTradeLink(normalized);
+    if (extractedUrl) {
+      return {
+        slug: '',
+        originalUrl: extractedUrl,
+        deepLink: buildAccessTradeDeepLink(extractedUrl),
+        cloakedUrl: extractedUrl,
+        wasCloaked: false,
+      };
+    }
     return {
       slug: '',
       originalUrl: normalized,

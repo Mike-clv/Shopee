@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { localClient } from '@/api/localClient';
+import MarkdownContent from '@/components/content/MarkdownContent';
 import { sortContentByPriority } from '@/lib/content-admin';
 
 export default function InterestSection({ posts: providedPosts }) {
@@ -49,9 +50,9 @@ export default function InterestSection({ posts: providedPosts }) {
                     {post.title}
                   </h3>
                   {post.excerpt && (
-                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                      {post.excerpt}
-                    </p>
+                    <div className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                      <MarkdownContent content={post.excerpt} />
+                    </div>
                   )}
                 </div>
               </article>

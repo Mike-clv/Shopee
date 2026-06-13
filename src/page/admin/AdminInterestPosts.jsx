@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, GripVertical, Loader2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { ExternalLink, Filter, GripVertical, Loader2, Pencil, Plus, Search, Sparkles, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
@@ -36,6 +36,13 @@ const emptyPost = {
   published_at: '',
 };
 
+const STATUS_OPTIONS = [
+  { value: '', label: 'Tất cả trạng thái' },
+  { value: 'draft', label: 'Nháp' },
+  { value: 'published', label: 'Đã xuất bản' },
+  { value: 'scheduled', label: 'Hẹn giờ' },
+];
+
 function reorderItems(items, startIndex, endIndex) {
   const next = [...items];
   const [removed] = next.splice(startIndex, 1);
@@ -52,6 +59,8 @@ export default function AdminInterestPosts() {
   const [orderedPosts, setOrderedPosts] = useState([]);
   const [convertingField, setConvertingField] = useState('');
   const [lastGenerated, setLastGenerated] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const qc = useQueryClient();
 
   const { data: posts = [] } = useQuery({
@@ -64,6 +73,34 @@ export default function AdminInterestPosts() {
   }, [posts]);
 
   const visiblePosts = useMemo(() => sortContentByPriority(orderedPosts), [orderedPosts]);
+
+  const filtered = useMemo(() => {
+    let result = visiblePosts;
+
+    if (filterStatus) {
+      result = result.filter((post) => post.status === filterStatus);
+    }
+
+    const keyword = search.trim().toLowerCase();
+    if (keyword) {
+      result = result.filter((post) => (post.title || '').toLowerCase().includes(keyword));
+    }
+
+    return result;
+  }, [visiblePosts, search, filterStatus]);
+
+  const isFiltering = search.trim().length > 0 || filterStatus;
+
+  const activeFilterCount = [filterStatus].filter(Boolean).length;
+
+  const handleFilterChange = useCallback((setter) => (value) => {
+    setter(value);
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilterStatus('');
+    setSearch('');
+  }, []);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -157,8 +194,8 @@ export default function AdminInterestPosts() {
   const handleDragEnd = (result) => {
     if (!result.destination || result.destination.index === result.source.index) return;
 
-    const previousItems = visiblePosts;
-    const nextItems = reorderItems(visiblePosts, result.source.index, result.destination.index);
+    const previousItems = filtered;
+    const nextItems = reorderItems(filtered, result.source.index, result.destination.index);
     setOrderedPosts(nextItems);
     reorderMutation.mutate(nextItems, { onError: () => setOrderedPosts(previousItems) });
   };
@@ -226,6 +263,51 @@ export default function AdminInterestPosts() {
         </div>
       </div>
 
+      {/* Bộ lọc và tìm kiếm */}
+      <div className="mb-5 space-y-3 sm:mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Tìm tiêu đề bài viết..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 rounded-xl pl-10"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Filter className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Lọc:</span>
+            </div>
+
+            <Select value={filterStatus || 'all'} onValueChange={(v) => handleFilterChange(setFilterStatus)(v === 'all' ? '' : v)}>
+              <SelectTrigger className="h-9 w-auto min-w-[130px] rounded-xl text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value || 'all'} value={opt.value || 'all'}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1 rounded-xl text-xs text-muted-foreground"
+                onClick={clearFilters}
+              >
+                <X className="h-3 w-3" />
+                Xóa lọc ({activeFilterCount})
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="mb-5 rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/5 via-background to-orange-50/70 p-4 shadow-sm sm:mb-6 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
@@ -275,15 +357,15 @@ export default function AdminInterestPosts() {
         )}
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext onDragEnd={isFiltering ? undefined : handleDragEnd}>
         <Droppable droppableId="interest-posts">
           {(dropProvided) => (
             <div ref={dropProvided.innerRef} {...dropProvided.droppableProps} className="space-y-3">
-              {visiblePosts.map((post, index) => {
+              {filtered.map((post, index) => {
                 const statusMeta = getContentStatusMeta(post.status, post.published_at);
 
                 return (
-                  <Draggable key={post.id} draggableId={post.id} index={index}>
+                  <Draggable key={post.id} draggableId={post.id} index={index} isDragDisabled={isFiltering}>
                     {(dragProvided, snapshot) => (
                       <div
                         ref={dragProvided.innerRef}

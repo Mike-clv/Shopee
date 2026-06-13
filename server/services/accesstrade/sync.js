@@ -5,6 +5,10 @@ import { accessTradeFetch, isAccessTradeConfigured } from './client.js';
 const DEFAULT_PAGE_SIZE = Math.min(Number.parseInt(process.env.ACCESSTRADE_SYNC_PAGE_SIZE || '50', 10), 50);
 const MAX_PAGES = Number.parseInt(process.env.ACCESSTRADE_SYNC_MAX_PAGES || '0', 10);
 const MAX_ITEMS = Number.parseInt(process.env.ACCESSTRADE_SYNC_MAX_ITEMS || '0', 10);
+const TARGET_MARKETPLACE_WIDE_VOUCHERS = Math.max(
+  1,
+  Number.parseInt(process.env.ACCESSTRADE_SYNC_TARGET_VOUCHERS || '4', 10),
+);
 const STALE_SYNC_WINDOW_MS = Number.parseInt(process.env.ACCESSTRADE_SYNC_STALE_MS || `${15 * 60 * 1000}`, 10);
 
 const platformNames = {
@@ -407,14 +411,24 @@ async function fetchCampaigns() {
 async function fetchVouchers() {
   const pageSize = DEFAULT_PAGE_SIZE || 100;
   const items = [];
+  let scannedCount = 0;
   let page = 1;
 
   while (true) {
     const response = await accessTradeFetch(`/offers_informations/coupon?limit=${pageSize}&page=${page}`, { timeoutMs: 45000 });
     const rows = Array.isArray(response.data) ? response.data : [];
-    items.push(...rows);
+    scannedCount += rows.length;
 
-    if (!rows.length) break;
+    for (const row of rows) {
+      if (isMarketplaceWideVoucher(row)) {
+        items.push(row);
+        if (items.length >= TARGET_MARKETPLACE_WIDE_VOUCHERS) {
+          break;
+        }
+      }
+    }
+
+    if (!rows.length || items.length >= TARGET_MARKETPLACE_WIDE_VOUCHERS) break;
     if (MAX_ITEMS && items.length >= MAX_ITEMS) break;
     if (MAX_PAGES && page >= MAX_PAGES) break;
     if (response.count && items.length >= Number(response.count)) break;
@@ -422,7 +436,10 @@ async function fetchVouchers() {
     page += 1;
   }
 
-  return MAX_ITEMS ? items.slice(0, MAX_ITEMS) : items;
+  return {
+    items: MAX_ITEMS ? items.slice(0, MAX_ITEMS) : items,
+    scannedCount,
+  };
 }
 
 async function upsertBrands(prisma, brandInputs) {
@@ -560,8 +577,7 @@ async function syncCampaigns(prisma) {
 }
 
 async function syncVouchers(prisma) {
-  const rawVouchers = await fetchVouchers();
-  const marketplaceWideVouchers = rawVouchers.filter(isMarketplaceWideVoucher);
+  const { items: marketplaceWideVouchers, scannedCount } = await fetchVouchers();
   const brandInputs = [
     ...marketplaceWideVouchers.map(getBrandFromVoucher),
     ...getCanonicalPlatformBrands(),
@@ -588,7 +604,7 @@ async function syncVouchers(prisma) {
 
   return {
     items,
-    message: `Đã lọc và đồng bộ ${items}/${rawVouchers.length} vouchers toàn sàn từ AccessTrade.`,
+    message: `Đã lọc và đồng bộ ${items}/${scannedCount} vouchers toàn sàn từ AccessTrade.`,
   };
 }
 

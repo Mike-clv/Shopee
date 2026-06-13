@@ -222,7 +222,6 @@ function buildContent(product, cloakedUrl) {
       originalPriceLine,
       discountLine,
     ].filter(Boolean).join('\n'),
-    `[![${product.name}](${product.image})](${cloakedUrl})`,
     `[Xem ưu đãi trên Shopee](${cloakedUrl})`,
     'Lưu ý: Giá bán, tồn kho và điều kiện ưu đãi có thể thay đổi theo thời gian. Anh/chị nên kiểm tra lại trên trang Shopee trước khi đặt hàng.',
   ].join('\n\n');

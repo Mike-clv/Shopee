@@ -10,7 +10,7 @@ const faqs = [
   },
   {
     q: 'Làm sao để sử dụng mã giảm giá?',
-    a: 'Bước 1: Chọn mã phù hợp với sàn và điều kiện đơn hàng. Bước 2: Nhấn lấy mã hoặc sao chép. Bước 3: Mở ứng dụng hoặc website của sàn. Bước 4: Dán mã vào ô giảm giá trước khi thanh toán.',
+    a: 'Bước 1: Chọn mã phù hợp với sàn và điều kiện đơn hàng. \nBước 2: Nhấn lấy mã hoặc sao chép. \nBước 3: Mở ứng dụng hoặc website của sàn. \nBước 4: Dán mã vào ô giảm giá trước khi thanh toán.',
   },
   {
     q: 'Tại sao mã giảm giá không áp dụng được?',

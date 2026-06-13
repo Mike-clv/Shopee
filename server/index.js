@@ -9,6 +9,9 @@ import {
   bulkUpdateVoucherStatus,
   bulkUpdateVouchersByIds,
   bulkDeleteVouchersByIds,
+  bulkUpdateInterestPostStatus,
+  bulkUpdateInterestPostsByIds,
+  bulkDeleteInterestPostsByIds,
   createResource,
   deleteResource,
   listResource,
@@ -459,6 +462,33 @@ app.post('/api/vouchers/bulk-update', requireSameOrigin, requireAdmin, adminMuta
 app.post('/api/vouchers/bulk-delete', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
   try {
     const result = await bulkDeleteVouchersByIds(req.body?.ids || []);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/interest-posts/bulk-status', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const result = await bulkUpdateInterestPostStatus(req.body?.filters || {}, req.body?.status);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/interest-posts/bulk-update', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const result = await bulkUpdateInterestPostsByIds(req.body?.ids || [], req.body?.data || {});
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/interest-posts/bulk-delete', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const result = await bulkDeleteInterestPostsByIds(req.body?.ids || []);
     res.json(result);
   } catch (error) {
     next(error);

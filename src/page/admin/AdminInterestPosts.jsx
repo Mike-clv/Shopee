@@ -61,6 +61,9 @@ export default function AdminInterestPosts() {
   const [lastGenerated, setLastGenerated] = useState(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [bulkStatus, setBulkStatus] = useState('draft');
+  const [selectedBulkStatus, setSelectedBulkStatus] = useState('draft');
+  const [selectedIds, setSelectedIds] = useState([]);
   const qc = useQueryClient();
 
   const { data: posts = [] } = useQuery({
@@ -101,6 +104,66 @@ export default function AdminInterestPosts() {
     setFilterStatus('');
     setSearch('');
   }, []);
+
+  const allVisibleIds = useMemo(() => filtered.map((p) => p.id), [filtered]);
+  const allSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedIds.includes(id));
+
+  const handleToggleSelectAllVisible = useCallback((select) => {
+    if (select) {
+      setSelectedIds((current) => Array.from(new Set([...current, ...allVisibleIds])));
+    } else {
+      setSelectedIds((current) => current.filter((id) => !allVisibleIds.includes(id)));
+    }
+  }, [allVisibleIds]);
+
+  useEffect(() => {
+    setSelectedIds((current) => current.filter((id) => allVisibleIds.includes(id)));
+  }, [allVisibleIds]);
+
+  const handleBulkStatusApply = () => {
+    const scopeLabel = activeFilterCount > 0
+      ? 'tất cả bài viết đang lọc theo trạng thái'
+      : 'toàn bộ bài viết hiện có';
+
+    if (!confirm(`Anh chắc muốn đổi trạng thái của ${scopeLabel} sang "${STATUS_OPTIONS.find((item) => item.value === bulkStatus)?.label || bulkStatus}" chứ?`)) {
+      return;
+    }
+
+    bulkStatusMutation.mutate({
+      filters: filterStatus ? { status: filterStatus } : {},
+      status: bulkStatus,
+    });
+  };
+
+  const handleSelectedStatusApply = () => {
+    if (selectedIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một bài viết.');
+      return;
+    }
+
+    const statusLabel = STATUS_OPTIONS.find((item) => item.value === selectedBulkStatus)?.label || selectedBulkStatus;
+    if (!confirm(`Anh chắc muốn đổi ${selectedIds.length} bài viết đã chọn sang "${statusLabel}" chứ?`)) {
+      return;
+    }
+
+    bulkSelectedMutation.mutate({
+      ids: selectedIds,
+      data: { status: selectedBulkStatus },
+    });
+  };
+
+  const handleSelectedDelete = () => {
+    if (selectedIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một bài viết.');
+      return;
+    }
+
+    if (!confirm(`Anh chắc muốn xóa ${selectedIds.length} bài viết đã chọn chứ? Hành động này không thể hoàn tác.`)) {
+      return;
+    }
+
+    bulkDeleteSelectedMutation.mutate({ ids: selectedIds });
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -157,6 +220,51 @@ export default function AdminInterestPosts() {
       qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
       qc.invalidateQueries({ queryKey: ['homepage'] });
       toast.success('Đã xóa bài Quan tâm');
+    },
+  });
+
+  const bulkStatusMutation = useMutation({
+    mutationFn: ({ filters, status }) => localClient.interestPosts.bulkUpdateStatus({ filters, status }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['admin-interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      const scopeLabel = Object.keys(result?.filters || {}).length > 0 ? 'bài viết đang lọc' : 'toàn bộ bài viết';
+      toast.success(`Đã cập nhật ${result?.updatedCount || 0} ${scopeLabel} sang trạng thái mới.`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể cập nhật trạng thái hàng loạt');
+    },
+  });
+
+  const bulkSelectedMutation = useMutation({
+    mutationFn: ({ ids, data }) => localClient.interestPosts.bulkUpdateSelected({ ids, data }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['admin-interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      setSelectedIds([]);
+      toast.success(`Đã cập nhật ${result?.updatedCount || 0} bài viết đã chọn.`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể cập nhật bài viết đã chọn');
+    },
+  });
+
+  const bulkDeleteSelectedMutation = useMutation({
+    mutationFn: ({ ids }) => localClient.interestPosts.bulkDeleteSelected({ ids }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['admin-interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      setSelectedIds([]);
+      toast.success(`Đã xóa ${result?.deletedCount || 0} bài viết đã chọn.`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể xóa bài viết đã chọn');
     },
   });
 
@@ -308,6 +416,94 @@ export default function AdminInterestPosts() {
         </div>
       </div>
 
+      {/* Bulk action: Đổi trạng thái hàng loạt */}
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-secondary/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="text-sm font-medium">Đổi trạng thái hàng loạt</p>
+          <p className="text-xs leading-5 text-muted-foreground">
+            Áp dụng cho {activeFilterCount > 0 ? 'toàn bộ bài viết đang lọc theo trạng thái' : 'toàn bộ bài viết hiện có'}.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Select value={bulkStatus} onValueChange={setBulkStatus}>
+            <SelectTrigger className="h-10 min-w-[170px] rounded-xl text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.filter((item) => item.value).map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            className="h-10 rounded-xl"
+            onClick={handleBulkStatusApply}
+            disabled={bulkStatusMutation.isPending || filtered.length === 0}
+          >
+            {bulkStatusMutation.isPending ? 'Đang cập nhật...' : activeFilterCount > 0 ? 'Chọn hết & đổi trạng thái' : 'Đổi trạng thái tất cả'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Bulk action: Chọn nhanh */}
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium">Chọn nhanh theo danh sách đang thấy</p>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Tick từng bài hoặc chọn tất cả, rồi đổi trạng thái / xóa theo danh sách đã chọn.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 rounded-xl text-xs"
+              onClick={() => handleToggleSelectAllVisible(!allSelected)}
+              disabled={filtered.length === 0}
+            >
+              {allSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả trang này'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-2xl bg-secondary/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm">
+            <span className="font-medium">Đã chọn:</span> {selectedIds.length} bài viết
+          </div>
+          <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+            <Select value={selectedBulkStatus} onValueChange={setSelectedBulkStatus}>
+              <SelectTrigger className="h-10 min-w-[170px] rounded-xl text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.filter((item) => item.value).map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              className="h-10 rounded-xl"
+              onClick={handleSelectedStatusApply}
+              disabled={selectedIds.length === 0 || bulkSelectedMutation.isPending}
+            >
+              {bulkSelectedMutation.isPending ? 'Đang cập nhật...' : 'Đổi trạng thái đã chọn'}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="h-10 rounded-xl"
+              onClick={handleSelectedDelete}
+              disabled={selectedIds.length === 0 || bulkDeleteSelectedMutation.isPending}
+            >
+              {bulkDeleteSelectedMutation.isPending ? 'Đang xóa...' : 'Xóa đã chọn'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="mb-5 rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/5 via-background to-orange-50/70 p-4 shadow-sm sm:mb-6 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
@@ -371,9 +567,9 @@ export default function AdminInterestPosts() {
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
                         style={dragProvided.draggableProps.style}
-                        className={`grid grid-cols-[40px,88px,minmax(0,1fr)] gap-3 rounded-3xl border border-border bg-card p-4 transition-shadow sm:flex sm:items-center sm:gap-4 sm:p-5 ${
+                        className={`grid grid-cols-[40px,28px,88px,minmax(0,1fr)] gap-3 rounded-3xl border border-border bg-card p-4 transition-shadow sm:flex sm:items-center sm:gap-4 sm:p-5 ${
                           snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/20' : ''
-                        }`}
+                        } ${selectedIds.includes(post.id) ? 'ring-1 ring-primary/30 bg-primary/5' : ''}`}
                       >
                         <div
                           role="button"
@@ -383,6 +579,21 @@ export default function AdminInterestPosts() {
                           {...dragProvided.dragHandleProps}
                         >
                           <GripVertical className="h-4 w-4" />
+                        </div>
+
+                        <div className="flex items-center justify-center self-center sm:self-auto">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(post.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedIds((prev) => [...prev, post.id]);
+                              } else {
+                                setSelectedIds((prev) => prev.filter((id) => id !== post.id));
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                          />
                         </div>
 
                         {post.thumbnail_image && (

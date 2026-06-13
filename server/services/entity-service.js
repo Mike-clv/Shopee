@@ -422,6 +422,91 @@ export async function bulkDeleteVouchersByIds(ids = []) {
   };
 }
 
+export async function bulkUpdateInterestPostStatus(filters = {}, status) {
+  const prisma = getPrisma();
+  const allowedStatuses = new Set(['draft', 'published', 'scheduled']);
+  const nextStatus = String(status || '').trim();
+
+  if (!allowedStatuses.has(nextStatus)) {
+    const error = new Error('Trạng thái bài viết không hợp lệ.');
+    error.status = 400;
+    throw error;
+  }
+
+  const where = {};
+  if (filters.status) where.status = String(filters.status).trim();
+
+  const result = await prisma.interestPost.updateMany({
+    where,
+    data: { status: nextStatus },
+  });
+
+  return {
+    updatedCount: result.count,
+    status: nextStatus,
+    filters: where,
+  };
+}
+
+export async function bulkUpdateInterestPostsByIds(ids = [], input = {}) {
+  const prisma = getPrisma();
+  const normalizedIds = Array.from(new Set((Array.isArray(ids) ? ids : []).map((id) => String(id || '').trim()).filter(Boolean)));
+  if (normalizedIds.length === 0) {
+    const error = new Error('Vui lòng chọn ít nhất một bài viết.');
+    error.status = 400;
+    throw error;
+  }
+
+  const allowedStatuses = new Set(['draft', 'published', 'scheduled']);
+  const data = {};
+
+  if (input.status !== undefined) {
+    const nextStatus = String(input.status || '').trim();
+    if (!allowedStatuses.has(nextStatus)) {
+      const error = new Error('Trạng thái bài viết không hợp lệ.');
+      error.status = 400;
+      throw error;
+    }
+    data.status = nextStatus;
+  }
+
+  if (Object.keys(data).length === 0) {
+    const error = new Error('Không có thay đổi nào để cập nhật.');
+    error.status = 400;
+    throw error;
+  }
+
+  const result = await prisma.interestPost.updateMany({
+    where: { id: { in: normalizedIds } },
+    data,
+  });
+
+  return {
+    updatedCount: result.count,
+    ids: normalizedIds,
+    data,
+  };
+}
+
+export async function bulkDeleteInterestPostsByIds(ids = []) {
+  const prisma = getPrisma();
+  const normalizedIds = Array.from(new Set((Array.isArray(ids) ? ids : []).map((id) => String(id || '').trim()).filter(Boolean)));
+  if (normalizedIds.length === 0) {
+    const error = new Error('Vui lòng chọn ít nhất một bài viết.');
+    error.status = 400;
+    throw error;
+  }
+
+  const result = await prisma.interestPost.deleteMany({
+    where: { id: { in: normalizedIds } },
+  });
+
+  return {
+    deletedCount: result.count,
+    ids: normalizedIds,
+  };
+}
+
 export async function trackEvent(input) {
   const eventType = input.event_type === 'copy' ? 'copy' : 'click';
   const prisma = getPrisma();

@@ -160,6 +160,18 @@ export const localClient = {
       method: 'POST',
       body: { limit },
     }),
+    bulkUpdateStatus: ({ filters = {}, status }) => request('/api/interest-posts/bulk-status', {
+      method: 'POST',
+      body: { filters, status },
+    }),
+    bulkUpdateSelected: ({ ids = [], data = {} }) => request('/api/interest-posts/bulk-update', {
+      method: 'POST',
+      body: { ids, data },
+    }),
+    bulkDeleteSelected: ({ ids = [] }) => request('/api/interest-posts/bulk-delete', {
+      method: 'POST',
+      body: { ids },
+    }),
   },
   priceTracking: {
     history: (id, days = 30) => request(`/api/tracked-products/${encodeURIComponent(id)}/price-history?days=${encodeURIComponent(days)}`),

@@ -323,6 +323,105 @@ export async function deleteResource(resource, id) {
   return { id };
 }
 
+export async function bulkUpdateVoucherStatus(filters = {}, status) {
+  const prisma = getPrisma();
+  const allowedStatuses = new Set(['active', 'expiring_soon', 'expired', 'draft']);
+  const nextStatus = String(status || '').trim();
+
+  if (!allowedStatuses.has(nextStatus)) {
+    const error = new Error('Trạng thái voucher không hợp lệ.');
+    error.status = 400;
+    throw error;
+  }
+
+  const where = {};
+  if (filters.platform) where.platform = String(filters.platform).trim();
+  if (filters.brand_id) where.brand_id = String(filters.brand_id).trim();
+  if (filters.status) where.status = String(filters.status).trim();
+
+  const result = await prisma.voucher.updateMany({
+    where,
+    data: { status: nextStatus },
+  });
+
+  await syncVoucherCounts(prisma);
+
+  return {
+    updatedCount: result.count,
+    status: nextStatus,
+    filters: where,
+  };
+}
+
+export async function bulkUpdateVouchersByIds(ids = [], input = {}) {
+  const prisma = getPrisma();
+  const normalizedIds = Array.from(new Set((Array.isArray(ids) ? ids : []).map((id) => String(id || '').trim()).filter(Boolean)));
+  if (normalizedIds.length === 0) {
+    const error = new Error('Vui lòng chọn ít nhất một voucher.');
+    error.status = 400;
+    throw error;
+  }
+
+  const allowedStatuses = new Set(['active', 'expiring_soon', 'expired', 'draft']);
+  const data = {};
+
+  if (input.status !== undefined) {
+    const nextStatus = String(input.status || '').trim();
+    if (!allowedStatuses.has(nextStatus)) {
+      const error = new Error('Trạng thái voucher không hợp lệ.');
+      error.status = 400;
+      throw error;
+    }
+    data.status = nextStatus;
+  }
+
+  for (const key of ['is_hot', 'is_verified', 'is_exclusive', 'is_featured']) {
+    if (input[key] !== undefined) {
+      data[key] = Boolean(input[key]);
+    }
+  }
+
+  if (Object.keys(data).length === 0) {
+    const error = new Error('Không có thay đổi nào để cập nhật.');
+    error.status = 400;
+    throw error;
+  }
+
+  const result = await prisma.voucher.updateMany({
+    where: { id: { in: normalizedIds } },
+    data,
+  });
+
+  await syncVoucherCounts(prisma);
+
+  return {
+    updatedCount: result.count,
+    ids: normalizedIds,
+    data,
+  };
+}
+
+export async function bulkDeleteVouchersByIds(ids = []) {
+  const prisma = getPrisma();
+  const normalizedIds = Array.from(new Set((Array.isArray(ids) ? ids : []).map((id) => String(id || '').trim()).filter(Boolean)));
+  if (normalizedIds.length === 0) {
+    const error = new Error('Vui lòng chọn ít nhất một voucher.');
+    error.status = 400;
+    throw error;
+  }
+
+  const result = await prisma.voucher.deleteMany({
+    where: { id: { in: normalizedIds } },
+  });
+
+  await syncVoucherCounts(prisma);
+
+  return {
+    deletedCount: result.count,
+    ids: normalizedIds,
+  };
+}
+
 export async function trackEvent(input) {
   const eventType = input.event_type === 'copy' ? 'copy' : 'click';
   const prisma = getPrisma();

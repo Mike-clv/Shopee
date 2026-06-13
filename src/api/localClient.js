@@ -175,4 +175,18 @@ export const localClient = {
       body: payload,
     }),
   },
+  vouchers: {
+    bulkUpdateStatus: ({ filters = {}, status }) => request('/api/vouchers/bulk-status', {
+      method: 'POST',
+      body: { filters, status },
+    }),
+    bulkUpdateSelected: ({ ids = [], data = {} }) => request('/api/vouchers/bulk-update', {
+      method: 'POST',
+      body: { ids, data },
+    }),
+    bulkDeleteSelected: ({ ids = [] }) => request('/api/vouchers/bulk-delete', {
+      method: 'POST',
+      body: { ids },
+    }),
+  },
 };

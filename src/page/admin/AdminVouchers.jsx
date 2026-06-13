@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -130,6 +131,9 @@ export default function AdminVouchers() {
   const [filterPlatform, setFilterPlatform] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterBrand, setFilterBrand] = useState('');
+  const [bulkStatus, setBulkStatus] = useState('draft');
+  const [selectedBulkStatus, setSelectedBulkStatus] = useState('draft');
+  const [selectedVoucherIds, setSelectedVoucherIds] = useState([]);
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [orderedVouchers, setOrderedVouchers] = useState([]);
@@ -181,6 +185,11 @@ export default function AdminVouchers() {
       || (voucher.brand_name || '').toLowerCase().includes(keyword),
     );
   }, [search, visibleVouchers]);
+
+  useEffect(() => {
+    const currentIds = new Set(filtered.map((voucher) => voucher.id));
+    setSelectedVoucherIds((current) => current.filter((id) => currentIds.has(id)));
+  }, [filtered]);
 
   const isFiltering = search.trim().length > 0 || filterPlatform || filterStatus || filterBrand;
 
@@ -256,6 +265,51 @@ export default function AdminVouchers() {
     },
   });
 
+  const bulkStatusMutation = useMutation({
+    mutationFn: ({ filters, status }) => localClient.vouchers.bulkUpdateStatus({ filters, status }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-paginated'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      const scopeLabel = Object.keys(result?.filters || {}).length > 0 ? 'voucher đang lọc' : 'toàn bộ voucher';
+      toast.success(`Đã cập nhật ${result?.updatedCount || 0} ${scopeLabel} sang trạng thái mới.`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể cập nhật trạng thái hàng loạt');
+    },
+  });
+
+  const bulkSelectedMutation = useMutation({
+    mutationFn: ({ ids, data }) => localClient.vouchers.bulkUpdateSelected({ ids, data }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-paginated'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      setSelectedVoucherIds([]);
+      toast.success(`Đã cập nhật ${result?.updatedCount || 0} voucher đã chọn.`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể cập nhật voucher đã chọn');
+    },
+  });
+
+  const bulkDeleteSelectedMutation = useMutation({
+    mutationFn: ({ ids }) => localClient.vouchers.bulkDeleteSelected({ ids }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-paginated'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-vouchers'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      setSelectedVoucherIds([]);
+      toast.success(`Đã xóa ${result?.deletedCount || 0} voucher đã chọn.`);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể xóa voucher đã chọn');
+    },
+  });
+
   const handleEdit = (voucher) => {
     setEditing({ ...voucher });
     setShowForm(true);
@@ -290,6 +344,88 @@ export default function AdminVouchers() {
   };
 
   const updateField = (field, value) => setEditing((prev) => ({ ...prev, [field]: value }));
+
+  const allVisibleIds = useMemo(() => filtered.map((voucher) => voucher.id), [filtered]);
+  const allVisibleSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedVoucherIds.includes(id));
+
+  const toggleVoucherSelection = useCallback((voucherId, checked) => {
+    setSelectedVoucherIds((current) => {
+      if (checked) {
+        return current.includes(voucherId) ? current : [...current, voucherId];
+      }
+      return current.filter((id) => id !== voucherId);
+    });
+  }, []);
+
+  const handleToggleSelectAllVisible = useCallback((checked) => {
+    if (checked) {
+      setSelectedVoucherIds((current) => Array.from(new Set([...current, ...allVisibleIds])));
+      return;
+    }
+
+    setSelectedVoucherIds((current) => current.filter((id) => !allVisibleIds.includes(id)));
+  }, [allVisibleIds]);
+
+  const handleBulkStatusApply = () => {
+    const scopeLabel = activeFilterCount > 0
+      ? 'tất cả voucher đang lọc theo sàn / trạng thái / thương hiệu'
+      : 'toàn bộ voucher hiện có';
+
+    if (!confirm(`Anh chắc muốn đổi trạng thái của ${scopeLabel} sang "${STATUS_OPTIONS.find((item) => item.value === bulkStatus)?.label || bulkStatus}" chứ?`)) {
+      return;
+    }
+
+    bulkStatusMutation.mutate({
+      filters: apiFilters,
+      status: bulkStatus,
+    });
+  };
+
+  const handleSelectedStatusApply = () => {
+    if (selectedVoucherIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một voucher.');
+      return;
+    }
+
+    const statusLabel = STATUS_OPTIONS.find((item) => item.value === selectedBulkStatus)?.label || selectedBulkStatus;
+    if (!confirm(`Anh chắc muốn đổi ${selectedVoucherIds.length} voucher đã chọn sang "${statusLabel}" chứ?`)) {
+      return;
+    }
+
+    bulkSelectedMutation.mutate({
+      ids: selectedVoucherIds,
+      data: { status: selectedBulkStatus },
+    });
+  };
+
+  const handleSelectedToggleFlag = (field, value, label) => {
+    if (selectedVoucherIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một voucher.');
+      return;
+    }
+
+    if (!confirm(`Anh chắc muốn ${value ? 'bật' : 'tắt'} "${label}" cho ${selectedVoucherIds.length} voucher đã chọn chứ?`)) {
+      return;
+    }
+
+    bulkSelectedMutation.mutate({
+      ids: selectedVoucherIds,
+      data: { [field]: value },
+    });
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedVoucherIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một voucher.');
+      return;
+    }
+
+    if (!confirm(`Anh chắc muốn xóa ${selectedVoucherIds.length} voucher đã chọn chứ? Thao tác này không hoàn tác được.`)) {
+      return;
+    }
+
+    bulkDeleteSelectedMutation.mutate({ ids: selectedVoucherIds });
+  };
 
   return (
     <div className="p-4 sm:p-6">
@@ -379,6 +515,121 @@ export default function AdminVouchers() {
           </div>
         </div>
 
+        <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-secondary/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Đổi trạng thái hàng loạt</p>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Chức năng này áp dụng cho {activeFilterCount > 0 ? 'toàn bộ voucher đang lọc theo sàn / trạng thái / thương hiệu' : 'toàn bộ voucher hiện có'}.
+              Ô tìm kiếm chữ chỉ hỗ trợ lọc nhanh trên trang hiện tại nên sẽ không được tính vào bulk action.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Select value={bulkStatus} onValueChange={setBulkStatus}>
+              <SelectTrigger className="h-10 min-w-[190px] rounded-xl text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.filter((item) => item.value).map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              className="h-10 rounded-xl"
+              onClick={handleBulkStatusApply}
+              disabled={bulkStatusMutation.isPending || totalVouchers === 0}
+            >
+              {bulkStatusMutation.isPending ? 'Đang cập nhật...' : activeFilterCount > 0 ? 'Chọn hết & đổi trạng thái' : 'Đổi trạng thái tất cả'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">Chọn nhanh theo danh sách đang thấy</p>
+              <p className="text-xs leading-5 text-muted-foreground">
+                Anh có thể tick từng voucher hoặc chọn tất cả voucher trên trang này, rồi đổi trạng thái / bật cờ / xóa theo đúng danh sách đã chọn.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 rounded-xl text-xs"
+                onClick={() => handleToggleSelectAllVisible(true)}
+                disabled={filtered.length === 0 || allVisibleSelected}
+              >
+                Chọn tất cả trang này
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-9 rounded-xl text-xs"
+                onClick={() => setSelectedVoucherIds([])}
+                disabled={selectedVoucherIds.length === 0}
+              >
+                Bỏ chọn tất cả
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-2xl bg-secondary/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm">
+              <span className="font-medium">Đã chọn:</span> {selectedVoucherIds.length} voucher
+            </div>
+            <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+              <Select value={selectedBulkStatus} onValueChange={setSelectedBulkStatus}>
+                <SelectTrigger className="h-10 min-w-[190px] rounded-xl text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.filter((item) => item.value).map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl"
+                onClick={handleSelectedStatusApply}
+                disabled={selectedVoucherIds.length === 0 || bulkSelectedMutation.isPending || bulkDeleteSelectedMutation.isPending}
+              >
+                Đổi trạng thái đã chọn
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl"
+                onClick={() => handleSelectedToggleFlag('is_hot', true, 'Mã hot')}
+                disabled={selectedVoucherIds.length === 0 || bulkSelectedMutation.isPending || bulkDeleteSelectedMutation.isPending}
+              >
+                Bật Mã hot
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl"
+                onClick={() => handleSelectedToggleFlag('is_verified', true, 'Đã xác minh')}
+                disabled={selectedVoucherIds.length === 0 || bulkSelectedMutation.isPending || bulkDeleteSelectedMutation.isPending}
+              >
+                Bật xác minh
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                className="h-10 rounded-xl"
+                onClick={handleDeleteSelected}
+                disabled={selectedVoucherIds.length === 0 || bulkSelectedMutation.isPending || bulkDeleteSelectedMutation.isPending}
+              >
+                Xóa đã chọn
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {/* Thông tin */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <p>
@@ -423,6 +674,12 @@ export default function AdminVouchers() {
                           }`}
                         >
                           <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={selectedVoucherIds.includes(voucher.id)}
+                              onCheckedChange={(checked) => toggleVoucherSelection(voucher.id, Boolean(checked))}
+                              className="mt-2"
+                              aria-label={`Chọn voucher ${voucher.title}`}
+                            />
                             <div
                               role="button"
                               tabIndex={0}
@@ -491,6 +748,13 @@ export default function AdminVouchers() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-secondary/50">
+                        <th className="w-12 p-3 text-left font-medium">
+                          <Checkbox
+                            checked={allVisibleSelected}
+                            onCheckedChange={(checked) => handleToggleSelectAllVisible(Boolean(checked))}
+                            aria-label="Chọn tất cả voucher trên trang"
+                          />
+                        </th>
                         <th className="w-14 p-3 text-left font-medium">Kéo</th>
                         <th className="p-3 text-left font-medium">Voucher</th>
                         <th className="hidden p-3 text-left font-medium sm:table-cell">Mã</th>
@@ -503,11 +767,11 @@ export default function AdminVouchers() {
                     <tbody>
                       {isLoading ? (
                         <tr>
-                          <td colSpan={7} className="p-8 text-center text-muted-foreground">Đang tải...</td>
+                          <td colSpan={8} className="p-8 text-center text-muted-foreground">Đang tải...</td>
                         </tr>
                       ) : filtered.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="p-8 text-center text-muted-foreground">Không có voucher</td>
+                          <td colSpan={8} className="p-8 text-center text-muted-foreground">Không có voucher</td>
                         </tr>
                       ) : (
                         filtered.map((voucher, index) => (
@@ -526,6 +790,14 @@ export default function AdminVouchers() {
                                   snapshot.isDragging ? 'bg-secondary/40 shadow-sm' : ''
                                 }`}
                               >
+                                <td className="p-3 align-top">
+                                  <Checkbox
+                                    checked={selectedVoucherIds.includes(voucher.id)}
+                                    onCheckedChange={(checked) => toggleVoucherSelection(voucher.id, Boolean(checked))}
+                                    aria-label={`Chọn voucher ${voucher.title}`}
+                                    className="mt-2"
+                                  />
+                                </td>
                                 <td className="p-3 align-top">
                                   <div
                                     role="button"

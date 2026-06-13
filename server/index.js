@@ -6,6 +6,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import multer from 'multer';
 import {
+  bulkUpdateVoucherStatus,
+  bulkUpdateVouchersByIds,
+  bulkDeleteVouchersByIds,
   createResource,
   deleteResource,
   listResource,
@@ -412,6 +415,33 @@ app.put('/api/admin/global-coupons', requireSameOrigin, requireAdmin, adminMutat
   try {
     const value = await saveGlobalCouponsSetting(req.body || []);
     res.json(value);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/vouchers/bulk-status', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const result = await bulkUpdateVoucherStatus(req.body?.filters || {}, req.body?.status);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/vouchers/bulk-update', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const result = await bulkUpdateVouchersByIds(req.body?.ids || [], req.body?.data || {});
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/vouchers/bulk-delete', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const result = await bulkDeleteVouchersByIds(req.body?.ids || []);
+    res.json(result);
   } catch (error) {
     next(error);
   }

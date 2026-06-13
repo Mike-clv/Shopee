@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ensureCloakedLink, findCloakedLinkBySlug } from '../services/accesstrade/deeplink.js';
+import { ensureCloakedLink, findCloakedLinkBySlug, buildAccessTradeDeepLink } from '../services/accesstrade/deeplink.js';
 
 export function createAffiliateRouter({
   requireAdmin,
@@ -31,8 +31,9 @@ export function createAffiliateRouter({
         return;
       }
 
+      const deepLink = buildAccessTradeDeepLink(record.originalUrl);
       res.setHeader('Cache-Control', 'no-store');
-      res.redirect(302, record.deepLink);
+      res.redirect(302, deepLink);
     } catch (error) {
       next(error);
     }

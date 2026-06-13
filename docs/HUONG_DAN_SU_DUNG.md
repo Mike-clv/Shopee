@@ -213,6 +213,21 @@ Quản lý tại:
 
 - `Admin > Có Thể Bạn Quan Tâm`
 
+### Tạo bài Quan tâm tự động từ sản phẩm Shopee AccessTrade
+
+Trong trang `Admin > Quan tâm`, anh có thể bấm nút:
+
+- `Tạo 20 bài nháp`
+
+Cách hệ thống chạy:
+
+- Ưu tiên lấy sản phẩm bán chạy từ AccessTrade `top_products`
+- Nếu `top_products` chưa có dữ liệu, hệ thống tự dùng `datafeeds?domain=shopee.vn`
+- Chỉ tạo bài khi sản phẩm có tối thiểu tên, ảnh và link sản phẩm hợp lệ
+- Tự lọc trùng theo mã sản phẩm/fingerprint để chạy lại không tạo bài trùng
+- Link sản phẩm sẽ tự động bọc qua AccessTrade và bọc bằng tên miền của anh dạng `/go/...`
+- Bài mới luôn ở trạng thái `Nháp`; anh cần xem lại rồi đổi sang `Xuất bản` thì mới hiển thị ngoài trang chủ
+
 ## 11. Quản trị blog
 
 Trang quản trị blog:

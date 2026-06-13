@@ -26,6 +26,7 @@ import {
 } from './services/auth-service.js';
 import { cleanupStaleAccessTradeSyncLogs, syncAccessTrade } from './services/accesstrade/sync.js';
 import { ensureCloakedLink } from './services/accesstrade/deeplink.js';
+import { generateShopeeInterestPostsFromAccessTrade } from './services/accesstrade/product-interest-generator.js';
 import { createAffiliateRouter } from './routes/affiliate-router.js';
 import { createPriceTrackingRouter } from './routes/price-tracking-router.js';
 import { getGlobalCouponsSetting, getPublicGlobalCoupons, saveGlobalCouponsSetting } from './services/global-coupons-service.js';
@@ -421,6 +422,17 @@ app.put('/api/admin/global-coupons', requireSameOrigin, requireAdmin, adminMutat
   try {
     const value = await saveGlobalCouponsSetting(req.body || []);
     res.json(value);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/admin/interest-posts/generate-from-accesstrade', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
+  try {
+    const result = await generateShopeeInterestPostsFromAccessTrade({
+      limit: req.body?.limit,
+    });
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

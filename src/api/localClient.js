@@ -155,6 +155,12 @@ export const localClient = {
       body: { url },
     }),
   },
+  interestPosts: {
+    generateFromAccessTrade: ({ limit = 20 } = {}) => request('/api/admin/interest-posts/generate-from-accesstrade', {
+      method: 'POST',
+      body: { limit },
+    }),
+  },
   priceTracking: {
     history: (id, days = 30) => request(`/api/tracked-products/${encodeURIComponent(id)}/price-history?days=${encodeURIComponent(days)}`),
     runNow: (id) => request(`/api/tracked-products/${encodeURIComponent(id)}/run-now`, {

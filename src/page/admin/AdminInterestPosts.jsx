@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ExternalLink, GripVertical, Loader2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { localClient } from '@/api/localClient';
@@ -51,6 +51,7 @@ export default function AdminInterestPosts() {
   const [showForm, setShowForm] = useState(false);
   const [orderedPosts, setOrderedPosts] = useState([]);
   const [convertingField, setConvertingField] = useState('');
+  const [lastGenerated, setLastGenerated] = useState(null);
   const qc = useQueryClient();
 
   const { data: posts = [] } = useQuery({
@@ -119,6 +120,25 @@ export default function AdminInterestPosts() {
       qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
       qc.invalidateQueries({ queryKey: ['homepage'] });
       toast.success('Đã xóa bài Quan tâm');
+    },
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: () => localClient.interestPosts.generateFromAccessTrade({ limit: 20 }),
+    onSuccess: (result) => {
+      setLastGenerated(result);
+      qc.invalidateQueries({ queryKey: ['admin-interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts'] });
+      qc.invalidateQueries({ queryKey: ['interest-posts-page'] });
+      qc.invalidateQueries({ queryKey: ['homepage'] });
+      if (result.createdCount > 0) {
+        toast.success(`Đã tạo ${result.createdCount} bài nháp từ sản phẩm Shopee AccessTrade`);
+      } else {
+        toast.info(result.message || 'Chưa có sản phẩm mới phù hợp để tạo bài.');
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Không thể tạo bài từ sản phẩm AccessTrade');
     },
   });
 
@@ -204,6 +224,55 @@ export default function AdminInterestPosts() {
             Thêm bài
           </Button>
         </div>
+      </div>
+
+      <div className="mb-5 rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/5 via-background to-orange-50/70 p-4 shadow-sm sm:mb-6 sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Shopee AccessTrade
+            </div>
+            <h2 className="font-heading text-lg font-bold">Tạo bài nháp từ sản phẩm Shopee</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+              Hệ thống ưu tiên lấy sản phẩm bán chạy từ AccessTrade. Nếu nguồn đó chưa có dữ liệu, hệ thống sẽ dùng product feed Shopee,
+              lọc trùng sản phẩm, bọc link affiliate qua tên miền của anh và tạo bài ở trạng thái nháp để anh duyệt trước khi xuất bản.
+            </p>
+          </div>
+          <Button
+            onClick={() => generateMutation.mutate()}
+            disabled={generateMutation.isPending}
+            className="h-12 shrink-0 gap-2 rounded-2xl px-5 shadow-sm"
+          >
+            {generateMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            {generateMutation.isPending ? 'Đang tạo bài...' : 'Tạo 20 bài nháp'}
+          </Button>
+        </div>
+
+        {lastGenerated && (
+          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-4">
+            <div className="rounded-2xl border border-border/70 bg-white/80 p-3">
+              <p className="text-xs text-muted-foreground">Đã tạo</p>
+              <p className="mt-1 text-xl font-bold text-primary">{lastGenerated.createdCount || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-white/80 p-3">
+              <p className="text-xs text-muted-foreground">Đã quét</p>
+              <p className="mt-1 text-xl font-bold">{lastGenerated.scannedCount || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-white/80 p-3">
+              <p className="text-xs text-muted-foreground">Bỏ qua</p>
+              <p className="mt-1 text-xl font-bold">{lastGenerated.skippedCount || 0}</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-white/80 p-3">
+              <p className="text-xs text-muted-foreground">Nguồn datafeed</p>
+              <p className="mt-1 text-xl font-bold">{lastGenerated.sources?.datafeeds || 0}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>

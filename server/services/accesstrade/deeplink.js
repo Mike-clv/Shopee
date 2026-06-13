@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { getPrisma } from '../prisma.js';
 import { deleteSiteSettingValue } from '../site-setting-service.js';
 
-const DEFAULT_DEEPLINK_BASE = 'https://go.isclix.com/deep_link/6041223145843920598/4751584435713464237?sub4=oneatweb';
+const DEFAULT_DEEPLINK_BASE = 'https://go.isclix.com/deep_link/v6/6041223145843920598/4751584435713464237?sub4=oneatweb';
 const DEFAULT_SUPPORTED_HOSTS = [
   'go.isclix.com',
   'shopee.vn',
@@ -120,7 +120,8 @@ export function buildAccessTradeDeepLink(originalUrl, baseDeepLink = getDeepLink
   }
 
   const separator = baseDeepLink.includes('?') ? '&' : '?';
-  return `${baseDeepLink}${separator}url=${encodeURIComponent(normalized)}`;
+  const encodedUrl = Buffer.from(normalized).toString('base64');
+  return `${baseDeepLink}${separator}url_enc=${encodedUrl}`;
 }
 
 export async function createDeepLink(originalUrl) {

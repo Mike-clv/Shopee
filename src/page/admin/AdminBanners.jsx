@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { convertAffiliateFieldValue } from '@/lib/affiliate-admin';
 
 const createEmptyBanner = (placement) => ({
   title: '',
@@ -27,6 +28,7 @@ export function BannerManager({
 }) {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [convertingField, setConvertingField] = useState('');
   const qc = useQueryClient();
 
   const { data: banners = [] } = useQuery({
@@ -38,7 +40,7 @@ export function BannerManager({
     mutationFn: async (data) => {
       const payload = { ...data, placement };
       if (data.id) {
-        const { id, created_date, updated_date, ...rest } = payload;
+        const { id, created_date: _createdDate, updated_date: _updatedDate, ...rest } = payload;
         return localClient.entities.Banner.update(id, rest);
       }
       return localClient.entities.Banner.create(payload);
@@ -64,6 +66,39 @@ export function BannerManager({
     if (!editing.title) return toast.error('Vui lòng nhập tiêu đề');
     if (!editing.image_url) return toast.error('Vui lòng nhập đường dẫn ảnh');
     saveMutation.mutate(editing);
+  };
+
+  const convertAffiliateField = async (field, rawValue) => {
+    const trimmed = String(rawValue || '').trim();
+    if (!trimmed) return;
+
+    setConvertingField(field);
+    try {
+      const result = await convertAffiliateFieldValue(trimmed);
+      setEditing((current) => {
+        if (!current) return current;
+        if (String(current[field] || '').trim() !== trimmed) return current;
+        return { ...current, [field]: result.cloakedUrl || trimmed };
+      });
+
+      if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
+        toast.success('Đã chuyển link banner sang link affiliate bọc');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Không thể chuyển đổi link affiliate');
+    } finally {
+      setConvertingField((current) => (current === field ? '' : current));
+    }
+  };
+
+  const handleAffiliatePaste = (field) => async (event) => {
+    const pastedText = event.clipboardData?.getData('text') || '';
+    if (!pastedText.trim()) return;
+
+    event.preventDefault();
+    const nextValue = pastedText.trim();
+    setEditing((current) => (current ? { ...current, [field]: nextValue } : current));
+    await convertAffiliateField(field, nextValue);
   };
 
   return (
@@ -121,7 +156,22 @@ export function BannerManager({
             <div className="space-y-4">
               <div><Label>Tiêu đề *</Label><Input value={editing.title} onChange={e => setEditing({ ...editing, title: e.target.value })} /></div>
               <div><Label>Ảnh banner URL hoặc /uploads/ten-file.jpg *</Label><Input value={editing.image_url || ''} onChange={e => setEditing({ ...editing, image_url: e.target.value })} /></div>
-              <div><Label>Link khi bấm vào banner</Label><Input value={editing.target_url || ''} onChange={e => setEditing({ ...editing, target_url: e.target.value })} /></div>
+              <div>
+                <Label>Link khi bấm vào banner</Label>
+                <Input
+                  value={editing.target_url || ''}
+                  onChange={e => setEditing({ ...editing, target_url: e.target.value })}
+                  onBlur={(e) => {
+                    void convertAffiliateField('target_url', e.target.value);
+                  }}
+                  onPaste={(e) => {
+                    void handleAffiliatePaste('target_url')(e);
+                  }}
+                />
+                {convertingField === 'target_url' && (
+                  <p className="mt-1 text-xs text-muted-foreground">Đang chuyển link banner sang link affiliate bọc...</p>
+                )}
+              </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Vị trí</Label>

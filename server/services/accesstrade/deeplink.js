@@ -365,25 +365,37 @@ export async function cloakAffiliateFields(resource, input, options = {}) {
   }
 
   const payload = { ...input };
+  const cloakField = async (field) => {
+    if (!payload[field]) return;
+    const result = await ensureCloakedLink(payload[field], options);
+    payload[field] = result.cloakedUrl || payload[field];
+  };
 
   if (resource === 'blog-posts') {
-    if (payload.cover_target_url) {
-      const result = await ensureCloakedLink(payload.cover_target_url, options);
-      payload.cover_target_url = result.cloakedUrl;
-    }
+    await cloakField('cover_target_url');
     if (payload.content) {
       payload.content = await cloakMarkdownAffiliateLinks(payload.content, options);
     }
   }
 
   if (resource === 'interest-posts') {
-    if (payload.target_url) {
-      const result = await ensureCloakedLink(payload.target_url, options);
-      payload.target_url = result.cloakedUrl;
-    }
+    await cloakField('target_url');
     if (payload.content) {
       payload.content = await cloakMarkdownAffiliateLinks(payload.content, options);
     }
+  }
+
+  if (resource === 'vouchers') {
+    await cloakField('original_url');
+    await cloakField('tracking_url');
+  }
+
+  if (resource === 'brands') {
+    await cloakField('website_url');
+  }
+
+  if (resource === 'banners') {
+    await cloakField('target_url');
   }
 
   return payload;

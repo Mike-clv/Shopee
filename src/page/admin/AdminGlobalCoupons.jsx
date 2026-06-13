@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { convertAffiliateFieldValue } from '@/lib/affiliate-admin';
 import {
   buildGlobalCouponRedirectPath,
   formatGlobalCouponExpiry,
@@ -173,6 +174,7 @@ export default function AdminGlobalCoupons() {
   const [showForm, setShowForm] = useState(false);
   const [editingIndex, setEditingIndex] = useState(-1);
   const [form, setForm] = useState(emptyCoupon);
+  const [convertingField, setConvertingField] = useState('');
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['admin-global-coupons'],
@@ -253,6 +255,38 @@ export default function AdminGlobalCoupons() {
       brand_name: selectedBrand.name,
       platform: selectedBrand.platform || 'other',
     }));
+  };
+
+  const convertAffiliateField = async (field, rawValue) => {
+    const trimmed = String(rawValue || '').trim();
+    if (!trimmed) return;
+
+    setConvertingField(field);
+    try {
+      const result = await convertAffiliateFieldValue(trimmed);
+      setForm((current) => {
+        if (String(current[field] || '').trim() !== trimmed) return current;
+        return { ...current, [field]: result.cloakedUrl || trimmed };
+      });
+
+      if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
+        toast.success('Đã chuyển link coupon sang link affiliate bọc');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Không thể chuyển đổi link affiliate');
+    } finally {
+      setConvertingField((current) => (current === field ? '' : current));
+    }
+  };
+
+  const handleAffiliatePaste = (field) => async (event) => {
+    const pastedText = event.clipboardData?.getData('text') || '';
+    if (!pastedText.trim()) return;
+
+    event.preventDefault();
+    const nextValue = pastedText.trim();
+    setForm((current) => ({ ...current, [field]: nextValue }));
+    await convertAffiliateField(field, nextValue);
   };
 
   const handleSaveLocal = () => {
@@ -486,8 +520,17 @@ export default function AdminGlobalCoupons() {
               <Input
                 value={form.affiliate_url}
                 onChange={(event) => setForm((current) => ({ ...current, affiliate_url: event.target.value }))}
+                onBlur={(event) => {
+                  void convertAffiliateField('affiliate_url', event.target.value);
+                }}
+                onPaste={(event) => {
+                  void handleAffiliatePaste('affiliate_url')(event);
+                }}
                 className="rounded-2xl"
               />
+              {convertingField === 'affiliate_url' && (
+                <p className="text-xs text-muted-foreground">Đang chuyển link coupon sang link affiliate bọc...</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/20 px-4 py-3">

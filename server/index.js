@@ -25,6 +25,7 @@ import {
   validateAdminCredentials,
 } from './services/auth-service.js';
 import { cleanupStaleAccessTradeSyncLogs, syncAccessTrade } from './services/accesstrade/sync.js';
+import { ensureCloakedLink } from './services/accesstrade/deeplink.js';
 import { createAffiliateRouter } from './routes/affiliate-router.js';
 import { createPriceTrackingRouter } from './routes/price-tracking-router.js';
 import { getGlobalCouponsSetting, getPublicGlobalCoupons, saveGlobalCouponsSetting } from './services/global-coupons-service.js';
@@ -395,7 +396,12 @@ app.get('/api/admin/exit-intent-popup', requireAdmin, async (_req, res, next) =>
 
 app.put('/api/admin/exit-intent-popup', requireSameOrigin, requireAdmin, adminMutationRateLimit, async (req, res, next) => {
   try {
-    const value = await saveExitIntentPopupSetting(req.body || {});
+    const payload = { ...(req.body || {}) };
+    if (payload.buttonUrl) {
+      const result = await ensureCloakedLink(payload.buttonUrl);
+      payload.buttonUrl = result.cloakedUrl || payload.buttonUrl;
+    }
+    const value = await saveExitIntentPopupSetting(payload);
     res.json(value);
   } catch (error) {
     next(error);

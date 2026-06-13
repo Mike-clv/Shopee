@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { convertAffiliateFieldValue } from '@/lib/affiliate-admin';
 
 const defaultForm = {
   enabled: false,
@@ -23,6 +24,7 @@ const defaultForm = {
 export default function AdminExitIntentPopup() {
   const qc = useQueryClient();
   const [form, setForm] = useState(defaultForm);
+  const [convertingField, setConvertingField] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-exit-intent-popup'],
@@ -49,6 +51,38 @@ export default function AdminExitIntentPopup() {
       toast.error(error.message || 'Không thể lưu cấu hình popup');
     },
   });
+
+  const convertAffiliateField = async (field, rawValue) => {
+    const trimmed = String(rawValue || '').trim();
+    if (!trimmed) return;
+
+    setConvertingField(field);
+    try {
+      const result = await convertAffiliateFieldValue(trimmed);
+      setForm((current) => {
+        if (String(current[field] || '').trim() !== trimmed) return current;
+        return { ...current, [field]: result.cloakedUrl || trimmed };
+      });
+
+      if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
+        toast.success('Đã chuyển link nút bấm sang link affiliate bọc');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Không thể chuyển đổi link affiliate');
+    } finally {
+      setConvertingField((current) => (current === field ? '' : current));
+    }
+  };
+
+  const handleAffiliatePaste = (field) => async (event) => {
+    const pastedText = event.clipboardData?.getData('text') || '';
+    if (!pastedText.trim()) return;
+
+    event.preventDefault();
+    const nextValue = pastedText.trim();
+    setForm((current) => ({ ...current, [field]: nextValue }));
+    await convertAffiliateField(field, nextValue);
+  };
 
   return (
     <div className="p-4 sm:p-6">
@@ -100,7 +134,19 @@ export default function AdminExitIntentPopup() {
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Link nút bấm</Label>
-                <Input value={form.buttonUrl} onChange={(event) => setForm((current) => ({ ...current, buttonUrl: event.target.value }))} />
+                <Input
+                  value={form.buttonUrl}
+                  onChange={(event) => setForm((current) => ({ ...current, buttonUrl: event.target.value }))}
+                  onBlur={(event) => {
+                    void convertAffiliateField('buttonUrl', event.target.value);
+                  }}
+                  onPaste={(event) => {
+                    void handleAffiliatePaste('buttonUrl')(event);
+                  }}
+                />
+                {convertingField === 'buttonUrl' && (
+                  <p className="text-xs text-muted-foreground">Đang chuyển link nút bấm sang link affiliate bọc...</p>
+                )}
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>URL ảnh popup</Label>

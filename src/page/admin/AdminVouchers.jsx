@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { convertAffiliateFieldValue } from '@/lib/affiliate-admin';
 
 const emptyVoucher = {
   title: '',
@@ -137,6 +138,7 @@ export default function AdminVouchers() {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [orderedVouchers, setOrderedVouchers] = useState([]);
+  const [convertingField, setConvertingField] = useState('');
   const qc = useQueryClient();
 
   // Xây dựng filters cho API call
@@ -344,6 +346,39 @@ export default function AdminVouchers() {
   };
 
   const updateField = (field, value) => setEditing((prev) => ({ ...prev, [field]: value }));
+
+  const convertAffiliateField = async (field, rawValue) => {
+    const trimmed = String(rawValue || '').trim();
+    if (!trimmed) return;
+
+    setConvertingField(field);
+    try {
+      const result = await convertAffiliateFieldValue(trimmed);
+      setEditing((current) => {
+        if (!current) return current;
+        if (String(current[field] || '').trim() !== trimmed) return current;
+        return { ...current, [field]: result.cloakedUrl || trimmed };
+      });
+
+      if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
+        toast.success('Đã chuyển link sang link affiliate bọc bằng tên miền của anh');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Không thể chuyển đổi link affiliate');
+    } finally {
+      setConvertingField((current) => (current === field ? '' : current));
+    }
+  };
+
+  const handleAffiliatePaste = (field) => async (event) => {
+    const pastedText = event.clipboardData?.getData('text') || '';
+    if (!pastedText.trim()) return;
+
+    event.preventDefault();
+    const nextValue = pastedText.trim();
+    updateField(field, nextValue);
+    await convertAffiliateField(field, nextValue);
+  };
 
   const allVisibleIds = useMemo(() => filtered.map((voucher) => voucher.id), [filtered]);
   const allVisibleSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedVoucherIds.includes(id));
@@ -1074,11 +1109,35 @@ export default function AdminVouchers() {
                 </div>
                 <div className="sm:col-span-2">
                   <Label>URL gốc</Label>
-                  <Input value={editing.original_url} onChange={(e) => updateField('original_url', e.target.value)} />
+                  <Input
+                    value={editing.original_url}
+                    onChange={(e) => updateField('original_url', e.target.value)}
+                    onBlur={(e) => {
+                      void convertAffiliateField('original_url', e.target.value);
+                    }}
+                    onPaste={(e) => {
+                      void handleAffiliatePaste('original_url')(e);
+                    }}
+                  />
+                  {convertingField === 'original_url' && (
+                    <p className="mt-1 text-xs text-muted-foreground">Đang chuyển link sang link affiliate bọc...</p>
+                  )}
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Tracking URL (affiliate)</Label>
-                  <Input value={editing.tracking_url} onChange={(e) => updateField('tracking_url', e.target.value)} />
+                  <Input
+                    value={editing.tracking_url}
+                    onChange={(e) => updateField('tracking_url', e.target.value)}
+                    onBlur={(e) => {
+                      void convertAffiliateField('tracking_url', e.target.value);
+                    }}
+                    onPaste={(e) => {
+                      void handleAffiliatePaste('tracking_url')(e);
+                    }}
+                  />
+                  {convertingField === 'tracking_url' && (
+                    <p className="mt-1 text-xs text-muted-foreground">Đang chuyển link sang link affiliate bọc...</p>
+                  )}
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Mô tả</Label>

@@ -213,7 +213,7 @@ export async function saveGlobalCouponsSetting(input = []) {
 
     nextCoupons.push({
       ...normalized,
-      affiliate_url: cloaked.deepLink || normalized.affiliate_url,
+      affiliate_url: cloaked.cloakedUrl || cloaked.deepLink || normalized.affiliate_url,
     });
   }
 

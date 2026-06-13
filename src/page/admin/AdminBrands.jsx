@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { convertAffiliateFieldValue } from '@/lib/affiliate-admin';
 
 const emptyBrand = {
   name: '',
@@ -54,6 +55,7 @@ export default function AdminBrands() {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [orderedBrands, setOrderedBrands] = useState([]);
+  const [convertingField, setConvertingField] = useState('');
   const qc = useQueryClient();
 
   const { data: brands = [] } = useQuery({
@@ -70,7 +72,7 @@ export default function AdminBrands() {
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (data.id) {
-        const { id, created_date, updated_date, created_by_id, ...rest } = data;
+        const { id, created_date: _createdDate, updated_date: _updatedDate, created_by_id: _createdById, ...rest } = data;
         return localClient.entities.Brand.update(id, rest);
       }
 
@@ -132,6 +134,39 @@ export default function AdminBrands() {
     };
 
     saveMutation.mutate(payload);
+  };
+
+  const convertAffiliateField = async (field, rawValue) => {
+    const trimmed = String(rawValue || '').trim();
+    if (!trimmed) return;
+
+    setConvertingField(field);
+    try {
+      const result = await convertAffiliateFieldValue(trimmed);
+      setEditing((current) => {
+        if (!current) return current;
+        if (String(current[field] || '').trim() !== trimmed) return current;
+        return { ...current, [field]: result.cloakedUrl || trimmed };
+      });
+
+      if (result.wasCloaked && result.cloakedUrl && result.cloakedUrl !== trimmed) {
+        toast.success('Đã chuyển link website sang link affiliate bọc');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Không thể chuyển đổi link affiliate');
+    } finally {
+      setConvertingField((current) => (current === field ? '' : current));
+    }
+  };
+
+  const handleAffiliatePaste = (field) => async (event) => {
+    const pastedText = event.clipboardData?.getData('text') || '';
+    if (!pastedText.trim()) return;
+
+    event.preventDefault();
+    const nextValue = pastedText.trim();
+    setEditing((current) => (current ? { ...current, [field]: nextValue } : current));
+    await convertAffiliateField(field, nextValue);
   };
 
   const handleDragEnd = (result) => {
@@ -338,7 +373,16 @@ export default function AdminBrands() {
                 <Input
                   value={editing.website_url}
                   onChange={(e) => setEditing({ ...editing, website_url: e.target.value })}
+                  onBlur={(e) => {
+                    void convertAffiliateField('website_url', e.target.value);
+                  }}
+                  onPaste={(e) => {
+                    void handleAffiliatePaste('website_url')(e);
+                  }}
                 />
+                {convertingField === 'website_url' && (
+                  <p className="mt-1 text-xs text-muted-foreground">Đang chuyển link website sang link affiliate bọc...</p>
+                )}
               </div>
 
               <div>

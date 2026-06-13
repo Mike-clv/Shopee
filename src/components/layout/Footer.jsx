@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Tag } from 'lucide-react';
+import InstallButton from '@/components/InstallButton';
 
 const footerLinks = {
   'Mã giảm giá': [
@@ -66,6 +67,7 @@ export default function Footer() {
             © {new Date().getFullYear()} Mã Giảm Giá Pro. Tất cả quyền được bảo lưu.
           </p>
           <div className="flex items-center gap-4">
+            <InstallButton />
             <Link to="/chinh-sach" className="text-xs text-muted-foreground transition-colors hover:text-primary">
               Chính sách bảo mật
             </Link>

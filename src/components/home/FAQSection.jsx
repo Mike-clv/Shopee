@@ -82,7 +82,8 @@ export default function FAQSection() {
                       <span className="leading-6">{faq.q}</span>
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-5 pl-11 text-sm leading-7 text-muted-foreground">
+                  {/* Đã thêm class whitespace-pre-line ở dòng dưới này anh nhé */}
+                  <AccordionContent className="pb-5 pl-11 text-sm leading-7 text-muted-foreground whitespace-pre-line">
                     {faq.a}
                   </AccordionContent>
                 </AccordionItem>

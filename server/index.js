@@ -249,7 +249,7 @@ app.get('/api/homepage', maybeRateLimitPublicRead, async (_req, res, next) => {
     ] = await Promise.all([
       listResource('vouchers', { is_hot: true, status: 'active' }, '-sort_order', 6),
       listResource('vouchers', { status: 'active' }, '-created_date', 6),
-      listResource('categories', { is_active: true }, 'sort_order', 12),
+      listResource('categories', { is_active: true }, 'sort_order', 50),
       listResource('brands', { is_featured: true, is_active: true }, 'sort_order', 12),
       listResource('banners', { is_active: true, placement: 'homepage_top' }, 'sort_order', 4),
       listResource('banners', { is_active: true, placement: 'hot_empty' }, 'sort_order', 4),

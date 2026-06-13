@@ -27,9 +27,6 @@ export default function CategoryGrid({ categories }) {
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold font-heading sm:text-2xl">Danh Mục Phổ Biến</h2>
-          <Link to="/danh-muc" className="text-sm font-medium text-primary hover:underline">
-            Xem tất cả →
-          </Link>
         </div>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
           {categories.map((cat, i) => {

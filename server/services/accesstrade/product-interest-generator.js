@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { accessTradeFetch } from './client.js';
-import { ensureCloakedLink } from './deeplink.js';
+import { ensureCloakedLink, findCloakedLinkBySlug } from './deeplink.js';
 import { getPrisma } from '../prisma.js';
 import { getSiteSettingValue, upsertSiteSettingRawValue } from '../site-setting-service.js';
 
@@ -83,6 +83,35 @@ function normalizeAbsoluteUrl(value) {
   } catch {
     return '';
   }
+}
+
+function getSiteUrl() {
+  return (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://sansale247.io.vn').replace(/\/+$/, '');
+}
+
+function extractOwnCloakedSlug(value) {
+  const normalized = normalizeAbsoluteUrl(value);
+  if (!normalized) return '';
+
+  try {
+    const parsed = new URL(normalized);
+    const site = new URL(getSiteUrl());
+    if (parsed.hostname !== site.hostname || !parsed.pathname.startsWith('/go/')) {
+      return '';
+    }
+    return parsed.pathname.replace(/^\/go\//, '').replace(/\/+$/, '');
+  } catch {
+    return '';
+  }
+}
+
+async function shouldRepairCloakedUrl(value) {
+  const slug = extractOwnCloakedSlug(value);
+  if (!slug) return false;
+  if (slug.startsWith('interest-')) return true;
+
+  const record = await findCloakedLinkBySlug(slug);
+  return !record?.deepLink;
 }
 
 function normalizeImageUrl(value) {
@@ -237,9 +266,13 @@ async function saveGeneratorState(state) {
 }
 
 async function createInterestPostFromProduct(prisma, product, sortOrder) {
-  const target = product.affiliateUrl || product.productUrl;
-  const cloaked = await ensureCloakedLink(target, { slug: `interest-${shortHash(product.fingerprint, 16)}` });
+  const target = product.productUrl || product.affiliateUrl;
+  const cloaked = await ensureCloakedLink(target);
   const cloakedUrl = cloaked.cloakedUrl || target;
+
+  if (!cloaked?.slug || !cloaked?.deepLink || !cloakedUrl.includes('/go/')) {
+    throw new Error(`Khong the tao link boc cho san pham: ${product.name}`);
+  }
 
   return prisma.interestPost.create({
     data: {
@@ -256,6 +289,37 @@ async function createInterestPostFromProduct(prisma, product, sortOrder) {
   });
 }
 
+async function repairExistingInterestPostLink(prisma, post, product) {
+  if (!post?.id) return false;
+
+  const needsRepair = !post.target_url || await shouldRepairCloakedUrl(post.target_url);
+  if (!needsRepair) return false;
+
+  const target = product.productUrl || product.affiliateUrl;
+  const cloaked = await ensureCloakedLink(target);
+  const cloakedUrl = cloaked.cloakedUrl || '';
+  if (!cloaked?.slug || !cloaked?.deepLink || !cloakedUrl.includes('/go/')) {
+    return false;
+  }
+
+  let nextContent = post.content || '';
+  if (post.target_url) {
+    nextContent = nextContent.split(post.target_url).join(cloakedUrl);
+  }
+  nextContent = nextContent.replace(/https?:\/\/[^)\s]+\/go\/interest-[a-f0-9]+/gi, cloakedUrl);
+
+  await prisma.interestPost.update({
+    where: { id: post.id },
+    data: {
+      target_url: cloakedUrl,
+      content: nextContent,
+      updated_date: new Date(),
+    },
+  });
+
+  return true;
+}
+
 export async function generateShopeeInterestPostsFromAccessTrade({ limit } = {}) {
   const createLimit = clampLimit(limit);
   const prisma = getPrisma();
@@ -263,9 +327,10 @@ export async function generateShopeeInterestPostsFromAccessTrade({ limit } = {})
   const state = normalizeGeneratorState(storedState);
   const knownFingerprints = new Set(state.fingerprints);
   const existingPosts = await prisma.interestPost.findMany({
-    select: { slug: true },
+    select: { id: true, slug: true, target_url: true, content: true },
   });
   const existingSlugs = new Set(existingPosts.map((post) => post.slug).filter(Boolean));
+  const existingPostBySlug = new Map(existingPosts.map((post) => [post.slug, post]).filter(([slug]) => Boolean(slug)));
   const maxSort = await prisma.interestPost.aggregate({ _max: { sort_order: true } });
   let nextSortOrder = (maxSort._max.sort_order || 0) + 1;
 
@@ -276,6 +341,7 @@ export async function generateShopeeInterestPostsFromAccessTrade({ limit } = {})
     invalid: 0,
     create_error: 0,
   };
+  let repairedCount = 0;
   const sources = {
     top_products: 0,
     datafeeds: 0,
@@ -291,7 +357,18 @@ export async function generateShopeeInterestPostsFromAccessTrade({ limit } = {})
         continue;
       }
 
-      if (knownFingerprints.has(product.fingerprint) || existingSlugs.has(product.slug)) {
+      if (existingSlugs.has(product.slug)) {
+        try {
+          const repaired = await repairExistingInterestPostLink(prisma, existingPostBySlug.get(product.slug), product);
+          if (repaired) repairedCount += 1;
+        } catch (error) {
+          console.warn('[interest-generator] Cannot repair existing interest post link:', error.message);
+        }
+        skipped.duplicate += 1;
+        continue;
+      }
+
+      if (knownFingerprints.has(product.fingerprint)) {
         skipped.duplicate += 1;
         continue;
       }
@@ -359,6 +436,7 @@ export async function generateShopeeInterestPostsFromAccessTrade({ limit } = {})
     requestedLimit: createLimit,
     createdCount: createdPosts.length,
     skippedCount: skipped.duplicate + skipped.invalid + skipped.create_error,
+    repairedCount,
     skipped,
     scannedCount: sources.top_products + sources.datafeeds,
     sources,

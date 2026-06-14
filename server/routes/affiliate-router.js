@@ -31,7 +31,7 @@ export function createAffiliateRouter({
         return;
       }
 
-      const deepLink = buildAccessTradeDeepLink(record.originalUrl);
+      const deepLink = record.deepLink || buildAccessTradeDeepLink(record.originalUrl);
       res.setHeader('Cache-Control', 'no-store');
       res.redirect(302, deepLink);
     } catch (error) {

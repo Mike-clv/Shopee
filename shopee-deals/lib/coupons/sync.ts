@@ -622,8 +622,9 @@ async function pub2Fetch(path: string, jwt: string): Promise<unknown> {
     cache: "no-store",
   });
   if (res.status === 401 || res.status === 403) {
+    const body = (await res.text().catch(() => "")).slice(0, 200);
     throw new Error(
-      "AT_PUB2_JWT hết hạn hoặc không hợp lệ — cập nhật JWT mới vào biến môi trường AT_PUB2_JWT.",
+      `pub2 ${path} → HTTP ${res.status} — JWT bị từ chối (body: ${body || "trống"}). Kiểm tra AT_PUB2_JWT hoặc IP serverless bị chặn.`,
     );
   }
   if (!res.ok) throw new Error(`pub2 ${path} → HTTP ${res.status}`);

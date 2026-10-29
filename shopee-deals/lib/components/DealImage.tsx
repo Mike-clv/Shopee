@@ -51,7 +51,6 @@ export function DealImage({
       width={width}
       height={height}
       className={cn("bg-paper object-cover", className)}
-      unoptimized
       loading={eager ? "eager" : "lazy"}
       onError={() => setFailed(true)}
     />

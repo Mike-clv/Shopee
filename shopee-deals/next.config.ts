@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.accesstrade.vn" },
       { protocol: "https", hostname: "**.shopapi.io" },
       { protocol: "https", hostname: "**.shopee.vn" },
+      // Deal images come from many merchant CDNs (ibyteimg, tikicdn, slatic,
+      // ...) — allow any HTTPS host so the optimizer can resize them.
+      { protocol: "https", hostname: "**" },
     ],
   },
 };

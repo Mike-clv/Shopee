@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Flame,
   Gift,
-  MousePointerClick,
   Percent,
   Search,
   ShoppingBag,
@@ -22,7 +21,6 @@ import {
   countDealsPerMerchant,
   listActiveDeals,
   listTopCategories,
-  sumClicksCached,
 } from "@/lib/coupons/data";
 import { SITE, merchantLabel } from "@/lib/site";
 import { categoryFromSlug } from "@/lib/categories";
@@ -168,10 +166,9 @@ function QuickChip({
 }
 
 async function StatStrip() {
-  const [totalActive, merchantCounts, clicks] = await Promise.all([
+  const [totalActive, merchantCounts] = await Promise.all([
     countActiveDeals(),
     countDealsPerMerchant(),
-    sumClicksCached(),
   ]);
   const shopee = merchantCounts.shopee ?? 0;
   const productDeals = Math.max(0, totalActive - shopee);
@@ -179,12 +176,14 @@ async function StatStrip() {
     { label: "Deal đang hoạt động", value: countFmt.format(totalActive), icon: Gift },
     { label: "Mã & voucher Shopee", value: countFmt.format(shopee), icon: TicketPercent },
     { label: "Deal đa sàn", value: countFmt.format(productDeals), icon: ShoppingBag },
-    { label: "Tổng lượt nhấp", value: countFmt.format(Number(clicks)), icon: MousePointerClick },
   ];
   return (
-    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
       {stats.map(({ label, value, icon: Icon }) => (
-        <div key={label} className="bg-white px-4 py-4 sm:px-5">
+        <div
+          key={label}
+          className="max-sm:[&:nth-child(odd):last-child]:col-span-2 bg-white px-4 py-4 sm:px-5"
+        >
           <dt className="flex items-center gap-1.5 text-[11px] text-ink/45">
             <Icon className="h-3.5 w-3.5 text-brand" aria-hidden />
             {label}

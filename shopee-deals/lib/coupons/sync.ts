@@ -199,16 +199,45 @@ function mapTiktokToRow(product: TiktokProduct): Omit<NewCouponDeal, "id"> {
 type DealSource = (typeof couponDeals.$inferSelect)["source"];
 
 /**
- * Row-by-row upsert scoped by source ((source, externalId) is the unique key).
- * Deterministic created/updated stats and preserved manual flags (isActive/
- * isFeatured) on resync. Volume is ≤ a few hundred per run, so per-row
- * performance is not a concern.
+ * Columns synced from feeds. Multi-row .values() requires a uniform column
+ * set across every row, so callers' rows are normalized to exactly these.
  */
-async function upsertAll(source: DealSource, rows: Array<Omit<NewCouponDeal, "id">>) {
+const UPSERT_COLUMNS = [
+  "source",
+  "externalId",
+  "merchant",
+  "merchantName",
+  "domain",
+  "code",
+  "title",
+  "content",
+  "image",
+  "price",
+  "discountRate",
+  "affLink",
+  "link",
+  "categories",
+  "startTime",
+  "endTime",
+] as const;
+
+/**
+ * Batch upsert scoped by source ((source, externalId) is the unique key) —
+ * ONE multi-row INSERT ... ON CONFLICT DO UPDATE instead of a per-row loop.
+ * 600 sequential single-row statements against Neon took ~5 minutes and blew
+ * past the 300 s Fluid function cap, so every cron run died in a 504 after
+ * finishing only the offers pipeline. Deterministic created/updated stats
+ * (via xmax) and preserved manual flags (isActive/isFeatured) on resync.
+ */
+async function upsertAll(_source: DealSource, rows: Array<Omit<NewCouponDeal, "id">>) {
+  if (rows.length === 0) {
+    return { created: 0, updated: 0, keptIds: [] as string[] };
+  }
   const db = await getDatabase();
   // A single fetch can return the same voucher twice (overlapping campaign
-  // pages); the second insert would then violate the (source, external_id)
-  // unique index and abort the whole pipeline. Keep the first occurrence.
+  // pages); two colliding rows inside one statement would still violate the
+  // (source, external_id) unique index, so dedupe locally first. Keep the
+  // first occurrence.
   const seenExternal = new Set<string>();
   const deduped = rows.filter((row) => {
     if (!row.externalId) return true;
@@ -216,63 +245,51 @@ async function upsertAll(source: DealSource, rows: Array<Omit<NewCouponDeal, "id
     seenExternal.add(row.externalId);
     return true;
   });
-  const externalIds = deduped
-    .map((r) => r.externalId)
-    .filter((v): v is string => v != null);
+  const values = deduped.map((row) => {
+    const out = {} as Omit<NewCouponDeal, "id">;
+    for (const col of UPSERT_COLUMNS) {
+      (out as Record<string, unknown>)[col] =
+        (row as Record<string, unknown>)[col] ?? null;
+    }
+    return out;
+  });
 
-  const existing = externalIds.length
-    ? await db
-        .select({ id: couponDeals.id, externalId: couponDeals.externalId })
-        .from(couponDeals)
-        .where(
-          and(eq(couponDeals.source, source), inArray(couponDeals.externalId, externalIds)),
-        )
-    : [];
-  const existingIdByExternal = new Map(
-    existing.map((e) => [e.externalId, e.id] as const),
-  );
+  // xmax = 0 ⇒ the row was newly inserted by this statement (not updated).
+  const returned = await db
+    .insert(couponDeals)
+    .values(values)
+    .onConflictDoUpdate({
+      target: [couponDeals.source, couponDeals.externalId],
+      // Syncable fields only — manual curation flags stay untouched.
+      set: {
+        externalId: sql`excluded.external_id`,
+        merchant: sql`excluded.merchant`,
+        merchantName: sql`excluded.merchant_name`,
+        domain: sql`excluded.domain`,
+        code: sql`excluded.code`,
+        title: sql`excluded.title`,
+        content: sql`excluded.content`,
+        image: sql`excluded.image`,
+        price: sql`excluded.price`,
+        discountRate: sql`excluded.discount_rate`,
+        affLink: sql`excluded.aff_link`,
+        link: sql`excluded.link`,
+        categories: sql`excluded.categories`,
+        startTime: sql`excluded.start_time`,
+        endTime: sql`excluded.end_time`,
+        updatedAt: new Date(),
+      },
+    })
+    .returning({ id: couponDeals.id, inserted: sql<string>`xmax::text` });
 
   let created = 0;
-  let updated = 0;
-  const keptIds: string[] = [];
+  for (const r of returned) if (r.inserted === "0") created += 1;
 
-  for (const row of deduped) {
-    const existingId = row.externalId
-      ? existingIdByExternal.get(row.externalId)
-      : undefined;
-    if (existingId) {
-      // Syncable fields only — manual curation flags stay untouched.
-      const { isActive: _isActive, isFeatured: _isFeatured, ...syncable } = row;
-      void _isActive;
-      void _isFeatured;
-      await db
-        .update(couponDeals)
-        .set({ ...syncable, updatedAt: new Date() })
-        .where(eq(couponDeals.id, existingId));
-      updated += 1;
-      keptIds.push(existingId);
-    } else {
-      // Idempotent insert: a concurrent/replayed sync (or a row committed
-      // between the precheck above and this insert) must not abort the whole
-      // pipeline with a (source, external_id) unique-index violation. Mirror
-      // the update path: refresh syncable fields only, keep manual flags.
-      const { isActive: _isActive, isFeatured: _isFeatured, ...syncable } = row;
-      void _isActive;
-      void _isFeatured;
-      const inserted = await db
-        .insert(couponDeals)
-        .values(row)
-        .onConflictDoUpdate({
-          target: [couponDeals.source, couponDeals.externalId],
-          set: { ...syncable, updatedAt: new Date() },
-        })
-        .returning({ id: couponDeals.id });
-      created += 1;
-      if (inserted[0]) keptIds.push(inserted[0].id);
-    }
-  }
-
-  return { created, updated, keptIds };
+  return {
+    created,
+    updated: returned.length - created,
+    keptIds: returned.map((r) => r.id),
+  };
 }
 
 /**

@@ -316,7 +316,6 @@ function SiteFooter() {
 
         <div className="mt-9 flex flex-col gap-2 border-t border-line pt-5 text-xs text-ink/40 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {SITE.name}. Không phải website chính thức của Shopee, Tiki, Lazada hay TikTok Shop.</p>
-          <p>Affiliate · Accesstrade · Cập nhật 24/7</p>
         </div>
       </div>
     </footer>

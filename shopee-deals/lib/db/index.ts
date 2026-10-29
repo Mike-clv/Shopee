@@ -78,9 +78,16 @@ async function createBundle(): Promise<DbBundle> {
       connect_timeout: 10,
     });
     const db = drizzlePostgres(client, { schema });
+    // Vercel runtime functions do not bundle the ./drizzle SQL folder, so
+    // migrations cannot run there ("Can't find meta/_journal.json"). They are
+    // applied by the build workers instead (same checkout, folder present),
+    // so runtime skips them. Local dev keeps zero-config auto-migration.
+    const isVercelRuntime =
+      Boolean(process.env.VERCEL) &&
+      process.env.NEXT_PHASE !== "phase-production-build";
     return {
       db,
-      migrate: () => migratePostgresOnce(db),
+      migrate: isVercelRuntime ? async () => {} : () => migratePostgresOnce(db),
       dispose: () => client.end({ timeout: 5 }),
     };
   }

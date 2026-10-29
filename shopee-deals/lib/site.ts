@@ -2,7 +2,7 @@
 
 export const SITE = {
   name: "Mã Giảm Giá Đa Sàn",
-  shortName: "DealĐaSàn",
+  shortName: "Mã Giảm Giá",
   description:
     "Tổng hợp mã giảm giá Shopee và deal hot Tiki, TikTok Shop, Lazada — cập nhật tự động 24/7 qua Accesstrade. Voucher freeship, giảm giá sâu và sản phẩm deal đa sàn.",
   defaultUrl: "http://localhost:3000",

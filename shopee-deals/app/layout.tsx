@@ -189,19 +189,15 @@ function SiteHeader() {
             className="flex shrink-0 items-center gap-2.5 text-ink"
             aria-label={`${SITE.name} – trang chủ`}
           >
-            <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand shadow-sm shadow-brand/25">
-              <span
-                aria-hidden
-                className="absolute inset-y-0 -left-8 w-6 -skew-x-12 bg-white/25"
-              />
+            <span className="brand-mark relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand">
               <TagGlyph className="relative h-5 w-5" />
             </span>
             <span className="flex flex-col leading-none">
-              <span className="font-display text-[20px] font-bold tracking-tight sm:text-[22px]">
+              <span className="title-shimmer font-display text-[1.35rem] leading-tight font-bold whitespace-nowrap sm:text-[1.55rem] xl:text-[1.85rem]">
                 {SITE.shortName}
               </span>
-              <span className="mt-1 text-[9px] font-semibold tracking-[0.16em] text-ink/45 uppercase">
-                Mã giảm giá đa sàn
+              <span className="brand-pro -mt-0.5 text-[10px] font-medium tracking-wide text-ink/45">
+                PRO
               </span>
             </span>
           </Link>

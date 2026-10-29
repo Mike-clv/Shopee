@@ -51,6 +51,11 @@ export const metadata: Metadata = {
     description: SITE.description,
   },
   robots: { index: true, follow: true },
+  // Versioned URL forces browsers (Chrome favicon cache) to re-fetch the icon
+  // after brand changes. Bump v= when the icon artwork changes.
+  icons: {
+    icon: [{ url: "/icon.svg?v=2", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport: Viewport = {

@@ -1,45 +1,108 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CircleCheck, Copy } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 /**
- * Coupon-standard flow: click the box → copy the code AND start the
- * affiliate redirect in a new tab, so the user gets both money saved
- * and the discounted page.
+ * “Lấy mã” interaction: copies the code, confirms in-place, and always opens
+ * the affiliate redirect in a new tab.
+ * - variant "row": dashed code plate + pill button (detail purchase ticket).
+ * - variant "tile": one full-width dashed button (square coupon tiles).
  */
-export function CopyButton({ code, goPath }: { code: string; goPath: string }) {
+export function CopyButton({
+  code,
+  goPath,
+  variant = "row",
+}: {
+  code: string;
+  goPath: string;
+  variant?: "row" | "tile";
+}) {
   const [copied, setCopied] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>(null);
+  const timerRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     return () => {
-      if (timer.current !== null) clearTimeout(timer.current);
+      if (timerRef.current !== undefined) {
+        window.clearTimeout(timerRef.current);
+      }
     };
   }, []);
 
-  async function handleClick() {
+  const handleClick = async () => {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      if (timer.current !== null) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setCopied(false), 2000);
+      if (timerRef.current !== undefined) {
+        window.clearTimeout(timerRef.current);
+      }
+      timerRef.current = window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Older browsers without clipboard permission — still redirect.
+      // Clipboard can fail on http/permission denial — the redirect still works.
     } finally {
       window.open(goPath, "_blank", "noopener,noreferrer");
     }
+  };
+
+  if (variant === "tile") {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        aria-label={`Sao chép mã ${code}`}
+        className={cn(
+          "flex h-8 w-full items-center justify-center gap-1 rounded-lg border-2 border-dashed px-2 transition active:scale-[0.99]",
+          copied
+            ? "border-emerald-500/50 bg-emerald-50"
+            : "border-brand/40 bg-brand/5 hover:bg-brand/10",
+        )}
+      >
+        {copied ? (
+          <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold tracking-wider text-emerald-600">
+            <CircleCheck className="h-3 w-3" aria-hidden />
+            Đã chép
+          </span>
+        ) : (
+          <span
+            className="inline-flex min-w-0 items-center gap-1 font-mono text-[11px] font-bold tracking-wider text-brand"
+            title={code}
+          >
+            <Copy className="h-3 w-3 shrink-0" aria-hidden />
+            <span className="truncate">{code}</span>
+          </span>
+        )}
+      </button>
+    );
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      aria-label="Sao chép mã giảm giá"
-      className="flex-1 rounded-lg border border-dashed border-[#ee4d2d] bg-[#ee4d2d]/5 px-3 py-2 text-center transition hover:bg-[#ee4d2d]/10 active:scale-[0.99]"
-    >
-      <span className="font-mono text-sm font-bold tracking-wider text-[#ee4d2d]">
-        {copied ? "✔ Đã chép!" : code}
+    <div className="flex w-full items-center gap-2 sm:max-w-[300px]">
+      <span
+        className="min-w-0 flex-1 truncate rounded-lg border-2 border-dashed border-brand/40 bg-brand/5 px-3 py-2 font-mono text-[11px] leading-4 font-bold tracking-wider text-brand sm:text-xs"
+        title={code}
+      >
+        {code}
       </span>
-    </button>
+      <button
+        type="button"
+        onClick={handleClick}
+        className={`inline-flex h-9 shrink-0 items-center justify-center gap-1 rounded-full px-3.5 text-xs font-semibold whitespace-nowrap text-white transition ${
+          copied ? "bg-emerald-600 hover:bg-emerald-700" : "bg-brand hover:bg-brand-dark"
+        }`}
+      >
+        {copied ? (
+          <>
+            <CircleCheck className="h-3.5 w-3.5" aria-hidden />
+            Đã chép
+          </>
+        ) : (
+          <>
+            <Copy className="h-3.5 w-3.5" aria-hidden />
+            Lấy mã
+          </>
+        )}
+      </button>
+    </div>
   );
 }

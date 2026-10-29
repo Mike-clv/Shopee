@@ -149,3 +149,261 @@ export async function fetchOffers(
 
   return { offers, fetchedCount, warnings };
 }
+
+// ---------------------------------------------------------------------------
+// Datafeeds: product-level feeds (Tiki, Lazada — no promo codes, own aff link).
+// Verified live: GET /v1/datafeeds?domain=lazada.vn&limit=2&page=1 →
+//   { total, data: [{ product_id, sku, name, price (original), discount (sale),
+//      discount_rate, image, url, aff_link, campaign, domain, cate, desc, ... }] }
+// ---------------------------------------------------------------------------
+
+export const atDatafeedProductSchema = z.looseObject({
+  product_id: z.union([z.string(), z.number()]).transform(String),
+  sku: z.union([z.string(), z.number()]).transform(String),
+  name: z.string(),
+  price: z.number().nullable().optional(),
+  discount: z.number().nullable().optional(),
+  discount_rate: z.number().nullable().optional(),
+  image: z.string().optional(),
+  aff_link: z.string(),
+  url: z.string().optional(),
+  campaign: z.string().optional(),
+  domain: z.string().optional(),
+  cate: z.string().optional(),
+  desc: z.string().optional(),
+  merchant: z.string().optional(),
+});
+
+export type ATDatafeedProduct = z.infer<typeof atDatafeedProductSchema>;
+
+const datafeedListSchema = z.looseObject({
+  total: z.number().optional(),
+  data: z.array(atDatafeedProductSchema).default([]),
+});
+
+export type FetchDatafeedsParams = {
+  domains: string[];
+  pageSize: number;
+  maxPages: number;
+};
+
+/**
+ * Paged GET /v1/datafeeds per domain. A short page stops that domain's loop;
+ * an empty first page emits a warning instead of failing the whole sync.
+ */
+export async function fetchDatafeeds(
+  params: FetchDatafeedsParams,
+): Promise<{ products: ATDatafeedProduct[]; fetchedCount: number; warnings: string[] }> {
+  const products: ATDatafeedProduct[] = [];
+  const warnings: string[] = [];
+  let fetchedCount = 0;
+
+  for (const domain of params.domains) {
+    for (let page = 1; page <= params.maxPages; page++) {
+      const url = new URL(`${API_BASE}/v1/datafeeds`);
+      url.searchParams.set("domain", domain);
+      url.searchParams.set("limit", String(params.pageSize));
+      url.searchParams.set("page", String(page));
+
+      let res: Response;
+      try {
+        res = await fetch(url, { headers: authHeaders(), cache: "no-store" });
+      } catch (error) {
+        throw new Error(`Cannot reach Accesstrade datafeed (${domain}): ${String(error)}`);
+      }
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Accesstrade rejected the access key (check ACCESSTRADE_ACCESS_KEY).");
+      }
+      if (!res.ok) {
+        throw new Error(`Accesstrade datafeed HTTP ${res.status} on ${domain} page ${page}.`);
+      }
+
+      const json: unknown = await res.json().catch(
+        () => Promise.reject(new Error(`Accesstrade datafeed ${domain} returned invalid JSON.`)),
+      );
+      const parsed = datafeedListSchema.safeParse(json);
+      if (!parsed.success) {
+        warnings.push(
+          `Datafeed ${domain} page ${page}: unexpected shape (${parsed.error.issues.length} issues). Stopping domain.`,
+        );
+        break;
+      }
+
+      const items = parsed.data.data;
+      products.push(...items);
+      fetchedCount += items.length;
+      if (items.length < params.pageSize) break;
+    }
+  }
+
+  return { products, fetchedCount, warnings };
+}
+
+// ---------------------------------------------------------------------------
+// TikTok Shop: product search v2 + affiliate link creation.
+// Verified live:
+//   GET /v2/tiktokshop_product_feeds?sort_field=HIGH_COMMISSION_RATE&limit=3
+//       &title_keywords=quần → { status, data: { next_page_token, total_count,
+//       products: [{ id, title, detail_link, main_image_url, units_sold,
+//       commission_rate, sales_price{minimum_amount…}, original_price{…}, … }] } }
+//   POST /v2/tiktokshop_product_feeds/create_link?minify=true body
+//       { product_url } → { status, message, data: { aff_short_url, aff_url } }
+// ---------------------------------------------------------------------------
+
+const priceRangeSchema = z.looseObject({
+  currency: z.string().optional(),
+  minimum_amount: z.union([z.string(), z.number()]).nullable().optional(),
+  maximum_amount: z.union([z.string(), z.number()]).nullable().optional(),
+});
+
+export const tiktokProductSchema = z.looseObject({
+  id: z.union([z.string(), z.number()]).transform(String),
+  title: z.string(),
+  detail_link: z.string(),
+  main_image_url: z.string().optional(),
+  units_sold: z.number().nullable().optional(),
+  commission: z
+    .looseObject({ rate: z.union([z.string(), z.number()]).optional() })
+    .optional(),
+  commission_rate: z.union([z.string(), z.number()]).nullable().optional(),
+  sales_price: priceRangeSchema.optional(),
+  original_price: priceRangeSchema.optional(),
+  category_chains: z
+    .array(z.looseObject({ local_name: z.string().optional() }))
+    .optional(),
+  shop: z.looseObject({ name: z.string().optional() }).optional(),
+});
+
+export type TiktokProduct = z.infer<typeof tiktokProductSchema>;
+
+const tiktokSearchSchema = z.looseObject({
+  status: z.boolean().optional(),
+  data: z.looseObject({
+    next_page_token: z.string().optional(),
+    total_count: z.number().optional(),
+    products: z.array(tiktokProductSchema).default([]),
+  }),
+});
+
+export type SearchTiktokParams = {
+  keywords: string[];
+  limit: number;
+  maxPages: number;
+};
+
+export type TiktokSearchPage = {
+  products: TiktokProduct[];
+  nextPageToken: string | null;
+};
+
+/** One page of GET /v2/tiktokshop_product_feeds (safeParse — never throws on shape). */
+export async function searchTiktokProducts(
+  keyword: string,
+  limit: number,
+  pageToken?: string | null,
+): Promise<TiktokSearchPage> {
+  const url = new URL(`${API_BASE}/v2/tiktokshop_product_feeds`);
+  url.searchParams.set("sort_field", "HIGH_COMMISSION_RATE");
+  url.searchParams.set("limit", String(limit));
+  if (keyword.trim()) url.searchParams.set("title_keywords", keyword.trim());
+  if (pageToken) url.searchParams.set("page_token", pageToken);
+
+  let res: Response | undefined;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) {
+      // Burst 429s: backoff then retry once (same as create_link).
+      await new Promise((resolve) => setTimeout(resolve, 1600));
+    }
+    try {
+      res = await fetch(url, { headers: authHeaders(), cache: "no-store" });
+    } catch (error) {
+      throw new Error(`Cannot reach Accesstrade TikTok API: ${String(error)}`);
+    }
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Accesstrade rejected the access key (check ACCESSTRADE_ACCESS_KEY).");
+    }
+    if (res.status !== 429) break;
+  }
+  if (!res || !res.ok) {
+    throw new Error(`Accesstrade TikTok search HTTP ${res?.status ?? "no-response"}.`);
+  }
+
+  const json: unknown = await res.json().catch(
+    () => Promise.reject(new Error("Accesstrade TikTok search returned invalid JSON.")),
+  );
+  const parsed = tiktokSearchSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error(
+      `Accesstrade TikTok search unexpected shape (${parsed.error.issues.length} issues).`,
+    );
+  }
+  return {
+    products: parsed.data.data.products,
+    nextPageToken: parsed.data.data.next_page_token || null,
+  };
+}
+
+const tiktokLinkSchema = z.looseObject({
+  status: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z
+    .looseObject({
+      aff_short_url: z.string().optional(),
+      aff_url: z.string().optional(),
+    })
+    .optional(),
+});
+
+/**
+ * POST /v2/tiktokshop_product_feeds/create_link?minify=true. `minify` skips
+ * re-fetching product details (we already have them from search), keeping the
+ * per-product call fast. Returns the affiliate URL, or null when AT rejects
+ * the product (status:false body with HTTP 200 — e.g. not part of the
+ * campaign or invalid product), or throws on infrastructure errors.
+ * Retries one burst-rate 429 with a short backoff.
+ */
+export async function createTiktokLink(
+  productUrl: string,
+): Promise<string | null> {
+  const url = new URL(`${API_BASE}/v2/tiktokshop_product_feeds/create_link`);
+  url.searchParams.set("minify", "true");
+  let res: Response | undefined;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) {
+      // Burst 429s observed live — one short backoff recovers most calls.
+      await new Promise((resolve) => setTimeout(resolve, 1600));
+    }
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ product_url: productUrl }),
+        cache: "no-store",
+      });
+    } catch (error) {
+      throw new Error(`Cannot reach Accesstrade TikTok create_link: ${String(error)}`);
+    }
+    if (res.status !== 429) break;
+  }
+  if (!res || !res.ok) {
+    throw new Error(`Accesstrade TikTok create_link HTTP ${res?.status ?? "no-response"}.`);
+  }
+
+  const json: unknown = await res.json().catch(
+    () => Promise.reject(new Error("Accesstrade TikTok create_link returned invalid JSON.")),
+  );
+  const parsed = tiktokLinkSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error(
+      `Accesstrade TikTok create_link unexpected shape (${parsed.error.issues.length} issues).`,
+    );
+  }
+  // AT answers HTTP 200 with status:false for product-level rejections
+  // (e.g. 98001004 invalid params / not in campaign) — null = skip row.
+  if (parsed.data.status === false) {
+    return null;
+  }
+  const data = parsed.data.data;
+  const link = data?.aff_short_url?.trim() || data?.aff_url?.trim() || "";
+  return link ? link : null;
+}

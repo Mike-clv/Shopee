@@ -12,6 +12,24 @@ export function truncateVi(value: string, max = 160): string {
   return `${value.slice(0, max - 1).trimEnd()}…`;
 }
 
+const vnd = new Intl.NumberFormat("vi-VN", {
+  style: "decimal",
+  maximumFractionDigits: 0,
+});
+
+/** Vietnamese VND price, e.g. `237.000đ`. Returns null for invalid input. */
+export function formatPriceVi(value: number | null | undefined): string | null {
+  if (value == null || !Number.isFinite(value) || value <= 0) return null;
+  return `${vnd.format(value)}đ`;
+}
+
+/** 0.25 → "25%"; null-safe for missing rates. */
+export function formatDiscountVi(rate: number | null | undefined): string | null {
+  if (rate == null || !Number.isFinite(rate) || rate <= 0) return null;
+  const pct = Math.round(rate * 100);
+  return pct > 0 ? `-${pct}%` : null;
+}
+
 const dtf = new Intl.DateTimeFormat("vi-VN", {
   dateStyle: "short",
   timeStyle: "short",

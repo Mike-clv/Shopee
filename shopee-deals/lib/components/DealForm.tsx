@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
+import { Pencil, Plus } from "lucide-react";
 import { upsertDealAction, type ActionState } from "@/app/actions/admin";
+import { SITE } from "@/lib/site";
 import type { CouponDeal } from "@/lib/db/schema";
 
 const emptyValue = "";
@@ -15,10 +17,15 @@ export function DealForm({ deal }: { deal: CouponDeal | null }) {
 
   return (
     <section aria-label="Thêm / sửa mã">
-      <h2 className="mb-2 text-lg font-bold">
-        {editing ? "✏️ Sửa mã" : "➕ Thêm mã thủ công"}
+      <h2 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold">
+        {editing ? (
+          <Pencil className="h-4 w-4 text-brand" aria-hidden />
+        ) : (
+          <Plus className="h-4 w-4 text-brand" aria-hidden />
+        )}
+        {editing ? "Sửa mã" : "Thêm mã thủ công"}
       </h2>
-      <form action={formAction} className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <form action={formAction} className="rounded-lg border border-line bg-white p-4">
         {editing && <input type="hidden" name="id" value={deal.id} />}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field
@@ -48,12 +55,23 @@ export function DealForm({ deal }: { deal: CouponDeal | null }) {
             defaultValue={deal?.merchantName ?? emptyValue}
             placeholder="Shopee"
           />
-          <Field
-            label="Slug danh mục merchant"
-            name="merchant"
-            defaultValue={deal?.merchant ?? "shopee"}
-            placeholder="shopee"
-          />
+          <div>
+            <label htmlFor="merchant" className="text-xs font-medium text-ink/60">
+              Sàn
+            </label>
+            <select
+              id="merchant"
+              name="merchant"
+              defaultValue={deal?.merchant ?? "shopee"}
+              className="mt-1 w-full rounded-md border border-line bg-paper/50 px-3 py-2 text-sm transition focus:border-brand/60 focus:ring-2 focus:ring-brand/10 focus:outline-none"
+            >
+              {SITE.merchants.map((merchant) => (
+                <option key={merchant} value={merchant}>
+                  {SITE.merchantLabels[merchant]}
+                </option>
+              ))}
+            </select>
+          </div>
           <Field
             label="Hạn dùng mã"
             name="endTime"
@@ -67,7 +85,7 @@ export function DealForm({ deal }: { deal: CouponDeal | null }) {
             placeholder="https://static.accesstrade.vn/..."
           />
           <div className="sm:col-span-2">
-            <label htmlFor="content" className="text-xs font-medium text-neutral-600">
+            <label htmlFor="content" className="text-xs font-medium text-ink/60">
               Mô tả điều kiện áp dụng
             </label>
             <textarea
@@ -75,7 +93,7 @@ export function DealForm({ deal }: { deal: CouponDeal | null }) {
               name="content"
               rows={2}
               defaultValue={deal?.content ?? emptyValue}
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-[#ee4d2d] focus:outline-none"
+              className="mt-1 w-full rounded-md border border-line bg-paper/50 px-3 py-2 text-sm transition focus:border-brand/60 focus:ring-2 focus:ring-brand/10 focus:outline-none"
             />
           </div>
           <label className="flex items-center gap-2 text-sm">
@@ -83,7 +101,7 @@ export function DealForm({ deal }: { deal: CouponDeal | null }) {
               type="checkbox"
               name="isActive"
               defaultChecked={deal?.isActive ?? true}
-              className="h-4 w-4 accent-[#ee4d2d]"
+              className="h-4 w-4 accent-brand"
             />
             Đang chạy
           </label>
@@ -92,7 +110,7 @@ export function DealForm({ deal }: { deal: CouponDeal | null }) {
               type="checkbox"
               name="isFeatured"
               defaultChecked={deal?.isFeatured ?? false}
-              className="h-4 w-4 accent-[#ee4d2d]"
+              className="h-4 w-4 accent-brand"
             />
             Đánh dấu Hot
           </label>
@@ -102,20 +120,20 @@ export function DealForm({ deal }: { deal: CouponDeal | null }) {
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-[#ee4d2d] px-4 py-2 text-sm font-semibold text-white hover:bg-[#d73211] disabled:opacity-60"
+            className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#c8401c] disabled:opacity-60"
           >
             {pending ? "Đang lưu…" : editing ? "Lưu thay đổi" : "Thêm mã"}
           </button>
           {editing && (
             <a
               href="/admin"
-              className="text-sm text-neutral-500 underline-offset-4 hover:underline"
+              className="text-sm text-ink/50 underline-offset-4 hover:text-brand hover:underline"
             >
               Hủy sửa
             </a>
           )}
-          {state.error && <p className="text-sm text-red-600">{state.error}</p>}
-          {state.ok && <p className="text-sm text-green-600">{state.ok}</p>}
+          {state.error && <p className="text-sm text-accent">{state.error}</p>}
+          {state.ok && <p className="text-sm text-brand">{state.ok}</p>}
         </div>
       </form>
     </section>
@@ -141,7 +159,7 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={name} className="block text-xs font-medium text-neutral-600">
+      <label htmlFor={name} className="block text-xs font-medium text-ink/60">
         {label}
       </label>
       <input
@@ -151,7 +169,7 @@ function Field({
         required={required}
         placeholder={placeholder}
         defaultValue={defaultValue}
-        className={`mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-[#ee4d2d] focus:outline-none ${
+        className={`mt-1 w-full rounded-md border border-line bg-paper/50 px-3 py-2 text-sm transition focus:border-brand/60 focus:ring-2 focus:ring-brand/10 focus:outline-none ${
           mono ? "font-mono tracking-wider uppercase" : ""
         }`}
       />

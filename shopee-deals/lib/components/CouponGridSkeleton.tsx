@@ -1,20 +1,22 @@
-export function CouponGridSkeleton({ count = 6 }: { count?: number }) {
+/** Loading placeholder matching the small square coupon tile grid. */
+export function CouponGridSkeleton({ count = 10 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: count }, (_, i) => (
+    <div
+      className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      aria-hidden
+    >
+      {Array.from({ length: count }).map((_, index) => (
         <div
-          key={i}
-          className="flex h-44 animate-pulse flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3"
-          aria-hidden
+          key={index}
+          className="overflow-hidden rounded-2xl border border-line bg-white"
         >
-          <div className="flex gap-3">
-            <div className="h-16 w-16 rounded-lg bg-neutral-200" />
-            <div className="flex-1 space-y-2 py-1">
-              <div className="h-3.5 w-4/5 rounded bg-neutral-200" />
-              <div className="h-3 w-2/5 rounded bg-neutral-100" />
-            </div>
+          <div className="shimmer h-24 w-full rounded-none sm:h-32" />
+          <div className="space-y-1.5 p-2">
+            <div className="shimmer h-2.5 w-16 rounded" />
+            <div className="shimmer h-3 w-3/4 rounded" />
+            <div className="shimmer h-3 w-12 rounded" />
+            <div className="shimmer h-8 w-full rounded-lg" />
           </div>
-          <div className="h-9 w-full rounded-lg bg-neutral-100" />
         </div>
       ))}
     </div>

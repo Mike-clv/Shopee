@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  // LAN devices (192.168.1.47) must be allowed to reach the dev server's
+  // HMR/websocket resources when it binds 0.0.0.0.
+  allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.1.47"],
   turbopack: {
     rules: {
       "*.css": {

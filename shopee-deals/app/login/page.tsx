@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { ChevronLeft, KeyRound } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/auth";
 import { LoginForm } from "@/lib/components/LoginForm";
 
@@ -12,16 +14,36 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <div className="mx-auto max-w-sm py-16">
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h1 className="mb-1 text-xl font-bold">Quản trị</h1>
-        <p className="mb-4 text-sm text-neutral-500">
-          Trang thương hiệu chỉ dành cho bạn.
-        </p>
-        <Suspense fallback={<p className="text-sm text-neutral-400">Tải…</p>}>
-          <Gate>
-            <LoginForm />
-          </Gate>
-        </Suspense>
+      <div className="overflow-hidden rounded-lg border border-line bg-white">
+        <div className="relative overflow-hidden bg-brand p-6 text-white">
+          <span
+            aria-hidden
+            className="absolute -top-12 -right-10 h-36 w-36 rounded-full bg-white/15 blur-2xl"
+          />
+          <KeyRound className="relative h-5 w-5 text-white/70" aria-hidden />
+          <h1 className="relative mt-3 font-display text-2xl font-semibold tracking-tight">
+            Khu vực quản trị
+          </h1>
+          <p className="relative mt-1 text-xs text-white/50">
+            Chỉ dành cho chủ sở hữu website.
+          </p>
+        </div>
+        <div className="p-6">
+          <Suspense
+            fallback={<p className="text-sm text-ink/40">Đang tải…</p>}
+          >
+            <Gate>
+              <LoginForm />
+            </Gate>
+          </Suspense>
+          <Link
+            href="/"
+            className="mt-5 inline-flex items-center gap-0.5 text-sm font-medium text-ink/50 transition hover:text-brand"
+          >
+            <ChevronLeft aria-hidden className="h-3.5 w-3.5" />
+            Về trang chính
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -3,9 +3,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CopyButton } from "@/lib/components/CopyButton";
-import { getDealCached } from "@/lib/coupons/data";
-import { truncateVi, formatDayVi } from "@/lib/utils";
-import Image from "next/image";
+import { CouponCard } from "@/lib/components/CouponCard";
+import { DealImage } from "@/lib/components/DealImage";
+import { getDealCached, listRelatedDeals } from "@/lib/coupons/data";
+import { truncateVi, formatDayVi, formatDiscountVi, formatPriceVi } from "@/lib/utils";
+import { merchantLabel, siteUrl } from "@/lib/site";
+import { MerchantLogo } from "@/lib/components/MerchantLogo";
+import { categoryFromSlug } from "@/lib/categories";
+import {
+  ArrowRight,
+  CalendarDays,
+  ChevronRight,
+  Copy,
+  Globe,
+  MousePointerClick,
+  PiggyBank,
+  ShoppingCart,
+  ShieldCheck,
+  Timer,
+} from "lucide-react";
+import { FlashCountdown } from "@/lib/components/FlashCountdown";
 
 export async function generateMetadata(
   props: PageProps<"/ma/[id]">,
@@ -37,15 +54,27 @@ export default function DealDetailPage(props: PageProps<"/ma/[id]">) {
 function DetailSkeleton() {
   return (
     <div className="py-6" aria-hidden>
-      <div className="animate-pulse rounded-2xl border border-neutral-200 bg-white p-5">
-        <div className="flex gap-4">
-          <div className="h-18 w-18 rounded-xl bg-neutral-200" />
-          <div className="flex-1 space-y-2 py-1">
-            <div className="h-5 w-3/4 rounded bg-neutral-200" />
-            <div className="h-3.5 w-1/3 rounded bg-neutral-100" />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="overflow-hidden rounded-2xl border border-line bg-white lg:col-span-3">
+          <div className="flex gap-4 border-b border-line p-5">
+            <div className="shimmer h-28 w-28 shrink-0 rounded-md" />
+            <div className="flex-1 space-y-2.5">
+              <div className="shimmer h-3 w-1/3 rounded-sm" />
+              <div className="shimmer h-5 w-4/5 rounded-sm" />
+              <div className="shimmer h-3 w-1/2 rounded-sm" />
+            </div>
+          </div>
+          <div className="space-y-3 p-5">
+            <div className="shimmer h-3 w-full rounded-sm" />
+            <div className="shimmer h-3 w-3/4 rounded-sm" />
+            <div className="shimmer h-16 w-full rounded-md" />
           </div>
         </div>
-        <div className="mt-5 h-28 rounded-xl bg-neutral-100" />
+        <div className="rounded-lg border border-line bg-white p-5 lg:col-span-2">
+          <div className="shimmer h-7 w-1/2 rounded-sm" />
+          <div className="shimmer mt-3 h-3 w-2/3 rounded-sm" />
+          <div className="shimmer mt-5 h-12 w-full rounded-md" />
+        </div>
       </div>
     </div>
   );
@@ -56,80 +85,273 @@ async function DealBody({ params }: { params: Promise<{ id: string }> }) {
   const deal = await getDealCached(id);
   if (!deal) notFound();
 
+  const price = formatPriceVi(deal.price);
+  const discount = formatDiscountVi(deal.discountRate);
+  const category = deal.categories?.find(Boolean) ?? null;
+  const categoryInfo = categoryFromSlug(category);
+
+  // Structured data for rich results — stringified with "<" escaped so no
+  // content can break out of the script tag.
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: deal.title,
+    description: deal.content ?? undefined,
+    image: deal.image ?? undefined,
+  };
+  if (deal.price != null && deal.price > 0) {
+    jsonLd.offers = {
+      "@type": "Offer",
+      priceCurrency: "VND",
+      price: deal.price,
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl()}/ma/${deal.id}`,
+    };
+  }
+
+  const related = await listRelatedDeals(deal.id, {
+    category: category ?? undefined,
+    merchant: deal.merchant,
+    limit: 4,
+  });
+
   return (
     <article className="py-6">
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500 mb-3">
-        <Link href="/" className="hover:text-[#ee4d2d]">Trang chủ</Link>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-4 flex flex-wrap items-center gap-1 text-xs text-ink/45"
+      >
+        <Link href="/" className="transition hover:text-brand">
+          Trang chủ
+        </Link>
         {deal.merchant && (
-          <span>
-            {" / "}
-            <span className="capitalize">{deal.merchant}</span>
-          </span>
+          <>
+            <ChevronRight aria-hidden className="h-3 w-3 text-ink/20" />
+            <Link
+              href={`/tim-kiem?merchant=${deal.merchant}`}
+              className="inline-flex items-center gap-1 transition hover:text-brand"
+            >
+              <MerchantLogo merchant={deal.merchant} size={14} />
+              {merchantLabel(deal.merchant)}
+            </Link>
+          </>
+        )}
+        {category && (
+          <>
+            <ChevronRight aria-hidden className="h-3 w-3 text-ink/20" />
+            <Link
+              href={`/tim-kiem?cate=${encodeURIComponent(category)}`}
+              className="transition hover:text-brand"
+            >
+              {categoryInfo.label}
+            </Link>
+          </>
         )}
       </nav>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <div className="flex gap-4">
-          {deal.image ? (
-            <Image
-              src={deal.image}
-              alt={deal.title}
-              width={72}
-              height={72}
-              className="h-18 w-18 shrink-0 rounded-xl object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="flex h-18 w-18 shrink-0 items-center justify-center rounded-xl bg-[#ee4d2d]/10 text-2xl font-bold text-[#ee4d2d]">
-              {(deal.merchantName ?? deal.merchant ?? "S").slice(0, 2).toUpperCase()}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="overflow-hidden rounded-2xl border border-line bg-white lg:col-span-3">
+          <div className="border-b border-line p-5">
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <DealImage
+                src={deal.image ?? ""}
+                alt={deal.title}
+                initials={(deal.merchantName ?? deal.merchant ?? "S")
+                  .slice(0, 2)
+                  .toUpperCase()}
+                width={112}
+                height={112}
+                eager
+                className="h-28 w-28 shrink-0 self-start rounded-xl bg-paper ring-1 ring-line"
+                plateClassName="h-28 w-28 shrink-0 self-start rounded-xl bg-paper text-2xl text-ink/25"
+              />
+              <div className="min-w-0">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink/45">
+                  {deal.merchant && (
+                    <Link
+                      href={`/tim-kiem?merchant=${deal.merchant}`}
+                      className="font-medium transition hover:text-brand"
+                    >
+                      {merchantLabel(deal.merchant)}
+                    </Link>
+                  )}
+                  {category && (
+                    <>
+                      <span aria-hidden className="text-line">
+                        /
+                      </span>
+                      <Link
+                        href={`/tim-kiem?cate=${encodeURIComponent(category)}`}
+                        className="inline-flex items-center gap-1 transition hover:text-brand"
+                      >
+                        <categoryInfo.icon className="h-3 w-3" aria-hidden />
+                        {categoryInfo.label}
+                      </Link>
+                    </>
+                  )}
+                </p>
+                <h1 className="mt-2 font-display text-[22px] leading-snug font-bold tracking-tight text-ink sm:text-2xl">
+                  {deal.title}
+                </h1>
+                <p className="mt-3 flex flex-wrap items-center gap-2">
+                  {discount && (
+                    <span className="inline-flex items-center rounded-sm bg-accent/8 px-2 py-1 font-mono text-[11px] font-bold text-accent">
+                      {discount}
+                    </span>
+                  )}
+                  {deal.merchant && (
+                    <Link
+                      href={`/tim-kiem?merchant=${deal.merchant}`}
+                      className="inline-flex items-center gap-1.5 rounded-sm border border-line px-2 py-1 text-[11px] font-medium text-ink/55 transition hover:border-brand/40 hover:text-brand"
+                    >
+                      <MerchantLogo merchant={deal.merchant} size={12} />
+                      Xem deal {merchantLabel(deal.merchant)}
+                    </Link>
+                  )}
+                </p>
+              </div>
             </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold leading-snug">{deal.title}</h1>
-            <p className="mt-1 text-sm text-neutral-500">
-              {deal.merchantName ?? deal.merchant}
-              {deal.domain ? ` (${deal.domain})` : ""}
+          </div>
+
+          <div className="p-5">
+            {deal.content && (
+              <div className="text-sm leading-relaxed text-ink/65">
+                <h2 className="mb-1.5 font-display text-base font-semibold text-ink">
+                  Điều kiện ưu đãi
+                </h2>
+                <p className="whitespace-pre-line">{deal.content}</p>
+              </div>
+            )}
+
+            <ul className="mt-5 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+              <li className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-ink/55">
+                <CalendarDays className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                Bắt đầu: {formatDayVi(deal.startTime)}
+              </li>
+              <li className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-ink/55">
+                <Timer className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                Hạn dùng: {formatDayVi(deal.endTime)}
+              </li>
+              <li className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-ink/55">
+                <MousePointerClick
+                  className="h-3.5 w-3.5 shrink-0 text-brand"
+                  aria-hidden
+                />
+                Lượt dùng: {deal.clickCount.toLocaleString("vi-VN")}
+              </li>
+              {deal.domain && (
+                <li className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-ink/55">
+                  <Globe className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                  Nguồn: {deal.domain}
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
+
+        <div className="self-start rounded-2xl border border-line bg-white lg:sticky lg:top-20 lg:col-span-2">
+          <div className="p-5 pb-4">
+            {price ? (
+              <p>
+                <span className="block text-[11px] text-ink/40">Giá bán</span>
+                <span className="mt-1 block font-mono text-2xl font-semibold tracking-tight text-ink">
+                  {price}
+                </span>
+              </p>
+            ) : (
+              <p className="inline-flex items-center gap-1.5 rounded-md bg-brand/5 px-2.5 py-1.5 text-sm font-semibold text-brand">
+                <PiggyBank className="h-4 w-4" aria-hidden />
+                Tiết kiệm ngay
+              </p>
+            )}
+            {discount && (
+              <p className="mt-2 font-mono text-[11px] font-bold text-accent">
+                {discount} so với giá gốc
+              </p>
+            )}
+            <p className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-line pt-3 text-xs text-ink/50">
+              <Timer className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Hạn dùng: {formatDayVi(deal.endTime) ?? "—"}
+              {deal.endTime && (
+                <>
+                  <span aria-hidden className="text-line">
+                    ·
+                  </span>
+                  <FlashCountdown isoEndTime={deal.endTime.toISOString()} tone="paper" />
+                </>
+              )}
+            </p>
+          </div>
+
+          {/* Coupon ticket footer: dashed rule with punched notches. */}
+          <div className="coupon-ticket rounded-b-2xl border-t border-dashed border-line bg-brand/[0.04] px-5 py-4">
+            <div className="font-mono text-[9px] font-semibold tracking-[0.14em] text-ink/40 uppercase">
+              {deal.code ? "Mã giảm giá" : "Nhận deal tại cửa hàng"}
+            </div>
+            {deal.code ? (
+              <div className="mt-2">
+                <CopyButton code={deal.code} goPath={`/go/${deal.id}`} />
+              </div>
+            ) : (
+              <a
+                href={`/go/${deal.id}`}
+                target="_blank"
+                rel="noopener nofollow"
+                className="group/cta mt-2 flex items-center justify-center gap-1.5 rounded-full bg-brand px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-brand-dark"
+              >
+                Nhận ưu đãi tại website
+                <ArrowRight
+                  className="h-4 w-4 transition-transform group-hover/cta:translate-x-0.5"
+                  aria-hidden
+                />
+              </a>
+            )}
+            <ol className="mt-3 grid gap-1.5 text-[11px] leading-relaxed text-ink/50">
+              <li className="flex items-start gap-1.5">
+                <Copy className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                Chép mã ở ô phía trên rồi mở cửa hàng.
+              </li>
+              <li className="flex items-start gap-1.5">
+                <ShoppingCart className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                Thêm sản phẩm vào giỏ hàng.
+              </li>
+              <li className="flex items-start gap-1.5">
+                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                Dán mã vào ô mã giảm giá trước khi thanh toán.
+              </li>
+            </ol>
+            <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-ink/40">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+              Link affiliate giúp duy trì website — cảm ơn bạn khi dùng link này.
             </p>
           </div>
         </div>
-
-        <div className="mt-5 rounded-xl bg-neutral-50 border border-neutral-200 p-4">
-          <div className="text-xs font-medium text-neutral-500 mb-1">Mã giảm giá</div>
-          {deal.code ? (
-            <CopyButton code={deal.code} goPath={`/go/${deal.id}`} />
-          ) : (
-            <a
-              href={`/go/${deal.id}`}
-              target="_blank"
-              rel="noopener nofollow"
-              className="block rounded-lg bg-[#ee4d2d] px-4 py-2.5 text-center font-semibold text-white hover:bg-[#d73211]"
-            >
-              Nhận ưu đãi tại website →
-            </a>
-          )}
-          <ul className="mt-3 grid grid-cols-1 gap-1 text-xs text-neutral-500 sm:grid-cols-2">
-            <li>
-              Ngày bắt đầu: {formatDayVi(deal.startTime)}
-            </li>
-            <li>
-              Hạn dùng: {formatDayVi(deal.endTime)}
-            </li>
-            <li>
-              Lượt click: {deal.clickCount.toLocaleString("vi-VN")}
-            </li>
-            {deal.categories && deal.categories.length > 0 && (
-              <li>Danh mục: {deal.categories.join(", ")}</li>
-            )}
-          </ul>
-        </div>
-
-        {deal.content && (
-          <div className="mt-4 text-sm leading-relaxed text-neutral-700">
-            <h2 className="mb-1 font-semibold text-base">Điều kiện ưu đãi</h2>
-            <p className="whitespace-pre-line">{deal.content}</p>
-          </div>
-        )}
       </div>
+
+      {related.length > 0 && (
+        <section aria-labelledby="related-heading" className="mt-10">
+          <div className="mb-4 flex items-end justify-between border-b border-line pb-3">
+            <h2
+              id="related-heading"
+              className="font-display text-xl font-semibold tracking-tight text-ink"
+            >
+              Deal tương tự
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            {related.map((item) => (
+              <CouponCard key={item.id} deal={item} />
+            ))}
+          </div>
+        </section>
+      )}
     </article>
   );
 }

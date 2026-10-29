@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mã Giảm Giá Đa Sàn (Shopee / Tiki / TikTok Shop / Lazada)
+
+Web tổng hợp mã giảm giá Shopee và deal sản phẩm Tiki, TikTok Shop, Lazada —
+dữ liệu đồng bộ tự động từ nền tảng affiliate [Accesstrade](https://accesstrade.vn)
+qua 3 pipeline:
+
+| Pipeline | Nguồn dữ liệu | Sản phẩm |
+|---|---|---|
+| `shopee-offers` | `GET /v1/offers_informations` | Mã/voucher Shopee (có `code`) |
+| `datafeeds` | `GET /v1/datafeeds?domain=lazada.vn\|tiki.vn` | Deal sản phẩm affiliate link có sẵn, giá + % giảm |
+| `tiktok` | `GET /v2/tiktokshop_product_feeds` + `POST .../create_link` | Deal sản phẩm TikTok Shop, link aff tạo per row mới |
+
+Mỗi pipeline ghi 1 dòng `sync_logs` (prefix trong message), chạy tuần tự trong
+`/api/cron/sync` (30 phút/lần trên Vercel Cron) và nút **Sync ngay** ở `/admin`.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Local dùng PGlite tự chứa (`.db-pglite/`), tự migrate khi lần đầu request.
+Prod: đặt `DATABASE_URL` (Neon/Vercel Postgres…), migrate tự chạy khi khởi động.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Env (xem `.env.example`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `DATABASE_URL` — bỏ trống local cho PGlite.
+- `ADMIN_PASSWORD`, `AUTH_SECRET` — đăng nhập `/admin`. Xoay `AUTH_SECRET`
+  sẽ vô hiệu ngay các admin cookie đã phát hành (HMAC không còn khớp);
+  `AUTH_SECRET` **bắt buộc** ở production.
+- `ACCESSTRADE_ACCESS_KEY` — key publisher, [lấy tại đây](https://pub.accesstrade.vn/publisher_profile/personal_info).
+- `ACCESSTRADE_DATAFEED_DOMAINS` — mặc định `lazada.vn,tiki.vn`.
+- `ACCESSTRADE_DATAFEED_PAGES` — số trang mỗi domain (mặc định 2; 50 SP/trang).
+- `ACCESSTRADE_TIKTOK_KEYWORDS` — từ khóa tìm TikTok Shop, mặc định `quần,áo,giày,mỹ phẩm`.
+- `ACCESSTRADE_TIKTOK_LIMIT` — số SP mỗi keyword (mặc định 10).
+- `CRON_SECRET` — bảo vệ `/api/cron/sync`. **Fail-closed ở production**:
+  thiếu secret → endpoint trả 403. Đã set env thì Vercel Cron tự gửi
+  `Authorization: Bearer <CRON_SECRET>`; local dev giữ mở không cần secret.
 
-## Learn More
+## Lưu ý vận hành
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Tiki + Lazada**: chiến dịch `tikivn` / `lazada_kol` cần **đăng ký**
+  trên dashboard Accesstrade trước, nếu không đơn không được tính hoa hồng
+  (API trả datafeed vẫn hoạt động).
+- **TikTok Shop**: mỗi hàng mới tốn 1 call `create_link` (~0.3–1s), lần sync
+  đầu có thể tổng hợp 60–90s; các lần sau nhanh vì chỉ sync row mới. Với cron
+  Hobby (giới hạn 60s) nên giảm `ACCESSTRADE_DATAFEED_PAGES=1` và/
+  hoặc bớt keyword, hoặc chuyển cron sang chạy riêng ở máy khác.
+- Sync chỉ chạy qua HTTP (cron/admin) — **không mở trực tiếp file DB local**.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Từ repo push lên GitHub → import vào Vercel, set env ở mục trên (production),
+`CRON_SECRET` bắt buộc khi bật `vercel.json` cron. Chi tiết từng bước xem
+`HUONG-DAN-TERMIUS-OPENCODE.md` tại thư mục gốc repo.

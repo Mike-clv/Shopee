@@ -1,3 +1,15 @@
+# pnpm settings (v12+ reads these from this file, not package.json).
+packages: []
+
+# GHSA kygt-2mfff-jv (esbuild <0.25 dev-server CORS): the straggler 0.18.20
+# comes through the legacy drizzle-kit → @esbuild-kit chain. Force the
+# patched line; also railroads vitest/tailwind already fine on >=0.25.
+overrides:
+  "@esbuild-kit/core-utils>esbuild": ^0.25.0
+
+# Allow the two native/binary packages' postinstall validation steps to run
+# (pnpm v12 blocks builds by default, and strict build failure mode makes
+# every install exit non-zero otherwise).
 allowBuilds:
   esbuild: true
   unrs-resolver: true

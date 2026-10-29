@@ -6,6 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { getDatabase } from "@/lib/db";
 import { couponDeals } from "@/lib/db/schema";
 import { getActiveDealByIdUncached } from "@/lib/coupons/data";
+import { isSafeRedirectTarget } from "@/lib/url-guard";
 
 /**
  * Affiliate redirect. Runs per request (reads DB + headers), never cached:
@@ -27,7 +28,7 @@ export async function GET(
   }
 
   const deal = await getActiveDealByIdUncached(id);
-  if (!deal || !deal.affLink) {
+  if (!deal || !deal.affLink || !isSafeRedirectTarget(deal.affLink)) {
     redirect("/");
   }
 

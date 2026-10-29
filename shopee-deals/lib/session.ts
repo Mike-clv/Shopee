@@ -1,5 +1,10 @@
 import "server-only";
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 import { cookies } from "next/headers";
 
 /**
@@ -73,14 +78,17 @@ export function verifySessionToken(token: string | undefined): TokenCheck {
   return { status: "invalid" };
 }
 
-/** Password comparison safe against timing attacks. */
+/**
+ * Password comparison safe against timing attacks. Both sides are digested to
+ * a fixed 32-byte block first so the compare never leaks the admin password's
+ * length (a raw length-mismatch short-circuit would).
+ */
 export function passwordMatches(input: string): boolean {
   const expected = process.env.ADMIN_PASSWORD;
   if (!expected) return false;
-  const a = Buffer.from(input, "utf8");
-  const b = Buffer.from(expected, "utf8");
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  const sha = (value: string) =>
+    createHash("sha256").update(value, "utf8").digest();
+  return timingSafeEqual(sha(input), sha(expected));
 }
 
 export function adminEmail(): string {
@@ -114,4 +122,73 @@ export function sessionCookieOptions() {
 
 export function newSecretValue(): string {
   return randomBytes(12).toString("base64url");
+}
+
+/*
+ * Login brute-force throttle (single trusted client is still worth slowing
+ * down): per-key sliding window, N failures inside the window locks the key
+ * out temporarily. State is per-runtime in-memory — imperfect for serverless
+ * multi-instance but meaningful protection for this single-admin site, and
+ * free (no external store dependency).
+ */
+const LOGIN_WINDOW_MS = 10 * 60_000;
+const LOGIN_MAX_FAILURES = 5;
+const LOGIN_LOCK_MS = 10 * 60_000;
+
+type LoginAttempt = { failures: number; windowStart: number; lockedUntil: number };
+const loginAttempts = new Map<string, LoginAttempt>();
+let lastPruneMs = 0;
+
+function pruneLoginAttempts(now: number): void {
+  if (now - lastPruneMs < 60_000 && loginAttempts.size < 500) return;
+  lastPruneMs = now;
+  for (const [key, entry] of loginAttempts) {
+    if (
+      now - entry.windowStart > LOGIN_WINDOW_MS &&
+      entry.lockedUntil <= now
+    ) {
+      loginAttempts.delete(key);
+    }
+  }
+}
+
+/** Is `key` currently allowed to attempt a login? */
+export function loginThrottleStatus(key: string): {
+  locked: boolean;
+  retryAfterMs: number;
+} {
+  const now = Date.now();
+  pruneLoginAttempts(now);
+  const entry = loginAttempts.get(key);
+  if (entry && entry.lockedUntil > now) {
+    return { locked: true, retryAfterMs: entry.lockedUntil - now };
+  }
+  return { locked: false, retryAfterMs: 0 };
+}
+
+/** Record one failed attempt; may engage the lockout. Returns current status. */
+export function recordLoginFailure(key: string): {
+  locked: boolean;
+  retryAfterMs: number;
+} {
+  const now = Date.now();
+  pruneLoginAttempts(now);
+  const entry = loginAttempts.get(key);
+  if (!entry || now - entry.windowStart > LOGIN_WINDOW_MS) {
+    loginAttempts.set(key, { failures: 1, windowStart: now, lockedUntil: 0 });
+    return { locked: false, retryAfterMs: 0 };
+  }
+  entry.failures += 1;
+  if (entry.failures >= LOGIN_MAX_FAILURES) {
+    entry.lockedUntil = now + LOGIN_LOCK_MS;
+    entry.failures = 0;
+    entry.windowStart = now;
+    return { locked: true, retryAfterMs: LOGIN_LOCK_MS };
+  }
+  return { locked: false, retryAfterMs: 0 };
+}
+
+/** Reset the count after a successful login. */
+export function clearLoginFailures(key: string): void {
+  loginAttempts.delete(key);
 }

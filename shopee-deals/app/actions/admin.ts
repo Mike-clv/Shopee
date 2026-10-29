@@ -1,22 +1,43 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { updateTag } from "next/cache";
 import { eq, sql } from "drizzle-orm";
 import { getDatabase } from "@/lib/db";
-import { couponDeals } from "@/lib/db/schema";
+import { campaignBanners, couponDeals } from "@/lib/db/schema";
 import { assertAdminSession } from "@/lib/auth";
 import {
+  clearLoginFailures,
   createSessionToken,
+  loginThrottleStatus,
   passwordMatches,
+  recordLoginFailure,
   SESSION_COOKIE,
   sessionCookieOptions,
 } from "@/lib/session";
-import { syncAccesstrade } from "@/lib/coupons/sync";
+import { syncAll } from "@/lib/coupons/sync";
 import { SITE } from "@/lib/site";
 
 export type ActionState = { error?: string; ok?: string };
+
+/** Rough caller identity for the login throttle (proxy-free local → "direct"). */
+async function callerKey(): Promise<string> {
+  const store = await headers();
+  const forwarded = store.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || "direct";
+}
+
+/** Manual add/edit URLs must be http(s) — anything else never enters the DB. */
+function safeHttpUrl(raw: string): URL | null {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  return url.protocol === "http:" || url.protocol === "https:" ? url : null;
+}
 
 export async function loginAction(
   _prev: ActionState,
@@ -24,9 +45,21 @@ export async function loginAction(
 ): Promise<ActionState> {
   const password = String(formData.get("password") ?? "");
 
+  const key = await callerKey();
+  const status = loginThrottleStatus(key);
+  if (status.locked) {
+    return {
+      error: `Đã có quá nhiều lần thử sai. Vui lòng thử lại sau ${Math.ceil(
+        status.retryAfterMs / 60_000,
+      )} phút.`,
+    };
+  }
+
   if (!passwordMatches(password)) {
+    recordLoginFailure(key);
     return { error: "Mật khẩu không đúng." };
   }
+  clearLoginFailures(key);
 
   const store = await cookies();
   store.set(SESSION_COOKIE, createSessionToken(), sessionCookieOptions());
@@ -61,11 +94,18 @@ export async function upsertDealAction(
   if (!title || !affLink) {
     return { error: "Cần tối thiểu: tiêu đề và link." };
   }
-  let linkUrl: URL;
-  try {
-    linkUrl = new URL(affLink);
-  } catch {
-    return { error: "Link không hợp lệ (cần đầy đủ https://…)." };
+  // http(s) only — mirrors the /go redirect guard so nothing odd (javascript:,
+  // corrupt scheme, internal host) can ever reach the redirect layer.
+  const linkUrl = safeHttpUrl(affLink);
+  if (!linkUrl || !linkUrl.hostname) {
+    return { error: "Link không hợp lệ (cần đầy đủ http:// hoặc https://…)." };
+  }
+  const imageRaw = String(formData.get("image") ?? "").trim();
+  if (imageRaw) {
+    const imageUrl = safeHttpUrl(imageRaw);
+    if (!imageUrl) {
+      return { error: "Ảnh không hợp lệ (cần http:// hoặc https://…)." };
+    }
   }
 
   const values = {
@@ -73,7 +113,7 @@ export async function upsertDealAction(
     affLink: linkUrl.toString(),
     code,
     content: String(formData.get("content") ?? "").trim() || null,
-    image: String(formData.get("image") ?? "").trim() || null,
+    image: imageRaw || null,
     merchant: String(formData.get("merchant") ?? "").trim() || "shopee",
     merchantName: String(formData.get("merchantName") ?? "").trim() || null,
     domain: linkUrl.hostname,
@@ -132,10 +172,83 @@ export async function deleteDealAction(formData: FormData): Promise<void> {
   updateTag(SITE.couponsTag);
 }
 
-/** Manual "Sync ngay" — same pipeline as cron, trigger name differs. */
+/**
+ * Manual banner add (admin). Image must be http(s); the link may be an
+ * external aff URL or an internal path ("/tim-kiem?merchant=…").
+ */
+export async function addBannerAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await assertAdminSession();
+
+  const imageRaw = String(formData.get("imageUrl") ?? "").trim();
+  const linkRaw = String(formData.get("linkUrl") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim() || null;
+
+  const imageUrl = safeHttpUrl(imageRaw);
+  if (!imageUrl) {
+    return { error: "Ảnh banner không hợp lệ (cần http:// hoặc https://…)." };
+  }
+
+  // External http(s) link or an internal path starting with "/"; anything
+  // else (javascript:, bare host, empty) is rejected.
+  let linkUrl: string | null = null;
+  if (linkRaw) {
+    if (linkRaw.startsWith("/") && !linkRaw.startsWith("//")) {
+      linkUrl = linkRaw;
+    } else {
+      const parsed = safeHttpUrl(linkRaw);
+      if (!parsed) {
+        return {
+          error: "Link không hợp lệ (cần https://… hoặc đường dẫn nội bộ bắt đầu bằng /).",
+        };
+      }
+      linkUrl = parsed.toString();
+    }
+  }
+
+  const db = await getDatabase();
+  await db.insert(campaignBanners).values({
+    source: "manual" as const,
+    merchant: String(formData.get("merchant") ?? "").trim() || "shopee",
+    title,
+    imageUrl: imageUrl.toString(),
+    linkUrl,
+    kind: "banner" as const,
+    isActive: true,
+    sortOrder: 0,
+  });
+
+  updateTag(SITE.couponsTag);
+  return { ok: "Đã thêm banner." };
+}
+
+export async function toggleBannerAction(formData: FormData): Promise<void> {
+  await assertAdminSession();
+  const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f-]{36}$/.test(id)) return;
+  const db = await getDatabase();
+  await db
+    .update(campaignBanners)
+    .set({ isActive: sql`not ${campaignBanners.isActive}`, updatedAt: new Date() })
+    .where(eq(campaignBanners.id, id));
+  updateTag(SITE.couponsTag);
+}
+
+export async function deleteBannerAction(formData: FormData): Promise<void> {
+  await assertAdminSession();
+  const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f-]{36}$/.test(id)) return;
+  const db = await getDatabase();
+  await db.delete(campaignBanners).where(eq(campaignBanners.id, id));
+  updateTag(SITE.couponsTag);
+}
+
+/** Manual "Sync ngay" — same pipelines as cron, trigger name differs. */
 export async function syncNowAction(): Promise<void> {
   await assertAdminSession();
-  // syncAccesstrade() expires the coupons tag itself (expire: 0), so the admin
+  // Each pipeline expires the coupons tag itself (expire: 0), so the admin
   // sees the fresh data on the next render — no extra invalidation needed.
-  await syncAccesstrade("manual");
+  await syncAll("manual");
 }

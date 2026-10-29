@@ -18,14 +18,21 @@ const MERCHANT_DOT: Record<string, string> = {
  * tight merchant/title/price body, then a full-width copy-code CTA pinned to
  * the bottom. Denser grids (2–5 columns) keep every tile roughly square.
  */
-export function CouponCard({ deal }: { deal: CouponDeal }) {
+export function CouponCard({ deal, className }: { deal: CouponDeal; className?: string }) {
   const hasCode = Boolean(deal.code);
   const price = formatPriceVi(deal.price);
   const discount = formatDiscountVi(deal.discountRate);
   const label = merchantLabel(deal.merchant);
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg">
+    <article
+      className={cn(
+        "group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg",
+        // On 2-col mobile grids, an odd-numbered last card would leave a hole — stretch it across the row instead.
+        "max-sm:[&:nth-child(odd):last-child]:col-span-2",
+        className,
+      )}
+    >
       <div className="relative shrink-0">
         <Link href={`/ma/${deal.id}`} aria-label={deal.title} className="block">
           <DealImage

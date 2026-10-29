@@ -363,8 +363,13 @@ async function MerchantSections() {
             href={`/tim-kiem?merchant=${merchant}`}
           />
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-            {deals.slice(0, 3).map((deal) => (
-              <CouponCard key={deal.id} deal={deal} />
+            {deals.slice(0, 4).map((deal, i) => (
+              <CouponCard
+                key={deal.id}
+                deal={deal}
+                // Mobile shows 2x2 (4th card fills the row); desktop keeps the original single row of 3.
+                className={i === 3 ? "hidden max-sm:flex" : undefined}
+              />
             ))}
           </div>
         </section>

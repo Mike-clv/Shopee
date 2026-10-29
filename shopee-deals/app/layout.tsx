@@ -81,11 +81,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 function TagGlyph({ className = "", tag = "#fff" }: { className?: string; tag?: string }) {
   return (
     <svg viewBox="0 0 64 64" aria-hidden focusable="false" className={className}>
-      <path
-        fill={tag}
-        fillRule="evenodd"
-        d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42zM9.3 7.5a1.8 1.8 0 1 1-3.6 0 1.8 1.8 0 1 1 3.6 0z"
-      />
+      {/* Same geometry as /icon.svg: tag fills 75% of the tile, centered. */}
+      <g transform="translate(3.2 3.2) scale(2.4)">
+        <path
+          fill={tag}
+          fillRule="evenodd"
+          d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42zM9.3 7.5a1.8 1.8 0 1 1-3.6 0 1.8 1.8 0 1 1 3.6 0z"
+        />
+      </g>
     </svg>
   );
 }
@@ -195,7 +198,7 @@ function SiteHeader() {
             aria-label={`${SITE.name} – trang chủ`}
           >
             <span className="brand-mark relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand">
-              <TagGlyph className="relative h-8 w-8" />
+              <TagGlyph className="relative h-14 w-14" />
             </span>
             <span className="flex flex-col leading-none">
               <span className="title-shimmer font-display text-[1.35rem] leading-tight font-bold whitespace-nowrap sm:text-[1.55rem] xl:text-[1.85rem]">
@@ -256,7 +259,7 @@ function SiteFooter() {
           <div className="sm:col-span-5">
             <p className="flex items-center gap-2.5">
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-white shadow-sm shadow-brand/25">
-                <TagGlyph className="h-4.5 w-4.5" />
+                <TagGlyph className="h-9 w-9" />
               </span>
               <span className="font-display text-lg font-bold tracking-tight text-ink">
                 {SITE.name}

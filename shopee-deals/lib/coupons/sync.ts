@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { eq, inArray, isNotNull, and, sql } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getDatabase } from "@/lib/db";
@@ -623,8 +624,10 @@ async function pub2Fetch(path: string, jwt: string): Promise<unknown> {
   });
   if (res.status === 401 || res.status === 403) {
     const body = (await res.text().catch(() => "")).slice(0, 200);
+    const envJwt = process.env.AT_PUB2_JWT ?? "";
+    const fp = createHash("sha256").update(envJwt, "utf8").digest("hex").slice(0, 12);
     throw new Error(
-      `pub2 ${path} → HTTP ${res.status} — JWT bị từ chối (body: ${body || "trống"}). Kiểm tra AT_PUB2_JWT hoặc IP serverless bị chặn.`,
+      `pub2 ${path} → HTTP ${res.status} — JWT bị từ chối (body: ${body || "trống"}). Kiểm tra AT_PUB2_JWT hoặc IP serverless bị chặn. [fingerprint env: len=${envJwt.length} sha256=${fp} head=${envJwt.slice(0, 10)} tail=${envJwt.slice(-10)}]`,
     );
   }
   if (!res.ok) throw new Error(`pub2 ${path} → HTTP ${res.status}`);

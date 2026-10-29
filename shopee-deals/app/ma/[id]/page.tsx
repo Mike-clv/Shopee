@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { CopyButton } from "@/lib/components/CopyButton";
 import { CouponCard } from "@/lib/components/CouponCard";
 import { DealImage } from "@/lib/components/DealImage";
-import { getDealCached, listRelatedDeals } from "@/lib/coupons/data";
+import {
+  getActiveDealByIdUncached,
+  listActiveDeals,
+  listRelatedDeals,
+} from "@/lib/coupons/data";
+import type { CouponDeal } from "@/lib/db/schema";
 import { truncateVi, formatDayVi, formatDiscountVi, formatPriceVi } from "@/lib/utils";
 import { merchantLabel, siteUrl } from "@/lib/site";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
@@ -24,12 +28,37 @@ import {
 } from "lucide-react";
 import { FlashCountdown } from "@/lib/components/FlashCountdown";
 
+// Allow params + the deal lookup to resolve before streaming so a missing id
+// returns a real 404 instead of a 200 soft-404.
+export const instant = false;
+
+// Cache Components requires at least one static param. One real deal is enough
+// to keep unknown ids on the blocking route instead of a partial shell.
+export async function generateStaticParams(): Promise<{ id: string }[]> {
+  const deals = await listActiveDeals({ limit: 1 });
+  return deals.map((deal) => ({ id: deal.id }));
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function generateMetadata(
   props: PageProps<"/ma/[id]">,
 ): Promise<Metadata> {
   const { id } = await props.params;
-  const deal = await getDealCached(id);
-  if (!deal) return { title: "Mã không tồn tại" };
+  if (!UUID_RE.test(id)) {
+    return {
+      title: "Mã không tồn tại",
+      robots: { index: false, follow: false },
+    };
+  }
+  const deal = await getActiveDealByIdUncached(id);
+  if (!deal) {
+    return {
+      title: "Mã không tồn tại",
+      robots: { index: false, follow: false },
+    };
+  }
   const title = truncateVi(deal.title, 60);
   return {
     title,
@@ -43,48 +72,18 @@ export async function generateMetadata(
   };
 }
 
-export default function DealDetailPage(props: PageProps<"/ma/[id]">) {
-  return (
-    <Suspense fallback={<DetailSkeleton />}>
-      <DealBody params={props.params} />
-    </Suspense>
-  );
-}
-
-function DetailSkeleton() {
-  return (
-    <div className="py-6" aria-hidden>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <div className="overflow-hidden rounded-2xl border border-line bg-white lg:col-span-3">
-          <div className="flex gap-4 border-b border-line p-5">
-            <div className="shimmer h-28 w-28 shrink-0 rounded-md" />
-            <div className="flex-1 space-y-2.5">
-              <div className="shimmer h-3 w-1/3 rounded-sm" />
-              <div className="shimmer h-5 w-4/5 rounded-sm" />
-              <div className="shimmer h-3 w-1/2 rounded-sm" />
-            </div>
-          </div>
-          <div className="space-y-3 p-5">
-            <div className="shimmer h-3 w-full rounded-sm" />
-            <div className="shimmer h-3 w-3/4 rounded-sm" />
-            <div className="shimmer h-16 w-full rounded-md" />
-          </div>
-        </div>
-        <div className="rounded-lg border border-line bg-white p-5 lg:col-span-2">
-          <div className="shimmer h-7 w-1/2 rounded-sm" />
-          <div className="shimmer mt-3 h-3 w-2/3 rounded-sm" />
-          <div className="shimmer mt-5 h-12 w-full rounded-md" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-async function DealBody({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const deal = await getDealCached(id);
+export default async function DealDetailPage(
+  props: PageProps<"/ma/[id]">,
+) {
+  const { id } = await props.params;
+  if (!UUID_RE.test(id)) notFound();
+  const deal = await getActiveDealByIdUncached(id);
   if (!deal) notFound();
 
+  return <DealBody deal={deal} />;
+}
+
+async function DealBody({ deal }: { deal: CouponDeal }) {
   const price = formatPriceVi(deal.price);
   const discount = formatDiscountVi(deal.discountRate);
   const category = deal.categories?.find(Boolean) ?? null;

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Global security headers.
+ * Global security headers + legacy SEO routing.
  *
  * CSP intentionally ships Report-Only first: Next's hydration scripts need a
  * nonce under a real CSP, and flipping to include `unsafe-inline` weakened
@@ -22,8 +22,98 @@ const CSP_REPORT_ONLY = [
   "object-src 'none'",
 ].join("; ");
 
-export function proxy(request: NextRequest) {
-  const response = NextResponse.next();
+/**
+ * Old pages that Google still has in its index but that no longer have a
+ * relevant replacement. 410 tells crawlers to drop them instead of retrying a
+ * 404 forever. New About/policy pages will use new URLs in P1.
+ */
+const LEGACY_GONE = new Set([
+  "/gioi-thieu",
+  "/chinh-sach",
+  "/quan-tam",
+  "/thuong-hieu",
+  "/theo-doi-gia",
+  "/tinh-tra-gop",
+]);
+
+const MERCHANT_ALIASES: Record<string, string> = {
+  "tiktok-shop": "tiktokshop",
+};
+
+const KNOWN_MERCHANTS = new Set(["shopee", "tiki", "lazada", "tiktokshop"]);
+
+/**
+ * Map old, still-indexed URLs to the closest page that exists today.
+ * These are permanent (301) because the old URL will never come back.
+ */
+function legacyRedirectTarget(pathname: string): string | null {
+  if (pathname === "/danh-muc" || pathname === "/ma-giam-gia") {
+    return "/tim-kiem";
+  }
+
+  const merchantMatch = pathname.match(/^\/san\/([^/]+)$/);
+  if (merchantMatch) {
+    const requested = decodeURIComponent(merchantMatch[1]);
+    const merchant = MERCHANT_ALIASES[requested] ?? requested;
+    return KNOWN_MERCHANTS.has(merchant)
+      ? `/tim-kiem?merchant=${encodeURIComponent(merchant)}`
+      : "/tim-kiem";
+  }
+
+  const categoryMatch = pathname.match(/^\/danh-muc\/([^/]+)$/);
+  if (categoryMatch) {
+    return `/tim-kiem?cate=${encodeURIComponent(decodeURIComponent(categoryMatch[1]))}`;
+  }
+
+  const legacyDealMatch = pathname.match(/^\/ma-giam-gia\/([^/]+)$/);
+  if (legacyDealMatch) {
+    return `/tim-kiem?q=${encodeURIComponent(decodeURIComponent(legacyDealMatch[1]))}`;
+  }
+
+  return null;
+}
+
+function goneResponse(): NextResponse {
+  const html = `<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, follow">
+  <title>Trang đã được gỡ — Mã Giảm Giá Đa Sàn</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f7f5f2; color: #1f2937; font: 16px/1.6 system-ui, sans-serif; }
+    main { max-width: 34rem; padding: 2rem; text-align: center; }
+    h1 { margin: 0 0 .75rem; font-size: 1.75rem; }
+    p { margin: 0 0 1.5rem; color: #4b5563; }
+    a { display: inline-block; margin: .25rem; padding: .7rem 1rem; border-radius: .5rem; background: #e85d04; color: #fff; text-decoration: none; font-weight: 600; }
+    a.secondary { background: #fff; color: #e85d04; border: 1px solid #e85d04; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Trang này đã được gỡ</h1>
+    <p>Nội dung cũ không còn phù hợp với website hiện tại. Anh/chị có thể xem deal mới hoặc tìm mã giảm giá đang chạy.</p>
+    <a href="/">Về trang chủ</a>
+    <a class="secondary" href="/tim-kiem">Tìm mã giảm giá</a>
+  </main>
+</body>
+</html>`;
+
+  return new NextResponse(html, {
+    status: 410,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
+}
+
+function withSecurityHeaders(
+  response: NextResponse,
+  request: NextRequest,
+): NextResponse {
   const headers = response.headers;
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -49,7 +139,28 @@ export function proxy(request: NextRequest) {
       "max-age=31536000; includeSubDomains",
     );
   }
+
   return response;
+}
+
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const normalized =
+    pathname !== "/" ? pathname.replace(/\/+$/, "") : pathname;
+
+  if (LEGACY_GONE.has(normalized)) {
+    return withSecurityHeaders(goneResponse(), request);
+  }
+
+  const redirectTarget = legacyRedirectTarget(normalized);
+  if (redirectTarget) {
+    return withSecurityHeaders(
+      NextResponse.redirect(new URL(redirectTarget, request.url), 301),
+      request,
+    );
+  }
+
+  return withSecurityHeaders(NextResponse.next(), request);
 }
 
 export const config = {

@@ -10,8 +10,18 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BlogCard } from "@/lib/components/BlogCard";
-import { BLOG_POSTS, getPost, postDateLabel } from "@/lib/blog/posts";
+import {
+  BLOG_POSTS,
+  getPost,
+  postDateLabel,
+  type BlogPost,
+} from "@/lib/blog/posts";
 import { siteUrl } from "@/lib/site";
+
+// Allow params to be validated before streaming so unknown slugs return a real
+// 404 instead of a 200 soft-404. Cache Components still prerenders the known
+// slugs from generateStaticParams.
+export const instant = false;
 
 /**
  * Posts live in code, so their slugs are known at build time. Declaring them
@@ -27,7 +37,12 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await props.params;
   const post = getPost(slug);
-  if (!post) return { title: "Bài viết không tồn tại" };
+  if (!post) {
+    return {
+      title: "Bài viết không tồn tại",
+      robots: { index: false, follow: false },
+    };
+  }
   return {
     title: post.title,
     description: post.excerpt,
@@ -36,10 +51,16 @@ export async function generateMetadata(
   };
 }
 
-export default function BlogPostPage(props: PageProps<"/blog/[slug]">) {
+export default async function BlogPostPage(
+  props: PageProps<"/blog/[slug]">,
+) {
+  const { slug } = await props.params;
+  const post = getPost(slug);
+  if (!post) notFound();
+
   return (
     <Suspense fallback={<PostSkeleton />}>
-      <PostBody params={props.params} />
+      <PostBody post={post} />
     </Suspense>
   );
 }
@@ -61,15 +82,7 @@ function PostSkeleton() {
   );
 }
 
-async function PostBody({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const post = getPost(slug);
-  if (!post) notFound();
-
+function PostBody({ post }: { post: BlogPost }) {
   const related = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
   const Icon = post.icon;
 

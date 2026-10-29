@@ -1,13 +1,10 @@
 import "server-only";
-import { createHash } from "node:crypto";
 import { eq, inArray, isNotNull, and, sql } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { getDatabase } from "@/lib/db";
 import {
-  campaignBanners,
   couponDeals,
   syncLogs,
-  type NewCampaignBanner,
   type NewCouponDeal,
 } from "@/lib/db/schema";
 import { SITE, merchantLabel } from "@/lib/site";
@@ -44,12 +41,11 @@ const MAX_PAGES = 12;
 const DATAFEED_PAGE_SIZE = 50;
 const TIKTOK_MAX_PAGES = 1; // no pagination by default — keep runs predictable
 
-/** Log message prefixes so admin logs tell the four pipelines apart. */
+/** Log message prefixes so admin logs tell the three pipelines apart. */
 const PREFIXES = {
   offers: "shopee offers",
   datafeeds: "datafeeds (lazada/tiki)",
   tiktok: "tiktok shop",
-  banners: "campaign banners",
 } as const;
 
 function prefixed(prefix: string, message: string | null): string {
@@ -577,170 +573,7 @@ export async function syncTiktokProducts(trigger: SyncTrigger): Promise<SyncResu
   });
 }
 
-/** Pipeline 4 — campaign banner creatives from the pub2 publisher API. */
-const PUB2_API_BASE = "https://pub2-api.accesstrade.vn";
-
-/** merchant slug → pub2 campaign search keyword (tiktokshop has no creatives — skipped). */
-const BANNER_CAMPAIGNS: Array<{ merchant: string; keyword: string }> = [
-  { merchant: "shopee", keyword: "Shopee" },
-  { merchant: "tiki", keyword: "TIKI" },
-  { merchant: "lazada", keyword: "Lazada" },
-  { merchant: "cellphones", keyword: "CellphoneS" },
-  { merchant: "concung", keyword: "Con Cưng" },
-  { merchant: "highlands", keyword: "Highlands" },
-  { merchant: "oneat", keyword: "ACCESSTRADE" },
-];
-
-type Pub2CampaignHit = {
-  campaign_id?: string | number;
-  job_id?: string | number;
-  logo?: string;
-  name?: string;
-};
-
-/** pub2 wraps list endpoints as { data: [...], success } — accept both shapes. */
-type Pub2SearchResponse = { data?: Pub2CampaignHit[] };
-
-type Pub2Attachment = {
-  id?: number;
-  attachment_title?: string;
-  attachment_type?: number;
-  attachment_url?: string;
-};
-
-type Pub2CampaignDetail = {
-  data?: {
-    name?: string;
-    adv_default_link?: string[];
-    default_img_url?: string;
-    attachments?: Pub2Attachment[];
-  };
-};
-
-async function pub2Fetch(path: string, jwt: string): Promise<unknown> {
-  const res = await fetch(`${PUB2_API_BASE}${path}`, {
-    headers: { authorization: `Bearer ${jwt}`, accept: "application/json" },
-    cache: "no-store",
-  });
-  if (res.status === 401 || res.status === 403) {
-    const body = (await res.text().catch(() => "")).slice(0, 200);
-    const envJwt = process.env.AT_PUB2_JWT ?? "";
-    const fp = createHash("sha256").update(envJwt, "utf8").digest("hex").slice(0, 12);
-    throw new Error(
-      `pub2 ${path} → HTTP ${res.status} — JWT bị từ chối (body: ${body || "trống"}). Kiểm tra AT_PUB2_JWT hoặc IP serverless bị chặn. [fingerprint env: len=${envJwt.length} sha256=${fp} head=${envJwt.slice(0, 10)} tail=${envJwt.slice(-10)}]`,
-    );
-  }
-  if (!res.ok) throw new Error(`pub2 ${path} → HTTP ${res.status}`);
-  return res.json();
-}
-
-/** Upsert banner rows keyed by (source, imageUrl); counts created vs updated. */
-async function upsertBanners(rows: Array<Omit<NewCampaignBanner, "id">>) {
-  const db = await getDatabase();
-  const urls = rows.map((row) => row.imageUrl);
-  const existing = urls.length
-    ? await db
-        .select({ id: campaignBanners.id, imageUrl: campaignBanners.imageUrl })
-        .from(campaignBanners)
-        .where(
-          and(
-            eq(campaignBanners.source, "accesstrade"),
-            inArray(campaignBanners.imageUrl, urls),
-          ),
-        )
-    : [];
-  const existingIdByUrl = new Map(
-    existing.map((row) => [row.imageUrl, row.id] as const),
-  );
-  let created = 0;
-  let updated = 0;
-  for (const row of rows) {
-    const id = existingIdByUrl.get(row.imageUrl);
-    if (id) {
-      await db
-        .update(campaignBanners)
-        .set({ ...row, updatedAt: new Date() })
-        .where(eq(campaignBanners.id, id));
-      updated += 1;
-    } else {
-      await db.insert(campaignBanners).values(row);
-      created += 1;
-    }
-  }
-  return { created, updated };
-}
-
-/**
- * Pulls banner/logo attachments for each approved pub2 campaign. Best-effort:
- * an expired/missing JWT logs a warning and keeps existing banners on the site
- * instead of failing the whole sync report.
- */
-export async function syncCampaignBanners(
-  trigger: SyncTrigger,
-): Promise<SyncResult> {
-  return runPipeline(trigger, PREFIXES.banners, async ({ counts, warnings }) => {
-    const jwt = process.env.AT_PUB2_JWT?.trim();
-    if (!jwt) {
-      warnings.push(
-        "AT_PUB2_JWT chưa cấu hình — banner camp bỏ qua (thêm JWT vào env để đồng bộ banner).",
-      );
-      return;
-    }
-    const all: Array<Omit<NewCampaignBanner, "id">> = [];
-    for (const [index, { merchant, keyword }] of BANNER_CAMPAIGNS.entries()) {
-      const search = (await pub2Fetch(
-        `/v2/campaign/search?name=${encodeURIComponent(keyword)}`,
-        jwt,
-      )) as Pub2SearchResponse | Pub2CampaignHit[];
-      const hits = Array.isArray(search)
-        ? search
-        : Array.isArray(search.data)
-          ? search.data
-          : [];
-      const hit =
-        hits.find((camp) =>
-          (camp.name ?? "").toLowerCase().includes(keyword.toLowerCase()),
-        ) ?? hits[0];
-      if (!hit?.campaign_id) {
-        warnings.push(`${merchant}: không tìm thấy camp trên pub2`);
-        continue;
-      }
-      const detail = (await pub2Fetch(
-        `/v2/campaign/${hit.campaign_id}`,
-        jwt,
-      )) as Pub2CampaignDetail;
-      const data = detail.data ?? {};
-      const attachments = data.attachments ?? [];
-      const linkUrl =
-        data.adv_default_link?.[0] ?? `/tim-kiem?merchant=${merchant}`;
-      const mapped = attachments
-        .filter((attachment) => Boolean(attachment.attachment_url))
-        .map((attachment) => ({
-          source: "accesstrade" as const,
-          merchant,
-          campaignId: String(hit.campaign_id),
-          title:
-            attachment.attachment_title || data.name || merchantLabel(merchant),
-          imageUrl: attachment.attachment_url as string,
-          linkUrl,
-          kind: (attachment.attachment_type === 2
-            ? "logo"
-            : "banner") as "banner" | "logo",
-          isActive: true,
-          sortOrder: index * 10,
-          updatedAt: new Date(),
-        }));
-      counts.fetched += attachments.length;
-      all.push(...mapped);
-    }
-    if (all.length === 0) return;
-    const up = await upsertBanners(all);
-    counts.created = up.created;
-    counts.updated = up.updated;
-  });
-}
-
-export type SyncPipeline = "shopee-offers" | "datafeeds" | "tiktok" | "banners";
+export type SyncPipeline = "shopee-offers" | "datafeeds" | "tiktok";
 
 export type SyncReport = {
   status: "success" | "error";
@@ -749,7 +582,7 @@ export type SyncReport = {
 };
 
 /**
- * Runs the four pipelines sequentially (each with its own sync_logs row).
+ * Runs the three pipelines sequentially (each with its own sync_logs row).
  * Overall status succeeds when at least one pipeline works; a total outage
  * surfaces as error. Sequential keeps API/DB pressure predictable.
  */
@@ -758,7 +591,6 @@ export async function syncAll(trigger: SyncTrigger): Promise<SyncReport> {
     "shopee-offers": await syncAccesstrade(trigger),
     datafeeds: await syncDatafeeds(trigger),
     tiktok: await syncTiktokProducts(trigger),
-    banners: await syncCampaignBanners(trigger),
   };
   const okCount = Object.values(pipelines).filter((r) => r.status === "success").length;
   return { status: okCount > 0 ? "success" : "error", okCount, pipelines };

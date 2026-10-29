@@ -1,21 +1,21 @@
 import Link from "next/link";
 import { ArrowRight, Megaphone } from "lucide-react";
-import { CAMPAIGNS } from "@/lib/campaigns";
+import { upcomingSaleEvents } from "@/lib/campaigns";
 import { bannerImageSrc, listActiveBanners } from "@/lib/coupons/data";
 
 /**
- * Two large promo banner slots under the hero. When the pub2 sync has stored
- * campaign banner creatives they are rendered as real image cards (each links
- * to the campaign landing page); otherwise the static campaign gradient cards
- * take over so the section is never empty.
+ * Two large promo banner slots under the hero. Accesstrade campaign creatives
+ * are deliberately NOT rendered here — only admin-curated (manual) banners
+ * and code-owned sale-event cards (5.5 / 10.10 / 11.11 ...) so the section
+ * always matches real sale seasons instead of merchant ad creatives.
  */
 export async function PromoBanners() {
   const banners = (await listActiveBanners(8))
-    .filter((banner) => banner.kind === "banner")
+    .filter((banner) => banner.kind === "banner" && banner.source === "manual")
     .slice(0, 4);
 
   if (banners.length === 0) {
-    return <CampaignBannerCards />;
+    return <EventBannerCards />;
   }
 
   return (
@@ -59,17 +59,18 @@ export async function PromoBanners() {
   );
 }
 
-/** Static gradient fallback when no campaign banners are synced yet. */
-function CampaignBannerCards() {
+/** Code-owned sale-event cards: always shows the 2 nearest live events. */
+function EventBannerCards() {
+  const events = upcomingSaleEvents();
   return (
     <section aria-label="Ưu đãi nổi bật" className="grid gap-4 md:grid-cols-2">
-      {CAMPAIGNS.slice(0, 2).map((campaign) => {
-        const Icon = campaign.icon;
+      {events.map((event) => {
+        const Icon = event.icon;
         return (
           <Link
-            key={campaign.id}
-            href={campaign.href}
-            className={`promo-banner-card relative flex min-h-[188px] flex-col justify-between overflow-hidden border-0 p-6 text-white ${campaign.gradient}`}
+            key={event.id}
+            href={event.href}
+            className={`promo-banner-card relative flex min-h-[188px] flex-col justify-between overflow-hidden border-0 p-6 text-white ${event.gradient}`}
           >
             <span aria-hidden className="absolute inset-0 bg-black/5" />
             <Icon
@@ -79,19 +80,22 @@ function CampaignBannerCards() {
             />
             <span className="relative inline-flex w-fit items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold tracking-wide text-brand uppercase shadow-sm">
               <Megaphone className="h-3 w-3" aria-hidden />
-              Ưu đãi nổi bật
+              {event.badge}
+            </span>
+            <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-black/35 px-2 py-1 text-[10px] font-bold tracking-wide text-white uppercase">
+              {event.status}
             </span>
             <span className="relative mt-7 block max-w-sm">
               <span className="block font-display text-2xl leading-tight font-bold">
-                {campaign.title}
+                {event.title}
               </span>
               <span className="mt-1.5 block text-sm text-white/80">
-                {campaign.subtitle}
+                {event.subtitle}
               </span>
             </span>
             <span className="relative mt-4 inline-flex items-center gap-1 text-sm font-semibold">
               Săn ngay
-              <ArrowRight className="h-4 w-4" aria-hidden />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
             </span>
           </Link>
         );
@@ -148,4 +152,3 @@ export function PromoWide() {
     </Link>
   );
 }
-

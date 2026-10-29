@@ -514,7 +514,7 @@ function HotDealsSkeleton() {
 
 function CategorySkeleton() {
   return (
-    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="shimmer h-[132px] rounded-2xl border border-line bg-white" />
       ))}

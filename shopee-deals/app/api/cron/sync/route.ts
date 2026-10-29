@@ -3,7 +3,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { syncAll } from "@/lib/coupons/sync";
 
 /**
- * Scheduler entry point. Vercel Cron hits it every 30 minutes via vercel.json.
+ * Scheduler entry point. Vercel Cron hits it daily (00:00 GMT+7) via vercel.json.
  * Locally (no CRON_SECRET set) it can be called freely for testing:
  *   curl http://localhost:3000/api/cron/sync
  *

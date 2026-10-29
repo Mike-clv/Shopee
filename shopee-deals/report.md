@@ -33,7 +33,7 @@
 | `site:.../ma/` | 3 kết quả, toàn bộ `/ma-giam-gia/...` cũ đã 404 |
 | Deal hiện tại `9a648a78-4522-4cf8-81b7-c5a0cc336945` | **0 kết quả** |
 | `site:.../blog` | 2 bài cũ, hiện 404; 4 bài hiện tại chưa thấy index |
-| Brand `sansale247` | `.io.vn` đứng #2 sau `sansale247.net` (#1) |
+| Brand `sansale247` | `.io.vn` đứng #2 sau `sansale247.net` (#1). Anh đã xác nhận `.net` là web copy, **không phải của anh** → không xử lý/gộp `.net`. |
 | Từ khóa `mã giảm giá shopee hôm nay` | không có trong top 10 |
 
 ### 2.2. Soft 404 (lỗi ưu tiên cao nhất)
@@ -101,8 +101,10 @@
 ### Bước 3 — Redirect URL cũ đang được Google index
 
 **Bước 3a — Thu thập URL cũ**
-- Lấy đầy đủ danh sách từ Google Search Console (nếu có quyền) và/hoặc query `site:sansale247.io.vn`.
+- Anh đã xác nhận **đã verify Google Search Console** cho `sansale247.io.vn`.
+- Lấy danh sách URL lỗi trong GSC: **Indexing → Pages → Not found (404)** và **Soft 404**; đối chiếu với query `site:sansale247.io.vn`.
 - Ghi vào `report.md` bảng: URL cũ → URL đích → status.
+- Sau khi P0 deploy: submit lại `sitemap.xml` trong GSC và dùng **URL Inspection** cho 4 nhóm URL đại diện (home, blog, deal, 1 URL cũ).
 
 **Bước 3b — Map đề xuất**
 
@@ -165,6 +167,65 @@ pnpm dev
 5. **Schema/OG:** `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`; `og:image` mặc định.
 6. **Sitemap:** thêm landing pages; kiểm tra lại index.
 
+### 4.1. Checklist một website thương mại/affiliate hoàn chỉnh
+
+Đây là checklist P1, không phải P0. Với mô hình của `sansale247` (site giới thiệu deal + link affiliate, **không bán trực tiếp**), không cần cart/checkout/shipping; nhưng cần minh bạch và đủ niềm tin.
+
+#### A. Trang bắt buộc
+
+| Trang | Mục đích | Ghi chú cho `sansale247` |
+|---|---|---|
+| Trang chủ | Định vị site, điều hướng, CTA | Đã có |
+| Giới thiệu (`/gioi-thieu`) | Ai làm, vì sao đáng tin, sứ mệnh | Nên có ảnh/đội ngũ/thông tin liên hệ thật; không dùng profile giả |
+| Liên hệ (`/lien-he`) | Kênh liên hệ, thời gian phản hồi | Email + form; nếu có SĐT/địa chỉ càng tốt |
+| Chính sách bảo mật (`/chinh-sach-bao-mat`) | Thu thập gì, dùng làm gì, lưu bao lâu, chia sẻ ai, quyền xóa/sửa | Theo Nghị định 248/2026: tối thiểu 8 nội dung |
+| Điều khoản sử dụng (`/dieu-khoan`) | Quy tắc dùng site, giới hạn trách nhiệm, IP, luật áp dụng | Cần thiết cho site có link ra ngoài |
+| Tuyên bố affiliate (`/tuyen-bo-affiliate`) | Nói rõ có thể nhận hoa hồng khi mua qua link | Phải đặt **gần link** hoặc ở đầu bài, không chỉ một trang riêng |
+| Chính sách biên tập (`/chinh-sach-bien-tap`) | Ai kiểm tra deal, tần suất cập nhật, tiêu chí chọn deal | Tăng E-E-A-T; rất quan trọng với site deal |
+| FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | Giảm hỗ trợ, tăng internal link |
+| 404 | Trang lỗi có hướng dẫn quay lại | Đã có; cần noindex/status đúng |
+| Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | Tùy chọn, nhưng hữu ích |
+
+#### B. Trang pháp lý/niềm tin nên bổ sung
+
+| Trang | Khi nào cần | Ghi chú |
+|---|---|---|
+| Chính sách cookie + consent | Có analytics, quảng cáo, pixel | Nếu dùng GA4/Ads, cần banner lấy consent theo luật áp dụng |
+| Chính sách hoàn tiền/đổi trả | Chỉ khi bán trực tiếp | Site affiliate: ghi rõ giao dịch/hoàn trả do sàn/thương hiệu xử lý |
+| Chính sách vận chuyển | Chỉ khi bán trực tiếp | Site affiliate: dẫn về chính sách của merchant |
+| Phương thức thanh toán | Chỉ khi bán trực tiếp | Site affiliate: không cần, trừ khi có thu phí riêng |
+| Tuyên bố trách nhiệm (`/mien-tru-trach-nhiem`) | Luôn nên có | Nêu rõ thông tin chỉ mang tính tham khảo, giá/mã có thể thay đổi |
+| Chính sách kiểm duyệt/vi phạm | Có UGC/comment | Nếu chưa có comment, có thể gộp vào điều khoản |
+| Tuyên bố khả năng tiếp cận | Nên có | WCAG 2.2 AA; nêu cách báo lỗi |
+| Trang tác giả/đội ngũ | Có bài chuyên sâu | Byline + bio + link profile; tránh tác giả AI giả |
+| Trang hợp tác/quảng cáo | Khi có nhãn hàng | Media kit, quy trình, liên hệ |
+
+#### C. Thành phần chuyển đổi/UX
+
+- Header/footer rõ ràng, link đến các trang trust ở footer.
+- Tìm kiếm, lọc theo sàn/danh mục, breadcrumb.
+- Card deal có: ảnh, giá, mức giảm, hạn dùng, nút “Lấy mã”/“Xem deal”, nhãn “có thể nhận hoa hồng”.
+- FAQ ngay trên trang danh mục/deal.
+- Internal link: deal → danh mục → bài blog → deal liên quan.
+- Tốc độ, mobile-first, ảnh có alt, không interstitial che nội dung.
+- Analytics + GSC + consent; không log dữ liệu nhạy cảm.
+
+#### D. Lưu ý pháp lý Việt Nam (tham khảo, không phải tư vấn pháp lý)
+
+- **Luật Thương mại điện tử 2025 (122/2025/QH15)** có hiệu lực **01/7/2026**; người làm tiếp thị liên kết có trách nhiệm xác thực danh tính, từ chối link vi phạm, gỡ link theo yêu cầu, cung cấp thông tin khi cơ quan quản lý yêu cầu.
+- **Nghị định 248/2026/NĐ-CP** (hiệu lực 01/7/2026) quy định chính sách bảo mật trên nền tảng TMĐT phải có tối thiểu 8 nội dung: mục đích/phạm vi thu thập; phạm vi sử dụng; thời gian lưu trữ; ai được tiếp cận; biện pháp bảo mật; quy trình xem/sửa dữ liệu; quy trình xóa/hủy/hạn chế xử lý; quy trình tiếp nhận khiếu nại.
+- Nếu site **có chức năng đặt hàng trực tuyến** (bán hàng trực tiếp), còn phải công bố thông tin chủ sở hữu, mã số doanh nghiệp, địa chỉ, liên hệ, điều kiện giao dịch, vận chuyển, thanh toán, hoàn trả và thực hiện thông báo/đăng ký với Bộ Công Thương. Site hiện tại **chưa bán trực tiếp**, nên không thuộc nhóm này — nhưng nếu sau này thêm checkout thì phải rà lại.
+- **Affiliate disclosure**: đặt cạnh link/đầu nội dung, ngôn ngữ dễ hiểu; không chỉ để trong footer. FTC Hoa Kỳ yêu cầu “clear and conspicuous” nếu có độc giả Mỹ; nhiều thị trường khác cũng tương tự.
+- Nên nhờ luật sư rà bản cuối trước khi publish các trang pháp lý.
+
+#### E. Thứ tự làm P1 đề xuất
+
+1. About + Contact + Affiliate Disclosure + Editorial Policy (niềm tin, nhanh).
+2. Privacy + Terms + Disclaimer + Cookie consent.
+3. Landing page sàn/danh mục + internal link.
+4. FAQ, author pages, accessibility.
+5. Schema/OG, sitemap, đo lại GSC.
+
 ---
 
 ## 5. P2 — tăng trưởng
@@ -195,7 +256,7 @@ git -C D:\web switch backup/pre-seo-20261030
 
 | # | Commit | File | Nội dung | Verify | Trạng thái |
 |---|---|---|---|---|---|
-| 0 | _(chưa có)_ | `report.md` | Baseline + kế hoạch + rollback | Đang đọc | Kế hoạch |
+| 0 | `2c6f29b` | `report.md` | Baseline + kế hoạch P0 + checklist P1 + quyết định `.net`/GSC | `git show --stat 2c6f29b` | Hoàn tất |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 
@@ -203,7 +264,11 @@ git -C D:\web switch backup/pre-seo-20261030
 
 ## 8. Câu hỏi cần anh quyết trước khi code P0
 
-1. **`sansale247.net`** có phải của anh không? Nếu cùng sở hữu, có muốn gộp/301 về `.io.vn` không?
-2. Các trang `/gioi-thieu`, `/chinh-sach`, `/quan-tam`, `/thuong-hieu`: **khôi phục nội dung** hay **410**?
-3. Anh đã verify Google Search Console cho `sansale247.io.vn` chưa? Nếu chưa, anh muốn xác minh bằng **DNS** hay **HTML meta**? Em cần mã/xác nhận từ anh.
-4. P0 chỉ sửa SEO kỹ thuật, **không đổi UI**. Anh đồng ý cho em bắt đầu sau khi anh duyệt report này chứ?
+**Đã chốt:**
+- `sansale247.net` là web copy, **không phải của anh** → không xử lý/gộp, chỉ tập trung `.io.vn`.
+- Google Search Console cho `sansale247.io.vn` **đã verify** → dùng GSC để lấy URL lỗi và submit sitemap sau P0.
+
+**Còn cần anh quyết:**
+1. Các trang `/gioi-thieu`, `/chinh-sach`, `/quan-tam`, `/thuong-hieu`: **khôi phục nội dung** hay **410**?
+2. P0 chỉ sửa SEO kỹ thuật, **không đổi UI**. Anh đồng ý cho em bắt đầu sau khi anh duyệt report này chứ?
+3. P1 checklist ở mục 4.1: anh muốn em làm **đủ các trang trust** hay chỉ làm trước About/Contact/Affiliate Disclosure/Privacy/Terms?

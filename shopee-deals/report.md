@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `KẾ HOẠCH — CHƯA SỬA CODE`
+- **Trạng thái:** `P0 ĐÃ CODE + VERIFY LOCAL — CHƯA PUSH/DEPLOY`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -158,6 +158,45 @@ pnpm dev
 - Kiểm tra `sitemap.xml` không có URL 404.
 - Sau khi anh duyệt: deploy preview, kiểm tra lại trên preview; chỉ promote production khi anh đồng ý.
 
+### 3.1. Kết quả triển khai P0 (local, chưa deploy)
+
+**File đã sửa:**
+- `app/blog/[slug]/page.tsx`
+- `app/ma/[id]/page.tsx`
+- `proxy.ts`
+
+**Thay đổi chính:**
+- Blog: slug không tồn tại → `notFound()` trước Suspense; metadata `robots: noindex`; slug cũ/random trả **404** thật.
+- Deal: `UUID_RE` chặn id sai định dạng; `getActiveDealByIdUncached` kiểm tra tồn tại trước khi render; id không phải UUID trả **404** thật.
+- Legacy routing trong `proxy.ts`:
+  - `/san/*` → `/tim-kiem?merchant=*` (301)
+  - `/danh-muc` → `/tim-kiem` (301)
+  - `/danh-muc/:slug` → `/tim-kiem?cate=:slug` (301)
+  - `/ma-giam-gia` → `/tim-kiem` (301)
+  - `/ma-giam-gia/:slug` → `/tim-kiem?q=:slug` (301)
+  - 6 URL nội dung/tool cũ → **410** kèm trang HTML thân thiện, `noindex`.
+- `generateStaticParams` cho `/ma/[id]` trả 1 deal thật (Cache Components yêu cầu ít nhất 1 param); route còn lại chạy dynamic.
+
+**Kiểm chứng local (sau build):**
+| URL | Kết quả |
+|---|---|
+| `/blog/does-not-exist-123` | 404 |
+| `/blog/so-sanh-gia-shopee-lazada-tiki` (slug cũ) | 404 |
+| `/blog/stack-voucher-shopee-3-lop` | 200 |
+| `/ma/does-not-exist-123` | 404 |
+| `/ma/00000000-0000-4000-8000-000000000000` | 200 + `noindex` (edge case; xem ghi chú) |
+| `/ma/9a648a78-4522-4cf8-81b7-c5a0cc336945` | 200 |
+| `/san/tiktok-shop` | 301 → `/tim-kiem?merchant=tiktokshop` |
+| `/danh-muc/sach` | 301 → `/tim-kiem?cate=sach` |
+| `/ma-giam-gia`, `/ma-giam-gia/abc` | 301 → `/tim-kiem` |
+| `/gioi-thieu`, `/chinh-sach`, `/quan-tam`, `/thuong-hieu`, `/theo-doi-gia`, `/tinh-tra-gop` | 410 |
+| `/sitemap.xml` | 200, không chứa slug cũ/gone paths |
+
+- `pnpm exec tsc --noEmit` — pass.
+- `pnpm lint` — pass.
+- `pnpm build` — pass; 18/18 static pages; `/ma/[id]` dynamic + 1 static deal; `/blog/[slug]` partial.
+- **Ghi chú edge case:** UUID hợp lệ nhưng không tồn tại vẫn trả 200 kèm `noindex` + nội dung 404 (không phải 404 HTTP). Đây là giới hạn của Next 16.4.3 + Cache Components; không ảnh hưởng các URL legacy đang được Google index (đều không phải UUID hoặc đã 301/410).
+
 ---
 
 ## 4. P1 — sau khi P0 ổn định
@@ -268,6 +307,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | # | Commit | File | Nội dung | Verify | Trạng thái |
 |---|---|---|---|---|---|
 | 0 | `2c6f29b` | `report.md` | Baseline + kế hoạch P0 + checklist P1 + quyết định `.net`/GSC | `git show --stat 2c6f29b` | Hoàn tất |
+| 1 | `f51c778` | `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `proxy.ts` | Real 404 cho blog/deal; 301/410 legacy URLs | `tsc`, `lint`, `build`, curl matrix | Hoàn tất (local) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

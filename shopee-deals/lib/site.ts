@@ -26,6 +26,20 @@ export const SITE = {
     lazada: "lazada.vn",
     tiktokshop: "shop.tiktok.com",
   },
+  /**
+   * Outbound "Nguồn deal" buttons on the hero. shopee/tiki/lazada go through
+   * the AccessTrade deep-link wrapper (same publisher wrapper every synced
+   * deal uses) so homepage clicks keep affiliate tracking. TikTok Shop is not
+   * accepted by the deep-link tool (404) and its deals are tracked per-product
+   * via shorten.asia, so its button links the storefront directly — swap in a
+   * tracked URL here if one is ever created in the AT dashboard.
+   */
+  merchantHomeLinks: {
+    shopee: "https://go.isclix.com/deep_link/6041223145843920598?url=https%3A%2F%2Fshopee.vn",
+    tiki: "https://go.isclix.com/deep_link/6041223145843920598?url=https%3A%2F%2Ftiki.vn",
+    lazada: "https://go.isclix.com/deep_link/6041223145843920598?url=https%3A%2F%2Fwww.lazada.vn",
+    tiktokshop: "https://www.tiktok.com/shop",
+  },
 } as const;
 
 export type Merchant = (typeof SITE.merchants)[number];

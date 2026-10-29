@@ -130,14 +130,16 @@ async function Hero() {
         <div className="mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:mt-12 sm:gap-x-9">
           <span className="text-xs font-medium text-ink/35">Nguồn deal</span>
           {SITE.merchants.map((merchant) => (
-            <Link
+            <a
               key={merchant}
-              href={`/tim-kiem?merchant=${merchant}`}
+              href={SITE.merchantHomeLinks[merchant]}
+              target="_blank"
+              rel="sponsored noopener"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink/50 transition hover:text-brand"
             >
               <MerchantLogo merchant={merchant} size={18} />
               {SITE.merchantLabels[merchant]}
-            </Link>
+            </a>
           ))}
         </div>
       </div>

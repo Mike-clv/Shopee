@@ -194,8 +194,8 @@ function SiteHeader() {
             className="flex shrink-0 items-center gap-2.5 text-ink"
             aria-label={`${SITE.name} – trang chủ`}
           >
-            <span className="brand-mark relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand">
-              <TagGlyph className="relative h-7 w-7" />
+            <span className="brand-mark relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand">
+              <TagGlyph className="relative h-8 w-8" />
             </span>
             <span className="flex flex-col leading-none">
               <span className="title-shimmer font-display text-[1.35rem] leading-tight font-bold whitespace-nowrap sm:text-[1.55rem] xl:text-[1.85rem]">

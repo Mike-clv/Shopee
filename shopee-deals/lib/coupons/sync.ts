@@ -206,7 +206,17 @@ type DealSource = (typeof couponDeals.$inferSelect)["source"];
  */
 async function upsertAll(source: DealSource, rows: Array<Omit<NewCouponDeal, "id">>) {
   const db = await getDatabase();
-  const externalIds = rows
+  // A single fetch can return the same voucher twice (overlapping campaign
+  // pages); the second insert would then violate the (source, external_id)
+  // unique index and abort the whole pipeline. Keep the first occurrence.
+  const seenExternal = new Set<string>();
+  const deduped = rows.filter((row) => {
+    if (!row.externalId) return true;
+    if (seenExternal.has(row.externalId)) return false;
+    seenExternal.add(row.externalId);
+    return true;
+  });
+  const externalIds = deduped
     .map((r) => r.externalId)
     .filter((v): v is string => v != null);
 
@@ -226,7 +236,7 @@ async function upsertAll(source: DealSource, rows: Array<Omit<NewCouponDeal, "id
   let updated = 0;
   const keptIds: string[] = [];
 
-  for (const row of rows) {
+  for (const row of deduped) {
     const existingId = row.externalId
       ? existingIdByExternal.get(row.externalId)
       : undefined;
@@ -242,9 +252,20 @@ async function upsertAll(source: DealSource, rows: Array<Omit<NewCouponDeal, "id
       updated += 1;
       keptIds.push(existingId);
     } else {
+      // Idempotent insert: a concurrent/replayed sync (or a row committed
+      // between the precheck above and this insert) must not abort the whole
+      // pipeline with a (source, external_id) unique-index violation. Mirror
+      // the update path: refresh syncable fields only, keep manual flags.
+      const { isActive: _isActive, isFeatured: _isFeatured, ...syncable } = row;
+      void _isActive;
+      void _isFeatured;
       const inserted = await db
         .insert(couponDeals)
         .values(row)
+        .onConflictDoUpdate({
+          target: [couponDeals.source, couponDeals.externalId],
+          set: { ...syncable, updatedAt: new Date() },
+        })
         .returning({ id: couponDeals.id });
       created += 1;
       if (inserted[0]) keptIds.push(inserted[0].id);

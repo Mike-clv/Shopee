@@ -226,6 +226,15 @@ pnpm dev
 4. FAQ, author pages, accessibility.
 5. Schema/OG, sitemap, đo lại GSC.
 
+#### F. Nguồn tham khảo
+
+- Google Search Central — Creating helpful, reliable, people-first content (cập nhật 2026-10-05): https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+- FTC — Endorsement Guides: What People Are Asking: https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking
+- U.S. Chamber of Commerce — What to Include on Your Business's Website (2026): https://www.uschamber.com/co/run/technology/what-to-include-on-business-websites
+- LuatVietnam — Chính sách bảo mật trên nền tảng TMĐT theo Nghị định 248/2026/NĐ-CP: https://luatvietnam.vn/linh-vuc-khac/chinh-sach-bao-mat-tren-nen-tang-thuong-mai-dien-tu-phai-co-nhung-noi-dung-gi-883-114469-article.html
+- LuatVietnam — Trách nhiệm người làm tiếp thị liên kết từ 01/7/2026: https://luatvietnam.vn/linh-vuc-khac/nguoi-lam-tiep-thi-lien-ket-trong-thuong-mai-dien-tu-phai-chiu-trach-nhiem-gi-tu-01-7-2026-883-111257-article.html
+- Luật Thương mại điện tử 2025 (122/2025/QH15), hiệu lực 01/7/2026: https://vanban.chinhphu.vn/?pageid=27160&docid=216503
+
 ---
 
 ## 5. P2 — tăng trưởng

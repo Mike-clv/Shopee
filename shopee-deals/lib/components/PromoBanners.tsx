@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Megaphone } from "lucide-react";
 import { CAMPAIGNS } from "@/lib/campaigns";
-import { listActiveBanners } from "@/lib/coupons/data";
+import { bannerImageSrc, listActiveBanners } from "@/lib/coupons/data";
 
 /**
  * Two large promo banner slots under the hero. When the pub2 sync has stored
@@ -26,7 +26,7 @@ export async function PromoBanners() {
             {/* Plain <img> on purpose: banner creatives come from AT CDNs with arbitrary sizes. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={banner.imageUrl}
+              src={bannerImageSrc(banner)}
               alt={banner.title ?? "Banner ưu đãi"}
               loading={index === 0 ? "eager" : "lazy"}
               decoding="async"

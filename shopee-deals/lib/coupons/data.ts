@@ -316,6 +316,22 @@ export async function listAllBannersRaw(): Promise<CampaignBanner[]> {
     .orderBy(asc(campaignBanners.sortOrder), desc(campaignBanners.createdAt));
 }
 
+/**
+ * Public <img> src for a banner creative with a cache-busting version derived
+ * from updatedAt. Browsers that cached corrupted bytes (e.g. from the legacy
+ * service-worker era, or any stale creative) re-fetch the fresh bytes
+ * automatically whenever the row changes — no manual cache clearing needed.
+ */
+export function bannerImageSrc(
+  banner: Pick<CampaignBanner, "imageUrl" | "updatedAt">,
+): string {
+  const version = banner.updatedAt
+    ? Math.floor(banner.updatedAt.getTime() / 1000)
+    : 1;
+  const sep = banner.imageUrl.includes("?") ? "&" : "?";
+  return `${banner.imageUrl}${sep}v=${version}`;
+}
+
 export type AdminDealQuery = {
   q?: string; // matches title or code
   merchant?: string;

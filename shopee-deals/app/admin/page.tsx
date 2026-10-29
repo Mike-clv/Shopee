@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/auth";
 import {
+  bannerImageSrc,
   countDealsRaw,
   getDealCached,
   listAllBannersRaw,
@@ -334,7 +335,7 @@ function BannerSection({ banners }: { banners: CampaignBanner[] }) {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={banner.imageUrl}
+                  src={bannerImageSrc(banner)}
                   alt={banner.title ?? "Banner"}
                   loading="lazy"
                   decoding="async"

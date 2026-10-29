@@ -118,8 +118,10 @@
 | `/danh-muc/:slug` | `/tim-kiem?cate=:slug` | slug không hợp lệ → `/tim-kiem` |
 | `/ma-giam-gia` | `/tim-kiem` | |
 | `/ma-giam-gia/:slug` | `/ma/:id` nếu map được; nếu không thì `/tim-kiem?q=:slug` | DB không có cột slug; cần map code/title hoặc bảng tĩnh |
-| `/gioi-thieu`, `/chinh-sach`, `/quan-tam`, `/thuong-hieu` | khôi phục ở P1 hoặc 410 | cần anh quyết |
-| `/theo-doi-gia`, `/tinh-tra-gop` | 410 | tool không còn; tránh redirect về trang không liên quan |
+| `/gioi-thieu`, `/chinh-sach`, `/quan-tam`, `/thuong-hieu` | **410** | Anh đã chốt 410; P1 sẽ viết trang mới tại URL mới phù hợp, không tái sử dụng URL cũ |
+| `/theo-doi-gia`, `/tinh-tra-gop` | **410** | Tool không còn; tránh redirect về trang không liên quan |
+
+> **Phạm vi 410:** chỉ 6 URL nội dung/tool nêu trên. Các nhóm `/san/*`, `/danh-muc/*`, `/ma-giam-gia*` vẫn **301** vì đã có trang tương đương (search/merchant), 410 sẽ làm mất link equity vô ích.
 
 **Bước 3c — Cách triển khai**
 - Redirect số lượng nhỏ, cố định: `redirects()` trong `next.config.ts` với `permanent: true` (308).
@@ -276,8 +278,10 @@ git -C D:\web switch backup/pre-seo-20261030
 **Đã chốt:**
 - `sansale247.net` là web copy, **không phải của anh** → không xử lý/gộp, chỉ tập trung `.io.vn`.
 - Google Search Console cho `sansale247.io.vn` **đã verify** → dùng GSC để lấy URL lỗi và submit sitemap sau P0.
+- P1 sẽ **viết mới** About + các trang chính sách tại URL mới phù hợp với website hiện tại; không khôi phục URL cũ.
+- 6 URL nội dung/tool cũ (`/gioi-thieu`, `/chinh-sach`, `/quan-tam`, `/thuong-hieu`, `/theo-doi-gia`, `/tinh-tra-gop`) trả **410**.
+- Các nhóm có trang tương đương: `/san/*`, `/danh-muc/*`, `/ma-giam-gia*` — trả **301**.
+- Anh đã trả lời **"3"** cho câu hỏi duyệt P0 → em hiểu là **đồng ý bắt đầu P0**.
 
-**Còn cần anh quyết:**
-1. Các trang `/gioi-thieu`, `/chinh-sach`, `/quan-tam`, `/thuong-hieu`: **khôi phục nội dung** hay **410**?
-2. P0 chỉ sửa SEO kỹ thuật, **không đổi UI**. Anh đồng ý cho em bắt đầu sau khi anh duyệt report này chứ?
-3. P1 checklist ở mục 4.1: anh muốn em làm **đủ các trang trust** hay chỉ làm trước About/Contact/Affiliate Disclosure/Privacy/Terms?
+**Còn lại (P1, chưa cần chốt ngay):**
+- Làm đủ bộ trust pages hay chỉ trước About/Contact/Affiliate Disclosure/Privacy/Terms.

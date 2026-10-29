@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/schema";
 import { SITE, merchantLabel } from "@/lib/site";
 import { truncateVi } from "@/lib/utils";
+import { checkBrandLinks } from "@/lib/coupons/brandLinks";
 import {
   coerceCategory as coerceOfferCategory,
   pickCategorySlug,
@@ -41,11 +42,12 @@ const MAX_PAGES = 12;
 const DATAFEED_PAGE_SIZE = 50;
 const TIKTOK_MAX_PAGES = 1; // no pagination by default — keep runs predictable
 
-/** Log message prefixes so admin logs tell the three pipelines apart. */
+/** Log message prefixes so admin logs tell the pipelines apart. */
 const PREFIXES = {
   offers: "shopee offers",
   datafeeds: "datafeeds (lazada/tiki)",
   tiktok: "tiktok shop",
+  brand: "brand links",
 } as const;
 
 function prefixed(prefix: string, message: string | null): string {
@@ -573,7 +575,7 @@ export async function syncTiktokProducts(trigger: SyncTrigger): Promise<SyncResu
   });
 }
 
-export type SyncPipeline = "shopee-offers" | "datafeeds" | "tiktok";
+export type SyncPipeline = "shopee-offers" | "datafeeds" | "tiktok" | "brand-links";
 
 export type SyncReport = {
   status: "success" | "error";
@@ -582,7 +584,40 @@ export type SyncReport = {
 };
 
 /**
- * Runs the three pipelines sequentially (each with its own sync_logs row).
+ * Pipeline 4 — brand homepage link health check. Walks every outbound
+ * "Nguồn deal" button's redirect chain daily so an expired AccessTrade link
+ * is caught in the logs instead of dying silently in production.
+ * Deliberately not runPipeline(): the AT datafeed access key is irrelevant
+ * here, so a missing key must not fail this check.
+ */
+export async function syncBrandLinks(trigger: SyncTrigger): Promise<SyncResult> {
+  const logId = await openSyncLog(trigger);
+  const counts = { fetched: 0, created: 0, updated: 0, disabled: 0 };
+  try {
+    const checks = await checkBrandLinks();
+    counts.fetched = checks.length;
+    const summary = checks
+      .map((c) =>
+        c.ok
+          ? `${c.merchant}=ok`
+          : `${c.merchant}=FAIL(${c.error ?? `HTTP ${c.status} -> ${c.finalUrl}`})`,
+      )
+      .join(", ");
+    if (checks.some((c) => !c.ok)) {
+      throw new Error(summary);
+    }
+    const message = prefixed(PREFIXES.brand, summary);
+    await updateLog(logId, trigger, "success", counts, message);
+    return { status: "success", ...counts, message };
+  } catch (error) {
+    const message = prefixed(PREFIXES.brand, errorMessage(error));
+    await updateLog(logId, trigger, "error", counts, message);
+    return { status: "error", ...counts, message };
+  }
+}
+
+/**
+ * Runs the four pipelines sequentially (each with its own sync_logs row).
  * Overall status succeeds when at least one pipeline works; a total outage
  * surfaces as error. Sequential keeps API/DB pressure predictable.
  */
@@ -591,6 +626,7 @@ export async function syncAll(trigger: SyncTrigger): Promise<SyncReport> {
     "shopee-offers": await syncAccesstrade(trigger),
     datafeeds: await syncDatafeeds(trigger),
     tiktok: await syncTiktokProducts(trigger),
+    "brand-links": await syncBrandLinks(trigger),
   };
   const okCount = Object.values(pipelines).filter((r) => r.status === "success").length;
   return { status: okCount > 0 ? "success" : "error", okCount, pipelines };

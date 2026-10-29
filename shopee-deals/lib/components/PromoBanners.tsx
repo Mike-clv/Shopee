@@ -10,6 +10,7 @@ import { bannerImageSrc, listActiveBanners } from "@/lib/coupons/data";
  * always matches real sale seasons instead of merchant ad creatives.
  */
 export async function PromoBanners() {
+  "use cache";
   const banners = (await listActiveBanners(8))
     .filter((banner) => banner.kind === "banner" && banner.source === "manual")
     .slice(0, 4);

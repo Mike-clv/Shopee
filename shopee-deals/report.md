@@ -2,11 +2,11 @@
 
 - **Ngày lập:** 2026-10-30
 - **Baseline commit:** `66b05f24a31c6667fb95aeeea59cd8a40cb0475f`
-- **Nhánh làm việc:** `seo/p2-growth`
+- **Nhánh làm việc:** `main`
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P2 ĐÃ VERIFY PREVIEW — CHỜ DUYỆT DEPLOY PRODUCTION`
+- **Trạng thái:** `P2 ĐÃ DEPLOY PRODUCTION — GSC SITEMAP ĐÃ SUBMIT LẠI`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -532,11 +532,19 @@ pnpm dev
   - `/blog` + 10 bài blog, 8 landing page, 3 deal page thật → **200**.
   - 404/301/410 giữ nguyên trên preview.
   - Sitemap preview **916 URL**, trong đó **10 URL blog**; canonical bài mới = `https://sansale247.io.vn/blog/...`.
-- **Chưa deploy production** — chờ anh duyệt.
+- **Deploy production:**
+  - Merge `seo/p2-growth` → `main` bằng merge commit `685ede2`, push `de61020..685ede2`.
+  - Production deployment `dpl_DqRHqTLUtViKcYTRTeXui6qdysDs` — **Ready**, alias `https://sansale247.io.vn` + `https://www.sansale247.io.vn`.
+  - Verify production: **30/30 route P1** 200; **10/10 bài blog P2**, **8/8 landing**, **3/3 deal page** 200; sitemap **916 URL**; 404/301/410 đúng; canonical 6 bài mới đúng domain; OG image 200 `image/png` 68.137 bytes.
+  - Rollback nếu cần: Vercel Instant Rollback về `dpl_6VR9tsPhNs7mTtVmyr7mN8dGJZb2` (P1).
+- **GSC:**
+  - Submit lại `/sitemap.xml` → **“Sitemap submitted successfully”**; bảng đang hiển thị 910 discovered, sẽ cập nhật khi Google đọc lại.
+  - Request indexing 6 URL blog mới: đã thử `ma-giam-gia-shopee-hom-nay`, nhưng live test treo >3 phút nên phải Cancel; **chưa có indexing request nào được xác nhận**. Sẽ thử lại sau; các URL đã có trong sitemap + internal link.
 
 ### 5.2. GSC monitoring
 
-- Sau khi deploy production: submit lại `/sitemap.xml`, request indexing 6 URL blog mới.
+- Đã submit lại `/sitemap.xml` trên production.
+- Request indexing 6 URL blog mới: live test đang treo, sẽ thử lại sau.
 - Theo dõi định kỳ GSC: Coverage, Enhancements, Core Web Vitals.
 
 ### 5.3. Backlink/PR + đo thứ hạng
@@ -590,6 +598,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 16 | `947cb6c` | merge `seo/p1-landing-pages` → `main`; `report.md` | Deploy production P1 + GSC | Production `dpl_6VR9tsPhNs7mTtVmyr7mN8dGJZb2`; 30/30 route 200; 404/301/410 đúng; canonical/OG/sitemap 910 URL; GSC sitemap submitted + 2 URL request indexing | Hoàn tất (production) |
 | 17 | `822e6b7` | `lib/blog/posts.ts`, `lib/components/LandingPage.tsx`, `app/blog/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/ma/[id]/page.tsx` | Thêm 6 bài blog P2; internal link deal → blog → landing | `tsc`, `lint`, `build`; 10 blog + 8 landing + 5 deal page 200; sitemap local 823 URL (+6 blog); 404/301/410 giữ nguyên | Hoàn tất (local, chờ duyệt deploy) |
 | 18 | - | `report.md` | Ghi nhận verify preview P2 | Preview `dpl_5eeEmRj6Xu3WNsYWwckLnibNj9YV`; 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng | Hoàn tất (preview, chờ duyệt production) |
+| 19 | `685ede2` | merge `seo/p2-growth` → `main`; `report.md` | Deploy production P2 + GSC | Production `dpl_DqRHqTLUtViKcYTRTeXui6qdysDs`; 30/30 P1 + 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng; GSC sitemap submitted | Hoàn tất (production) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

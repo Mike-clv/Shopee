@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import { BlogCard } from "@/lib/components/BlogCard";
 import { CopyButton } from "@/lib/components/CopyButton";
 import { CouponCard } from "@/lib/components/CouponCard";
 import { DealImage } from "@/lib/components/DealImage";
+import { postsForDeal } from "@/lib/blog/posts";
 import {
   getActiveDealByIdUncached,
   listRelatedDeals,
@@ -12,9 +14,9 @@ import {
 import type { CouponDeal } from "@/lib/db/schema";
 import { truncateVi, formatDayVi, formatDiscountVi, formatPriceVi } from "@/lib/utils";
 import { OG_IMAGE } from "@/lib/seo";
-import { merchantLabel, siteUrl } from "@/lib/site";
+import { isKnownMerchant, merchantLabel, siteUrl } from "@/lib/site";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
-import { categoryFromSlug } from "@/lib/categories";
+import { CATEGORY_SLUGS, categoryFromSlug, classifyCategory } from "@/lib/categories";
 import {
   ArrowRight,
   CalendarDays,
@@ -74,6 +76,21 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
   const discount = formatDiscountVi(deal.discountRate);
   const category = deal.categories?.find(Boolean) ?? null;
   const categoryInfo = categoryFromSlug(category);
+  const categorySlug = category
+    ? CATEGORY_SLUGS.includes(category)
+      ? category
+      : classifyCategory(category)
+    : null;
+  const merchantHref = (merchant: string) =>
+    isKnownMerchant(merchant) ? `/san/${merchant}` : `/tim-kiem?merchant=${merchant}`;
+  const categoryHref = (value: string) => {
+    const slug = CATEGORY_SLUGS.includes(value) ? value : classifyCategory(value);
+    return slug ? `/danh-muc/${slug}` : `/tim-kiem?cate=${encodeURIComponent(value)}`;
+  };
+  const reading = postsForDeal(
+    { merchant: deal.merchant, category: categorySlug ?? category },
+    2,
+  );
 
   // Structured data for rich results — stringified with "<" escaped so no
   // content can break out of the script tag.
@@ -120,7 +137,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
           <>
             <ChevronRight aria-hidden className="h-3 w-3 text-ink/20" />
             <Link
-              href={`/tim-kiem?merchant=${deal.merchant}`}
+              href={merchantHref(deal.merchant)}
               className="inline-flex items-center gap-1 transition hover:text-brand"
             >
               <MerchantLogo merchant={deal.merchant} size={14} />
@@ -132,7 +149,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
           <>
             <ChevronRight aria-hidden className="h-3 w-3 text-ink/20" />
             <Link
-              href={`/tim-kiem?cate=${encodeURIComponent(category)}`}
+              href={categoryHref(category)}
               className="transition hover:text-brand"
             >
               {categoryInfo.label}
@@ -161,7 +178,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink/45">
                   {deal.merchant && (
                     <Link
-                      href={`/tim-kiem?merchant=${deal.merchant}`}
+                      href={merchantHref(deal.merchant)}
                       className="font-medium transition hover:text-brand"
                     >
                       {merchantLabel(deal.merchant)}
@@ -173,7 +190,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
                         /
                       </span>
                       <Link
-                        href={`/tim-kiem?cate=${encodeURIComponent(category)}`}
+                        href={categoryHref(category)}
                         className="inline-flex items-center gap-1 transition hover:text-brand"
                       >
                         <categoryInfo.icon className="h-3 w-3" aria-hidden />
@@ -193,7 +210,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
                   )}
                   {deal.merchant && (
                     <Link
-                      href={`/tim-kiem?merchant=${deal.merchant}`}
+                      href={merchantHref(deal.merchant)}
                       className="inline-flex items-center gap-1.5 rounded-sm border border-line px-2 py-1 text-[11px] font-medium text-ink/55 transition hover:border-brand/40 hover:text-brand"
                     >
                       <MerchantLogo merchant={deal.merchant} size={12} />
@@ -333,6 +350,34 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {related.map((item) => (
               <CouponCard key={item.id} deal={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {reading.length > 0 && (
+        <section aria-labelledby="reading-heading" className="mt-10">
+          <div className="mb-4 flex items-end justify-between border-b border-line pb-3">
+            <h2
+              id="reading-heading"
+              className="font-display text-xl font-semibold tracking-tight text-ink"
+            >
+              Đọc thêm trước khi mua
+            </h2>
+            <Link
+              href="/blog"
+              className="group inline-flex items-center gap-1 text-xs font-semibold text-brand transition hover:text-brand-dark"
+            >
+              Tất cả bài viết
+              <ChevronRight
+                aria-hidden
+                className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+              />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {reading.map((post) => (
+              <BlogCard key={post.slug} post={post} />
             ))}
           </div>
         </section>

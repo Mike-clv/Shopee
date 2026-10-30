@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
+import { BlogCard } from "@/lib/components/BlogCard";
 import { CouponCard } from "@/lib/components/CouponCard";
+import type { BlogPost } from "@/lib/blog/posts";
 import type { CouponDeal } from "@/lib/db/schema";
 import type { LandingFaq } from "@/lib/landing/content";
 
@@ -16,6 +18,7 @@ export function LandingPage({
   stats,
   deals,
   faqs,
+  relatedPosts,
   breadcrumb,
   moreHref,
   moreLabel = "Xem tất cả deal",
@@ -31,6 +34,7 @@ export function LandingPage({
   stats: Array<{ label: string; value: string }>;
   deals: CouponDeal[];
   faqs: LandingFaq[];
+  relatedPosts?: BlogPost[];
   breadcrumb: Crumb[];
   moreHref: string;
   moreLabel?: string;
@@ -178,6 +182,34 @@ export function LandingPage({
               ))}
             </div>
           </section>
+
+          {relatedPosts && relatedPosts.length > 0 && (
+            <section aria-labelledby="landing-posts-heading">
+              <div className="mb-4 flex items-end justify-between border-b border-line pb-3">
+                <h2
+                  id="landing-posts-heading"
+                  className="font-display text-xl font-bold tracking-tight text-ink"
+                >
+                  Đọc thêm trước khi mua
+                </h2>
+                <Link
+                  href="/blog"
+                  className="group inline-flex items-center gap-1 text-xs font-semibold text-brand transition hover:text-brand-dark"
+                >
+                  Tất cả bài viết
+                  <ChevronRight
+                    aria-hidden
+                    className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                  />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {relatedPosts.map((post) => (
+                  <BlogCard key={post.slug} post={post} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">{sidebar}</aside>

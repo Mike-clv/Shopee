@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LandingPage, LandingSidebarCard, LandingLinkList, LandingAffiliateNote } from "@/lib/components/LandingPage";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
+import { postsForCategory } from "@/lib/blog/posts";
 import { CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { countSearchDeals, searchDeals } from "@/lib/coupons/data";
 import { categoryFaqs, getCategoryLanding } from "@/lib/landing/content";
@@ -122,6 +123,7 @@ export default async function CategoryLandingPage(
         ]}
         deals={deals}
         faqs={faqs}
+        relatedPosts={postsForCategory(slug, 3)}
         breadcrumb={[
           { label: "Trang chủ", href: "/" },
           { label: "Danh mục", href: "/tim-kiem" },

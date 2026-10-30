@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P1 LANDING PAGES ĐÃ COMMIT LOCAL — CHƯA PUSH PREVIEW`
+- **Trạng thái:** `P1 LANDING PAGES ĐÃ PUSH PREVIEW — CÒN FAQ/HTML SITEMAP/SCHEMA TRƯỚC DEPLOY`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -327,7 +327,19 @@ pnpm dev
   - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass.
   - Screenshot desktop `/san/shopee` + `/danh-muc/freeship` hiển thị đúng hero, stats, sidebar.
 - **Lưu ý:** một số danh mục hiện **0 deal** (ví dụ `freeship`); trang vẫn có nội dung + empty state. Nếu kéo dài, cân nhắc `noindex` hoặc loại khỏi sitemap để tránh thin content.
-- **Đã commit `ba23ef6`; chưa push/preview.**
+- **Đã commit `ba23ef6` + docs `76f2d01`; đã push branch `seo/p1-landing-pages`.**
+- **Preview deployment:** `dpl_HJX5sX5UFNefdJfqr8EzuLzHCwQc` (Vercel, trạng thái **Ready**).
+- **URL preview:** https://shopee-git-seo-p1-landing-pages-mamoru09s-projects.vercel.app
+- **Verify preview (Chrome đã đăng nhập Vercel, 2026-10-30):**
+  - 4/4 trang sàn **200**; 16/16 trang danh mục **200**.
+  - `/san/tiktok-shop` → cuối cùng `/san/tiktokshop` (301); `/san/foo`, `/danh-muc/foo` **404**.
+  - `/danh-muc`, `/san` → `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` **410**; `/chinh-sach/khong-ton-tai` **404**.
+  - 8/8 trust pages vẫn **200** trên preview.
+  - Canonical `/san/shopee` = `https://sansale247.io.vn/san/shopee`; JSON-LD có `CollectionPage`, `BreadcrumbList`, `FAQPage`.
+  - Sitemap preview: **908 URL**, có đủ 4 sàn + 16 danh mục.
+  - Screenshot desktop `/san/shopee` + `/danh-muc/food` hiển thị đúng hero, stats, sidebar.
+- **Lưu ý:** preview bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`; console có cảnh báo CSP report-only do Vercel Live iframe, chỉ preview.
+- **Chưa merge `main`, chưa deploy production.**
 
 ### 4.3. Email liên hệ — trạng thái & cách tạo
 
@@ -464,6 +476,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 7 | `c00d6fe` | `report.md` | Ghi nhận verify P1 + checklist trust pages + push preview | `git show --stat c00d6fe`; Vercel status success | Hoàn tất |
 | 8 | `2f6c127` | `report.md` | Ghi nhận verify preview: 8/8 trang 200, 404/410 đúng, canonical + sitemap đúng domain production | Chrome fetch nội bộ trên preview + Vercel status success | Hoàn tất (preview) |
 | 9 | `ba23ef6` | `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `lib/landing/content.ts`, `lib/components/LandingPage.tsx`, `lib/categories.ts`, `proxy.ts`, `app/layout.tsx`, `app/page.tsx`, `app/sitemap.ts`, `report.md` | Thêm 4 landing sàn + 16 landing danh mục; đổi internal link header/footer/home; thêm sitemap; 404 thật cho slug lạ | `tsc`, `lint`, `build`, curl 4+16 trang 200, 301/404/410 matrix, canonical/JSON-LD, sitemap, screenshot desktop | Hoàn tất (local) |
+| 10 | `76f2d01` | `report.md` | Ghi nhận verify landing pages + hash commit | `git show --stat 76f2d01` | Hoàn tất |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

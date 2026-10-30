@@ -6,6 +6,7 @@ import "./globals.css";
 import { SITE, siteUrl } from "@/lib/site";
 import { OG_IMAGE } from "@/lib/seo";
 import { FEATURED_CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
+import { BackToTop } from "@/lib/components/BackToTop";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { NavTabs } from "@/lib/components/NavTabs";
 import { getCurrentAdmin } from "@/lib/auth";
@@ -113,6 +114,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4">{children}</main>
         <SiteFooter />
+        <BackToTop />
       </body>
     </html>
   );
@@ -295,7 +297,7 @@ function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-line bg-white">
       <div className="h-1 w-full bg-gradient-to-r from-brand via-[#2f80ed] to-accent" />
-      <div className="mx-auto w-full max-w-7xl px-4 py-10">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-10 pb-24 sm:pb-10">
         <div className="grid gap-8 text-sm sm:grid-cols-12">
           <div className="sm:col-span-5">
             <p className="flex items-center gap-2.5">
@@ -360,23 +362,26 @@ function SiteFooter() {
 
         <nav
           aria-label="Thông tin website"
-          className="mt-9 flex flex-wrap gap-x-4 gap-y-2 border-t border-line pt-5 text-xs text-ink/45"
+          className="mt-9 grid grid-cols-2 gap-x-5 gap-y-3 border-t border-line pt-5 text-xs text-ink/45 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-2"
         >
           {TRUST_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="transition hover:text-brand"
+              className="block leading-snug transition hover:text-brand"
             >
               {link.label}
             </Link>
           ))}
-          <Link href="/sitemap" className="transition hover:text-brand">
+          <Link
+            href="/sitemap"
+            className="block leading-snug transition hover:text-brand"
+          >
             Sitemap
           </Link>
         </nav>
 
-        <div className="mt-4 flex flex-col gap-2 text-xs text-ink/40 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-5 flex flex-col gap-2 text-xs leading-relaxed text-ink/40 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {SITE.name}. Không phải website chính thức của Shopee, Tiki, Lazada hay TikTok Shop.</p>
         </div>
       </div>

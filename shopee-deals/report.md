@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P0 ĐÃ CODE + VERIFY LOCAL (2 vòng fix) — CHƯA PUSH/DEPLOY`
+- **Trạng thái:** `P0 ĐÃ VERIFY PREVIEW — CHỜ DUYỆT PRODUCTION`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -199,8 +199,32 @@ pnpm dev
 - `pnpm lint` — pass.
 - `pnpm build` — pass; 17/17 static pages; `/ma/[id]` partial prerender; `/blog/[slug]` partial.
 - `pnpm start` + curl matrix: **không còn** log `Date.now()` / `NEXT_STATIC_GEN_BAILOUT`; không có lỗi `URIError`.
-- **Chưa verify trên Vercel preview:** proxy giờ đọc DB để chặn 404; cần deploy preview xác nhận Node runtime + `DATABASE_URL` hoạt động trước khi promote production.
-- **Chưa deploy/push.** Cần deploy preview và kiểm tra lại trên preview trước khi promote production.
+- **Đã verify trên Vercel preview:** proxy đọc DB được trên Vercel; các case 404/301/410 hoạt động đúng.
+- **Chưa promote production.** Cần anh duyệt trước khi merge `main` và deploy production.
+
+### 3.2. Verify Vercel Preview (2026-10-30)
+
+- **Branch:** `seo/p0-fixes` đã push lên `origin/seo/p0-fixes`.
+- **Preview deployment:** `dpl_Gn4h2awtkEBjFjrCZ3jtFpSv4kfr`, commit `28e01ca`, trạng thái **Ready**.
+- **URL:** https://shopee-git-seo-p0-fixes-mamoru09s-projects.vercel.app
+- **Lưu ý:** Vercel Authentication đang bật cho preview; test qua Chrome đã đăng nhập Vercel (request cuối trả status thật sau SSO).
+- **Kết quả:**
+
+| URL | Kết quả |
+|---|---|
+| `/ma/does-not-exist-123` | **404** |
+| `/ma/00000000-0000-4000-8000-000000000000` | **404** |
+| `/ma/9a648a78-4522-4cf8-81b7-c5a0cc336945` (deal production) | **200**, nội dung đầy đủ |
+| `/blog/does-not-exist-123` | **404** |
+| `/blog/so-sanh-gia-shopee-lazada-tiki` (slug cũ) | **404** |
+| `/san/tiktok-shop` | **301** → `/tim-kiem?merchant=tiktokshop` |
+| `/danh-muc/sach` | **301** → `/tim-kiem?cate=sach` |
+| `/gioi-thieu` | **410** |
+| `/sitemap.xml` | **200** |
+
+- **Proxy + DB trên Vercel:** hoạt động; UUID hợp lệ nhưng không tồn tại trả 404 thật, deal thật trả 200.
+- **Runtime logs preview:** không thấy `Date.now` / `NEXT_STATIC_GEN_BAILOUT` / `Error` trong cửa sổ kiểm tra.
+- **Chưa promote production.**
 
 ---
 
@@ -314,6 +338,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 0 | `2c6f29b` | `report.md` | Baseline + kế hoạch P0 + checklist P1 + quyết định `.net`/GSC | `git show --stat 2c6f29b` | Hoàn tất |
 | 1 | `f51c778` | `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `proxy.ts` | Real 404 cho blog/deal; 301/410 legacy URLs | `tsc`, `lint`, `build`, curl matrix | Hoàn tất (local) |
 | 2 | `585791e` | `proxy.ts`, `app/ma/[id]/page.tsx`, `lib/coupons/dealExists.ts` | Proxy chặn deal/blog không tồn tại → 404 thật; `connection()` bỏ Date.now bailout; safe decode path malformed | `tsc`, `lint`, `build`, `pnpm start` + curl matrix, log check | Hoàn tất (local) |
+| 3 | — | `report.md` | Ghi nhận kết quả verify Vercel Preview | Preview deployment `dpl_Gn4h2awtkEBjFjrCZ3jtFpSv4kfr` + matrix 404/301/410 | Hoàn tất (preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P0 LIVE PRODUCTION — P1 TRUST PAGES ĐÃ CODE + VERIFY LOCAL — CHƯA PUSH/DEPLOY`
+- **Trạng thái:** `P1 TRUST PAGES ĐÃ PUSH PREVIEW — CHỜ DUYỆT PRODUCTION`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -289,7 +289,13 @@ pnpm dev
   - Footer homepage có link trust pages; sitemap có 8 URL mới.
   - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass.
   - Screenshot desktop `/ve-chung-toi` + `/chinh-sach/chinh-sach-bao-mat` hiển thị đúng layout, sidebar, nội dung.
-- **Chưa push/deploy.**
+- **Đã push branch `seo/p1-trust-pages`:**
+  - `89c75fb` — code trust pages.
+  - `c00d6fe` — log verify + checklist.
+- **Preview deployment:** `6J7XGA8imzMf4ydQtT4kLh6iUeZg` (Vercel, commit `c00d6fe`), trạng thái GitHub **success**.
+- **URL preview:** https://shopee-git-seo-p1-trust-pages-mamoru09s-projects.vercel.app
+- **Lưu ý:** preview đang bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`. Cần đăng nhập Vercel trên browser hoặc tạo Protection Bypass token để verify tự động.
+- **Chưa merge `main`, chưa deploy production.**
 
 ### 4.2. Thứ tự P1 còn lại
 
@@ -407,6 +413,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 4 | `6016324` | merge `seo/p0-fixes` → `main` | Deploy production P0 | Production `dpl_8KVk8m3AZ76UeoC4YaTm6HSGh5SY` + curl matrix 404/301/410, không còn log `Date.now` | Hoàn tất (production) |
 | 5 | - | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
 | 6 | `89c75fb` | `lib/legal/content.ts`, `lib/components/LegalPage.tsx`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `proxy.ts`, `app/layout.tsx`, `app/sitemap.ts`, `lib/site.ts` | Thêm 8 trust/legal pages; footer + sitemap; 404 thật cho slug chính sách không tồn tại | `tsc`, `lint`, `build`, `pnpm start` + curl 8 URL 200, slug lạ 404, `/chinh-sach` + `/gioi-thieu` 410, footer/sitemap check, screenshot desktop | Hoàn tất (local, chờ preview) |
+| 7 | `c00d6fe` | `report.md` | Ghi nhận verify P1 + checklist trust pages + push preview | `git show --stat c00d6fe`; Vercel status success | Hoàn tất |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

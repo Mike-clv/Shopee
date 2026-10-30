@@ -610,6 +610,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 18 | - | `report.md` | Ghi nhận verify preview P2 | Preview `dpl_5eeEmRj6Xu3WNsYWwckLnibNj9YV`; 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng | Hoàn tất (preview, chờ duyệt production) |
 | 19 | `685ede2` | merge `seo/p2-growth` → `main`; `report.md` | Deploy production P2 + GSC | Production `dpl_DqRHqTLUtViKcYTRTeXui6qdysDs`; 30/30 P1 + 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng; GSC sitemap submitted | Hoàn tất (production) |
 | 20 | `8a03429` + `10be144` | `app/layout.tsx`, `lib/components/BackToTop.tsx` | Footer mobile grid 2 cột + nút Back to top; giữ desktop flex | `tsc`, `lint`, `build`; Playwright 390×844 + 360×800; không overflow ngang; click → `scrollY=0`; desktop flex; preview `dpl_HsEohS7kD5F5V2vEWZo6zvpYHRhA` Ready; production `dpl_EjYakkT9occweZZYkodhGQuYRCVZ` Ready, 4 route 200, nút hoạt động trên domain thật | Hoàn tất (production) |
+| 21 | `c5c0ac9` | `app/page.tsx`, `report.md` | Home brand strip nổi bật trên mobile: grid 2×2 card thương hiệu, logo 26px + scale khi hover, hover lift/border/shadow màu brand, tap target min-h-12; desktop giữ nguyên hàng pills | `tsc`, `lint`, `build`; anh duyệt mobile view trực tiếp trên dev server `localhost:3210` | Hoàn tất (local, chờ preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

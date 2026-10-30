@@ -294,7 +294,12 @@ pnpm dev
   - `c00d6fe` — log verify + checklist.
 - **Preview deployment:** `6J7XGA8imzMf4ydQtT4kLh6iUeZg` (Vercel, commit `c00d6fe`), trạng thái GitHub **success**.
 - **URL preview:** https://shopee-git-seo-p1-trust-pages-mamoru09s-projects.vercel.app
-- **Lưu ý:** preview đang bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`. Cần đăng nhập Vercel trên browser hoặc tạo Protection Bypass token để verify tự động.
+- **Verify preview (Chrome đã đăng nhập Vercel, 2026-10-30):**
+  - Fetch nội bộ trên preview: 8/8 trust page **200**; `/chinh-sach/khong-ton-tai` **404**; `/chinh-sach` + `/gioi-thieu` **410**; `/blog/does-not-exist-123` **404**.
+  - Canonical + `og:url` của `/chinh-sach/cookie` trỏ đúng `https://sansale247.io.vn/...`.
+  - Sitemap preview: **8/8** URL trust pages, tổng **888** URL, base đúng `https://sansale247.io.vn`.
+  - Footer homepage có link trust pages; các trang render đúng layout/sidebar/nội dung.
+- **Lưu ý:** preview bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`; verify tự động cần đăng nhập Chrome hoặc Protection Bypass token.
 - **Chưa merge `main`, chưa deploy production.**
 
 ### 4.2. Thứ tự P1 còn lại
@@ -414,6 +419,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 5 | - | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
 | 6 | `89c75fb` | `lib/legal/content.ts`, `lib/components/LegalPage.tsx`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `proxy.ts`, `app/layout.tsx`, `app/sitemap.ts`, `lib/site.ts` | Thêm 8 trust/legal pages; footer + sitemap; 404 thật cho slug chính sách không tồn tại | `tsc`, `lint`, `build`, `pnpm start` + curl 8 URL 200, slug lạ 404, `/chinh-sach` + `/gioi-thieu` 410, footer/sitemap check, screenshot desktop | Hoàn tất (local, chờ preview) |
 | 7 | `c00d6fe` | `report.md` | Ghi nhận verify P1 + checklist trust pages + push preview | `git show --stat c00d6fe`; Vercel status success | Hoàn tất |
+| 8 | - | `report.md` | Ghi nhận verify preview: 8/8 trang 200, 404/410 đúng, canonical + sitemap đúng domain production | Chrome fetch nội bộ trên preview + Vercel status success | Hoàn tất (preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

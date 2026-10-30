@@ -23,12 +23,28 @@ import { SITE, isKnownMerchant, merchantLabel } from "@/lib/site";
 import { truncateVi } from "@/lib/utils";
 import { categoryFromSlug } from "@/lib/categories";
 
-export const metadata: Metadata = {
-  title: "Tìm mã giảm giá & deal đa sàn",
-  description:
-    "Tìm nhanh mã giảm giá Shopee và deal Tiki, TikTok Shop, Lazada: freeship, giảm giá sâu, sale chớp nhoáng…",
-  alternates: { canonical: "/tim-kiem" },
-};
+export async function generateMetadata(
+  props: PageProps<"/tim-kiem">,
+): Promise<Metadata> {
+  const { q, merchant, cate, page, sort } = await props.searchParams;
+  // Filtered search URLs are crawlable but never worth indexing: they explode
+  // into near-duplicate result pages. The bare /tim-kiem stays indexable.
+  // This also keeps the SearchAction template (?q={search_term_string}) out of
+  // the index instead of leaving it as a 200 page with index,follow.
+  const hasFilters = [q, merchant, cate, page, sort].some(
+    (value) => typeof value === "string" && value.trim().length > 0,
+  );
+
+  return {
+    title: "Tìm mã giảm giá & deal đa sàn",
+    description:
+      "Tìm nhanh mã giảm giá Shopee và deal Tiki, TikTok Shop, Lazada: freeship, giảm giá sâu, sale chớp nhoáng…",
+    alternates: { canonical: "/tim-kiem" },
+    robots: hasFilters
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
+  };
+}
 
 const PAGE_LIMIT = 30;
 

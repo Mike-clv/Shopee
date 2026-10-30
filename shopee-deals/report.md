@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P1 FAQ/HTML SITEMAP/SCHEMA/OG ĐÃ COMMIT — CHỜ PUSH/PREVIEW`
+- **Trạng thái:** `P1 FAQ/HTML SITEMAP/SCHEMA/OG ĐÃ PUSH PREVIEW — CHỜ DUYỆT DEPLOY`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -366,7 +366,19 @@ pnpm dev
   - `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123` **404**; `/san`, `/danh-muc`, `/ma-giam-gia` **301** `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` **410**.
   - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass; screenshot desktop `/faq` + `/sitemap` hiển thị đúng.
 - **Lưu ý:** file-based `opengraph-image` không tự thêm `og:image` khi page có `openGraph` explicit; đã sửa bằng `images: [OG_IMAGE]` ở tất cả metadata.
-- **Chưa commit/push.**
+- **Đã commit `b0e3d45`; docs `12092ea`; đã push branch `seo/p1-landing-pages`.**
+- **Preview deployment:** `dpl_GvkFttf387Nhw6xpdbXkp7iFpycM` (Vercel, trạng thái **Ready**).
+- **URL preview:** https://shopee-git-seo-p1-landing-pages-mamoru09s-projects.vercel.app
+- **Verify preview (Chrome đã đăng nhập Vercel, 2026-10-30):**
+  - 30/30 route chính **200** (9 trust/FAQ + HTML sitemap + 4 sàn + 16 danh mục).
+  - `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123` **404**; `/san`, `/danh-muc` → `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` **410**.
+  - Canonical `/faq` = `https://sansale247.io.vn/faq`; `og:image` = `https://sansale247.io.vn/opengraph-image`; FAQ JSON-LD 13 câu.
+  - `/san/shopee` + `/danh-muc/food` có `CollectionPage`, `BreadcrumbList`, `FAQPage`; `og:image` đúng.
+  - HTML sitemap 60 link deal + link `/faq`; XML sitemap **910 URL**, có `/faq`, `/sitemap`, 4 sàn, 16 danh mục.
+  - `/opengraph-image` trả **200 image/png**.
+  - Screenshot desktop `/faq` + `/sitemap` trên preview hiển thị đúng.
+- **Lưu ý:** preview bật Vercel Authentication (SSO); verify bằng Chrome đã đăng nhập. Console chỉ có cảnh báo CSP report-only do Vercel Live iframe.
+- **Chưa merge `main`, chưa deploy production.**
 
 ### 4.4. Email liên hệ — trạng thái & cách tạo
 
@@ -508,7 +520,8 @@ git -C D:\web switch backup/pre-seo-20261030
 | 10 | `76f2d01` | `report.md` | Ghi nhận verify landing pages + hash commit | `git show --stat 76f2d01` | Hoàn tất |
 | 11 | `2d991ec` | `report.md` | Ghi nhận verify preview landing pages: 4 sàn + 16 danh mục 200, slug lạ 404, legacy 301/410, canonical/sitemap đúng | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
 | 12 | `b0e3d45` | `lib/faq/content.ts`, `app/faq/page.tsx`, `app/sitemap/page.tsx`, `lib/seo.ts`, `app/opengraph-image.tsx`, `app/layout.tsx`, `lib/legal/content.ts`, `app/sitemap.ts`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `report.md` | Thêm FAQ + HTML sitemap; JSON-LD Organization/WebSite; OG image mặc định + fallback; footer/sitemap link | `tsc`, `lint`, `build`, 30 route 200, FAQ 13 câu JSON-LD, HTML sitemap 60 deal, XML 817 URL, OG 1200×630, screenshot desktop | Hoàn tất (local, chờ preview) |
-| 13 | - | `report.md` | Ghi nhận verify FAQ/HTML sitemap/schema/OG + hash commit | `git show --stat b0e3d45` | Hoàn tất |
+| 13 | `12092ea` | `report.md` | Ghi nhận verify FAQ/HTML sitemap/schema/OG + hash commit | `git show --stat b0e3d45` | Hoàn tất |
+| 14 | - | `report.md` | Ghi nhận preview FAQ/HTML sitemap/schema/OG: 30 route 200, 404/410 đúng, FAQ 13 câu, sitemap 910 URL, OG 1200×630 | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

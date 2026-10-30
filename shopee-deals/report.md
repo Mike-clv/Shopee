@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P0 ĐÃ VERIFY PREVIEW — CHỜ DUYỆT PRODUCTION`
+- **Trạng thái:** `P0 ĐÃ DEPLOY PRODUCTION + VERIFY + GSC — CHỜ P1`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -226,6 +226,38 @@ pnpm dev
 - **Runtime logs preview:** không thấy `Date.now` / `NEXT_STATIC_GEN_BAILOUT` / `Error` trong cửa sổ kiểm tra.
 - **Chưa promote production.**
 
+### 3.3. Deploy Production + GSC (2026-10-30)
+
+- **Merge:** `seo/p0-fixes` → `main` fast-forward, push `66b05f2..6016324`.
+- **Production deployment:** `dpl_8KVk8m3AZ76UeoC4YaTm6HSGh5SY`, commit `6016324`, trạng thái **Ready** lúc `9:13:43 GMT+7 30/10/2026`.
+- **Domain:** `https://sansale247.io.vn` đã gán deployment mới.
+- **Kết quả curl production:**
+
+| URL | Kết quả |
+|---|---|
+| `/` | 200 |
+| `/ma/does-not-exist-123` | **404** |
+| `/ma/00000000-0000-4000-8000-000000000000` | **404** |
+| `/ma/9a648a78-4522-4cf8-81b7-c5a0cc336945` | 200 |
+| `/blog/does-not-exist-123` | **404** |
+| `/blog/so-sanh-gia-shopee-lazada-tiki` | **404** |
+| `/blog/stack-voucher-shopee-3-lop` | 200 |
+| `/san/tiktok-shop` | **301** → `/tim-kiem?merchant=tiktokshop` |
+| `/danh-muc/sach` | **301** → `/tim-kiem?cate=sach` |
+| `/ma-giam-gia` | **301** → `/tim-kiem` |
+| `/gioi-thieu` | **410** |
+| `/sitemap.xml` | 200 |
+
+- **404 body:** `robots: noindex, follow`, title `Không tìm thấy trang`.
+- **Runtime logs production:** không có `Date.now` / `NEXT_STATIC_GEN_BAILOUT` / `Error` trong cửa sổ kiểm tra.
+- **GSC:**
+  - Sitemap `/sitemap.xml`: bấm Submit lại → **"Sitemap submitted successfully"**.
+  - `/`: **Page is indexed**; đã **Request indexing**.
+  - `/blog/stack-voucher-shopee-3-lop`: **Discovered — currently not indexed**; đã **Request indexing**.
+  - `/ma/9a648a78-4522-4cf8-81b7-c5a0cc336945`: **Discovered — currently not indexed**; đã **Request indexing**.
+  - `/san/tiktok-shop`: **Page is indexed**; đã **Request indexing** để Google thấy 301.
+  - `/gioi-thieu`: live test **"Page cannot be indexed: Not found (404)"**; request indexing bị từ chối (đúng, vì URL đã 410). Google sẽ tự loại khi recrawl.
+
 ---
 
 ## 4. P1 — sau khi P0 ổn định
@@ -339,6 +371,8 @@ git -C D:\web switch backup/pre-seo-20261030
 | 1 | `f51c778` | `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `proxy.ts` | Real 404 cho blog/deal; 301/410 legacy URLs | `tsc`, `lint`, `build`, curl matrix | Hoàn tất (local) |
 | 2 | `585791e` | `proxy.ts`, `app/ma/[id]/page.tsx`, `lib/coupons/dealExists.ts` | Proxy chặn deal/blog không tồn tại → 404 thật; `connection()` bỏ Date.now bailout; safe decode path malformed | `tsc`, `lint`, `build`, `pnpm start` + curl matrix, log check | Hoàn tất (local) |
 | 3 | — | `report.md` | Ghi nhận kết quả verify Vercel Preview | Preview deployment `dpl_Gn4h2awtkEBjFjrCZ3jtFpSv4kfr` + matrix 404/301/410 | Hoàn tất (preview) |
+| 4 | `6016324` | merge `seo/p0-fixes` → `main` | Deploy production P0 | Production `dpl_8KVk8m3AZ76UeoC4YaTm6HSGh5SY` + curl matrix 404/301/410, không còn log `Date.now` | Hoàn tất (production) |
+| 5 | — | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

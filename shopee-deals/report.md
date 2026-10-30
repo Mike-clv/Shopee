@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P0 ĐÃ CODE + VERIFY LOCAL — CHƯA PUSH/DEPLOY`
+- **Trạng thái:** `P0 ĐÃ CODE + VERIFY LOCAL (2 vòng fix) — CHƯA PUSH/DEPLOY`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -164,10 +164,13 @@ pnpm dev
 - `app/blog/[slug]/page.tsx`
 - `app/ma/[id]/page.tsx`
 - `proxy.ts`
+- `lib/coupons/dealExists.ts` (mới)
 
 **Thay đổi chính:**
-- Blog: slug không tồn tại → `notFound()` trước Suspense; metadata `robots: noindex`; slug cũ/random trả **404** thật.
-- Deal: `UUID_RE` chặn id sai định dạng; `getActiveDealByIdUncached` kiểm tra tồn tại trước khi render; id không phải UUID trả **404** thật.
+- Blog: proxy chặn slug không tồn tại trước khi render → **404** thật; metadata `robots: noindex` vẫn là fallback.
+- Deal: proxy kiểm tra UUID + tồn tại/active trong DB trước khi render → **404** thật, kể cả UUID hợp lệ nhưng không tồn tại. Page vẫn kiểm tra lại và dùng `connection()` trước lookup để tránh PGlite chạy trong prerender.
+- Bỏ `generateStaticParams` một-deal và thêm `connection()`: loại bỏ log `Date.now()` / `NEXT_STATIC_GEN_BAILOUT`; route vẫn partial prerender nhưng không còn lỗi.
+- `safeDecode()` cho path malformed: `/ma/%E0%A4%A` trả **404** thay vì 500.
 - Legacy routing trong `proxy.ts`:
   - `/san/*` → `/tim-kiem?merchant=*` (301)
   - `/danh-muc` → `/tim-kiem` (301)
@@ -175,17 +178,17 @@ pnpm dev
   - `/ma-giam-gia` → `/tim-kiem` (301)
   - `/ma-giam-gia/:slug` → `/tim-kiem?q=:slug` (301)
   - 6 URL nội dung/tool cũ → **410** kèm trang HTML thân thiện, `noindex`.
-- `generateStaticParams` cho `/ma/[id]` trả 1 deal thật (Cache Components yêu cầu ít nhất 1 param); route còn lại chạy dynamic.
 
-**Kiểm chứng local (sau build):**
+**Kiểm chứng local (sau build, `pnpm start`):**
 | URL | Kết quả |
 |---|---|
 | `/blog/does-not-exist-123` | 404 |
 | `/blog/so-sanh-gia-shopee-lazada-tiki` (slug cũ) | 404 |
 | `/blog/stack-voucher-shopee-3-lop` | 200 |
 | `/ma/does-not-exist-123` | 404 |
-| `/ma/00000000-0000-4000-8000-000000000000` | 200 + `noindex` (edge case; xem ghi chú) |
-| `/ma/9a648a78-4522-4cf8-81b7-c5a0cc336945` | 200 |
+| `/ma/00000000-0000-4000-8000-000000000000` | **404** |
+| `/ma/%E0%A4%A` (malformed) | 404 |
+| `/ma/23673e68-3fde-4ae0-a73f-6abde0583cba` (deal local) | 200 |
 | `/san/tiktok-shop` | 301 → `/tim-kiem?merchant=tiktokshop` |
 | `/danh-muc/sach` | 301 → `/tim-kiem?cate=sach` |
 | `/ma-giam-gia`, `/ma-giam-gia/abc` | 301 → `/tim-kiem` |
@@ -194,8 +197,10 @@ pnpm dev
 
 - `pnpm exec tsc --noEmit` — pass.
 - `pnpm lint` — pass.
-- `pnpm build` — pass; 18/18 static pages; `/ma/[id]` dynamic + 1 static deal; `/blog/[slug]` partial.
-- **Ghi chú edge case:** UUID hợp lệ nhưng không tồn tại vẫn trả 200 kèm `noindex` + nội dung 404 (không phải 404 HTTP). Đây là giới hạn của Next 16.4.3 + Cache Components; không ảnh hưởng các URL legacy đang được Google index (đều không phải UUID hoặc đã 301/410).
+- `pnpm build` — pass; 17/17 static pages; `/ma/[id]` partial prerender; `/blog/[slug]` partial.
+- `pnpm start` + curl matrix: **không còn** log `Date.now()` / `NEXT_STATIC_GEN_BAILOUT`; không có lỗi `URIError`.
+- **Chưa verify trên Vercel preview:** proxy giờ đọc DB để chặn 404; cần deploy preview xác nhận Node runtime + `DATABASE_URL` hoạt động trước khi promote production.
+- **Chưa deploy/push.** Cần deploy preview và kiểm tra lại trên preview trước khi promote production.
 
 ---
 
@@ -308,6 +313,7 @@ git -C D:\web switch backup/pre-seo-20261030
 |---|---|---|---|---|---|
 | 0 | `2c6f29b` | `report.md` | Baseline + kế hoạch P0 + checklist P1 + quyết định `.net`/GSC | `git show --stat 2c6f29b` | Hoàn tất |
 | 1 | `f51c778` | `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `proxy.ts` | Real 404 cho blog/deal; 301/410 legacy URLs | `tsc`, `lint`, `build`, curl matrix | Hoàn tất (local) |
+| 2 | `585791e` | `proxy.ts`, `app/ma/[id]/page.tsx`, `lib/coupons/dealExists.ts` | Proxy chặn deal/blog không tồn tại → 404 thật; `connection()` bỏ Date.now bailout; safe decode path malformed | `tsc`, `lint`, `build`, `pnpm start` + curl matrix, log check | Hoàn tất (local) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

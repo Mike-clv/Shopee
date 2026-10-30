@@ -1,4 +1,9 @@
 import type { Merchant } from "@/lib/site";
+import {
+  MERCHANT_EXTRA_FAQS,
+  MERCHANT_SECTIONS,
+  type LandingSection,
+} from "./merchant-sections";
 
 export type LandingFaq = { question: string; answer: string };
 
@@ -8,6 +13,7 @@ export type MerchantLanding = {
   description: string;
   intro: string[];
   highlights: string[];
+  sections: LandingSection[];
   faqs: LandingFaq[];
 };
 
@@ -23,7 +29,7 @@ export type CategoryLanding = {
  * and JSON-LD stay in sync. Claims stay factual: we aggregate public/partner
  * offers, we do not sell or fulfil orders.
  */
-export const MERCHANT_LANDING: Record<Merchant, MerchantLanding> = {
+const BASE_MERCHANT_LANDING: Record<Merchant, Omit<MerchantLanding, "sections">> = {
   shopee: {
     slug: "shopee",
     title: "Mã giảm giá Shopee hôm nay",
@@ -424,6 +430,21 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     ],
   },
 };
+
+/**
+ * Merchant landing pages combine the hand-written base copy with the long-form
+ * sections and extra FAQs kept in merchant-sections.ts.
+ */
+export const MERCHANT_LANDING = Object.fromEntries(
+  (Object.keys(BASE_MERCHANT_LANDING) as Merchant[]).map((slug) => [
+    slug,
+    {
+      ...BASE_MERCHANT_LANDING[slug],
+      sections: MERCHANT_SECTIONS[slug],
+      faqs: [...BASE_MERCHANT_LANDING[slug].faqs, ...MERCHANT_EXTRA_FAQS[slug]],
+    },
+  ]),
+) as Record<Merchant, MerchantLanding>;
 
 export function getMerchantLanding(slug: string): MerchantLanding | undefined {
   return (MERCHANT_LANDING as Record<string, MerchantLanding>)[slug];

@@ -6,6 +6,7 @@ import { CouponCard } from "@/lib/components/CouponCard";
 import type { BlogPost } from "@/lib/blog/posts";
 import type { CouponDeal } from "@/lib/db/schema";
 import type { LandingFaq } from "@/lib/landing/content";
+import type { LandingSection } from "@/lib/landing/merchant-sections";
 
 type Crumb = { label: string; href?: string };
 
@@ -15,6 +16,7 @@ export function LandingPage({
   description,
   intro,
   highlights,
+  sections,
   stats,
   deals,
   faqs,
@@ -31,6 +33,7 @@ export function LandingPage({
   description: string;
   intro: string[];
   highlights: string[];
+  sections?: LandingSection[];
   stats: Array<{ label: string; value: string }>;
   deals: CouponDeal[];
   faqs: LandingFaq[];
@@ -74,10 +77,10 @@ export function LandingPage({
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink/55">
             {description}
           </p>
-          <dl className="mt-6 grid max-w-2xl grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+          <dl className="mt-6 grid max-w-2xl grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line">
             {stats.map((stat) => (
-              <div key={stat.label} className="bg-white px-4 py-3">
-                <dt className="text-[10px] font-medium tracking-wide text-ink/40 uppercase">
+              <div key={stat.label} className="bg-white px-3 py-3 sm:px-4">
+                <dt className="min-h-[30px] text-[10px] font-medium tracking-wide text-ink/40 uppercase">
                   {stat.label}
                 </dt>
                 <dd className="mt-0.5 font-display text-lg font-bold text-ink">{stat.value}</dd>
@@ -112,6 +115,37 @@ export function LandingPage({
               ))}
             </ul>
           </section>
+
+          {sections?.map((section) => (
+            <section
+              key={section.title}
+              className="rounded-2xl border border-line bg-white p-5 sm:p-6"
+            >
+              <h2 className="font-display text-xl font-bold tracking-tight text-ink">
+                {section.title}
+              </h2>
+              <div className="mt-3 space-y-3">
+                {section.paragraphs.map((paragraph, index) => (
+                  <p key={index} className="text-[14.5px] leading-7 text-ink/65">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+              {section.bullets && section.bullets.length > 0 && (
+                <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                  {section.bullets.map((item) => (
+                    <li key={item} className="flex gap-2.5 text-sm leading-6 text-ink/60">
+                      <span
+                        aria-hidden
+                        className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand/60"
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
 
           <section aria-labelledby="landing-deals-heading">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">

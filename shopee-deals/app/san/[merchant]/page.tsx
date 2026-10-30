@@ -84,6 +84,18 @@ export default async function MerchantLandingPage(
           acceptedAnswer: { "@type": "Answer", text: faq.answer },
         })),
       },
+      {
+        "@type": "ItemList",
+        "@id": `${url}#deals`,
+        name: `Deal ${label} đang hoạt động`,
+        numberOfItems: deals.length,
+        itemListElement: deals.map((deal, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: deal.title,
+          url: `${siteUrl()}/ma/${deal.id}`,
+        })),
+      },
     ],
   };
 
@@ -101,6 +113,7 @@ export default async function MerchantLandingPage(
         description={landing.description}
         intro={landing.intro}
         highlights={landing.highlights}
+        sections={landing.sections}
         stats={[
           { label: "Deal đang hoạt động", value: total.toLocaleString("vi-VN") },
           { label: "Danh mục", value: topCategories.length.toString() },

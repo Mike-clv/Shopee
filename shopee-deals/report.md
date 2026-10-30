@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P2 ĐÃ DEPLOY PRODUCTION — GSC SITEMAP ĐÃ SUBMIT LẠI; UI MOBILE FOOTER + BACK TO TOP ĐÃ VERIFY LOCAL, CHỜ DUYỆT`
+- **Trạng thái:** `P2 ĐÃ DEPLOY PRODUCTION — GSC SITEMAP ĐÃ SUBMIT LẠI; UI MOBILE FOOTER + BACK TO TOP ĐÃ DEPLOY PRODUCTION`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -564,7 +564,8 @@ pnpm dev
 - Thêm padding bottom cho footer mobile để nút không che copyright khi ở cuối trang.
 - Verify local: `tsc` PASS, `lint` PASS, `build` PASS (57 static pages); Playwright 390×844 và 360×800 không overflow ngang (`scrollWidth` 350/360); click nút → `scrollY = 0`; desktop footer vẫn `display: flex`.
 - Preview: branch `ui/mobile-footer-back-to-top` đã push; Vercel preview `dpl_HsEohS7kD5F5V2vEWZo6zvpYHRhA` Ready, alias `https://shopee-git-ui-mobile-footer-back-to-top-mamoru09s-projects.vercel.app`; HTML preview có markup nút Back to top + class footer mới.
-- **Chưa deploy production** — chờ anh duyệt.
+- **Đã deploy production:** merge `ui/mobile-footer-back-to-top` → `main` bằng merge commit `10be144`, push `6aca3a5..10be144`; Vercel production `dpl_EjYakkT9occweZZYkodhGQuYRCVZ` Ready, alias `https://sansale247.io.vn` + `https://www.sansale247.io.vn`.
+- Verify production: `/`, `/blog`, `/san/shopee`, `/danh-muc/voucher` → 200; HTML có markup Back to top + class footer mới; Playwright 390×844 không overflow ngang, cuộn xuống đáy rồi click nút → `scrollY = 0`, `aria-hidden="true"`.
 
 ---
 
@@ -608,7 +609,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 17 | `822e6b7` | `lib/blog/posts.ts`, `lib/components/LandingPage.tsx`, `app/blog/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/ma/[id]/page.tsx` | Thêm 6 bài blog P2; internal link deal → blog → landing | `tsc`, `lint`, `build`; 10 blog + 8 landing + 5 deal page 200; sitemap local 823 URL (+6 blog); 404/301/410 giữ nguyên | Hoàn tất (local, chờ duyệt deploy) |
 | 18 | - | `report.md` | Ghi nhận verify preview P2 | Preview `dpl_5eeEmRj6Xu3WNsYWwckLnibNj9YV`; 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng | Hoàn tất (preview, chờ duyệt production) |
 | 19 | `685ede2` | merge `seo/p2-growth` → `main`; `report.md` | Deploy production P2 + GSC | Production `dpl_DqRHqTLUtViKcYTRTeXui6qdysDs`; 30/30 P1 + 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng; GSC sitemap submitted | Hoàn tất (production) |
-| 20 | `8a03429` | `app/layout.tsx`, `lib/components/BackToTop.tsx` | Footer mobile grid 2 cột + nút Back to top; giữ desktop flex | `tsc`, `lint`, `build`; Playwright 390×844 + 360×800; không overflow ngang; click → `scrollY=0`; desktop flex; preview `dpl_HsEohS7kD5F5V2vEWZo6zvpYHRhA` Ready | Hoàn tất (preview, chờ duyệt production) |
+| 20 | `8a03429` + `10be144` | `app/layout.tsx`, `lib/components/BackToTop.tsx` | Footer mobile grid 2 cột + nút Back to top; giữ desktop flex | `tsc`, `lint`, `build`; Playwright 390×844 + 360×800; không overflow ngang; click → `scrollY=0`; desktop flex; preview `dpl_HsEohS7kD5F5V2vEWZo6zvpYHRhA` Ready; production `dpl_EjYakkT9occweZZYkodhGQuYRCVZ` Ready, 4 route 200, nút hoạt động trên domain thật | Hoàn tất (production) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

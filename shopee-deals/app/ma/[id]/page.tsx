@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { CopyButton } from "@/lib/components/CopyButton";
 import { CouponCard } from "@/lib/components/CouponCard";
 import { DealImage } from "@/lib/components/DealImage";
 import {
   getActiveDealByIdUncached,
-  listActiveDeals,
   listRelatedDeals,
 } from "@/lib/coupons/data";
 import type { CouponDeal } from "@/lib/db/schema";
@@ -28,16 +28,9 @@ import {
 } from "lucide-react";
 import { FlashCountdown } from "@/lib/components/FlashCountdown";
 
-// Allow params + the deal lookup to resolve before streaming so a missing id
-// returns a real 404 instead of a 200 soft-404.
+// `connection()` below forces request-time rendering before the lookup, so a
+// missing deal returns a real 404 instead of a streamed 200 soft-404.
 export const instant = false;
-
-// Cache Components requires at least one static param. One real deal is enough
-// to keep unknown ids on the blocking route instead of a partial shell.
-export async function generateStaticParams(): Promise<{ id: string }[]> {
-  const deals = await listActiveDeals({ limit: 1 });
-  return deals.map((deal) => ({ id: deal.id }));
-}
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -46,19 +39,10 @@ export async function generateMetadata(
   props: PageProps<"/ma/[id]">,
 ): Promise<Metadata> {
   const { id } = await props.params;
-  if (!UUID_RE.test(id)) {
-    return {
-      title: "Mã không tồn tại",
-      robots: { index: false, follow: false },
-    };
-  }
+  await connection();
+  if (!UUID_RE.test(id)) notFound();
   const deal = await getActiveDealByIdUncached(id);
-  if (!deal) {
-    return {
-      title: "Mã không tồn tại",
-      robots: { index: false, follow: false },
-    };
-  }
+  if (!deal) notFound();
   const title = truncateVi(deal.title, 60);
   return {
     title,
@@ -76,6 +60,7 @@ export default async function DealDetailPage(
   props: PageProps<"/ma/[id]">,
 ) {
   const { id } = await props.params;
+  await connection();
   if (!UUID_RE.test(id)) notFound();
   const deal = await getActiveDealByIdUncached(id);
   if (!deal) notFound();

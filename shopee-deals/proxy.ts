@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getPost } from "@/lib/blog/posts";
+import { activeDealExists } from "@/lib/coupons/dealExists";
 
 /**
  * Global security headers + legacy SEO routing.
@@ -40,7 +42,18 @@ const MERCHANT_ALIASES: Record<string, string> = {
   "tiktok-shop": "tiktokshop",
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const KNOWN_MERCHANTS = new Set(["shopee", "tiki", "lazada", "tiktokshop"]);
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 
 /**
  * Map old, still-indexed URLs to the closest page that exists today.
@@ -53,7 +66,7 @@ function legacyRedirectTarget(pathname: string): string | null {
 
   const merchantMatch = pathname.match(/^\/san\/([^/]+)$/);
   if (merchantMatch) {
-    const requested = decodeURIComponent(merchantMatch[1]);
+    const requested = safeDecode(merchantMatch[1]);
     const merchant = MERCHANT_ALIASES[requested] ?? requested;
     return KNOWN_MERCHANTS.has(merchant)
       ? `/tim-kiem?merchant=${encodeURIComponent(merchant)}`
@@ -62,15 +75,52 @@ function legacyRedirectTarget(pathname: string): string | null {
 
   const categoryMatch = pathname.match(/^\/danh-muc\/([^/]+)$/);
   if (categoryMatch) {
-    return `/tim-kiem?cate=${encodeURIComponent(decodeURIComponent(categoryMatch[1]))}`;
+    return `/tim-kiem?cate=${encodeURIComponent(safeDecode(categoryMatch[1]))}`;
   }
 
   const legacyDealMatch = pathname.match(/^\/ma-giam-gia\/([^/]+)$/);
   if (legacyDealMatch) {
-    return `/tim-kiem?q=${encodeURIComponent(decodeURIComponent(legacyDealMatch[1]))}`;
+    return `/tim-kiem?q=${encodeURIComponent(safeDecode(legacyDealMatch[1]))}`;
   }
 
   return null;
+}
+
+function notFoundResponse(): NextResponse {
+  const html = `<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, follow">
+  <title>Không tìm thấy trang — Mã Giảm Giá Đa Sàn</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f7f5f2; color: #1f2937; font: 16px/1.6 system-ui, sans-serif; }
+    main { max-width: 34rem; padding: 2rem; text-align: center; }
+    h1 { margin: 0 0 .75rem; font-size: 1.75rem; }
+    p { margin: 0 0 1.5rem; color: #4b5563; }
+    a { display: inline-block; margin: .25rem; padding: .7rem 1rem; border-radius: .5rem; background: #e85d04; color: #fff; text-decoration: none; font-weight: 600; }
+    a.secondary { background: #fff; color: #e85d04; border: 1px solid #e85d04; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Không tìm thấy trang</h1>
+    <p>Trang này không tồn tại hoặc đã được gỡ. Anh/chị có thể xem deal mới hoặc tìm mã khác đang chạy.</p>
+    <a href="/">Về trang chủ</a>
+    <a class="secondary" href="/tim-kiem">Tìm mã giảm giá</a>
+  </main>
+</body>
+</html>`;
+
+  return new NextResponse(html, {
+    status: 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=60",
+    },
+  });
 }
 
 function goneResponse(): NextResponse {
@@ -143,13 +193,31 @@ function withSecurityHeaders(
   return response;
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const normalized =
     pathname !== "/" ? pathname.replace(/\/+$/, "") : pathname;
 
   if (LEGACY_GONE.has(normalized)) {
     return withSecurityHeaders(goneResponse(), request);
+  }
+
+  // Reject malformed or missing deal ids before the page renders. The page
+  // still loads the full row; this early check is what makes a missing valid
+  // UUID a real 404 instead of a streamed 200 + noindex error shell.
+  const dealMatch = normalized.match(/^\/ma\/([^/]+)$/);
+  if (dealMatch) {
+    const id = safeDecode(dealMatch[1]);
+    if (!UUID_RE.test(id) || !(await activeDealExists(id))) {
+      return withSecurityHeaders(notFoundResponse(), request);
+    }
+  }
+
+  // Same reason as deals: reject an unknown blog slug before the PPR shell
+  // can flush a 200. The post list is static, so this is a cheap lookup.
+  const blogMatch = normalized.match(/^\/blog\/([^/]+)$/);
+  if (blogMatch && !getPost(safeDecode(blogMatch[1]))) {
+    return withSecurityHeaders(notFoundResponse(), request);
   }
 
   const redirectTarget = legacyRedirectTarget(normalized);

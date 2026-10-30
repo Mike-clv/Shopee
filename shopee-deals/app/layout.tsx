@@ -58,7 +58,13 @@ export const metadata: Metadata = {
   // Versioned URL forces browsers (Chrome favicon cache) to re-fetch the icon
   // after brand changes. Bump v= when the icon artwork changes.
   icons: {
-    icon: [{ url: "/icon.svg?v=2", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg?v=2", type: "image/svg+xml" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
@@ -76,7 +82,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         "@id": `${base}/#organization`,
         name: SITE.name,
         url: base,
-        logo: `${base}/icon.svg`,
+        logo: `${base}/icon-512x512.png`,
         email: SITE.contactEmail,
       },
       {

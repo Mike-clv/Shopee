@@ -17,6 +17,7 @@ import {
 import { CouponCard } from "@/lib/components/CouponCard";
 import { CouponGridSkeleton } from "@/lib/components/CouponGridSkeleton";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
+import { SearchAnalytics } from "@/lib/components/SearchAnalytics";
 import { searchDeals, listTopCategories, countSearchDeals, type SearchSort } from "@/lib/coupons/data";
 import { SITE, isKnownMerchant, merchantLabel } from "@/lib/site";
 import { truncateVi } from "@/lib/utils";
@@ -121,6 +122,10 @@ export default function SearchPage(props: PageProps<"/tim-kiem">) {
           ))}
         </div>
       </header>
+
+      <Suspense fallback={null}>
+        <SearchAnalytics />
+      </Suspense>
 
       <Suspense fallback={<div className="shimmer h-[64px] rounded-lg border border-line bg-white" />}>
         <SearchForm searchParams={props.searchParams} />

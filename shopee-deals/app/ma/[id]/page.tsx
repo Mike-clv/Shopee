@@ -6,6 +6,8 @@ import { BlogCard } from "@/lib/components/BlogCard";
 import { CopyButton } from "@/lib/components/CopyButton";
 import { CouponCard } from "@/lib/components/CouponCard";
 import { DealImage } from "@/lib/components/DealImage";
+import { DealViewTracker } from "@/lib/components/DealViewTracker";
+import { TrackedAffiliateLink } from "@/lib/components/TrackedAffiliateLink";
 import { postsForDeal } from "@/lib/blog/posts";
 import {
   getActiveDealByIdUncached,
@@ -119,6 +121,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
 
   return (
     <article className="py-6">
+      <DealViewTracker dealId={deal.id} merchant={deal.merchant} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -299,13 +302,22 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
             </div>
             {deal.code ? (
               <div className="mt-2">
-                <CopyButton code={deal.code} goPath={`/go/${deal.id}`} />
+                <CopyButton
+                  code={deal.code}
+                  goPath={`/go/${deal.id}`}
+                  dealId={deal.id}
+                  merchant={deal.merchant}
+                  placement="deal_detail"
+                />
               </div>
             ) : (
-              <a
+              <TrackedAffiliateLink
                 href={`/go/${deal.id}`}
                 target="_blank"
                 rel="noopener nofollow"
+                dealId={deal.id}
+                merchant={deal.merchant}
+                placement="deal_detail"
                 className="group/cta mt-2 flex items-center justify-center gap-1.5 rounded-full bg-brand px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-brand-dark"
               >
                 Nhận ưu đãi tại website
@@ -313,7 +325,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
                   className="h-4 w-4 transition-transform group-hover/cta:translate-x-0.5"
                   aria-hidden
                 />
-              </a>
+              </TrackedAffiliateLink>
             )}
             <ol className="mt-3 grid gap-1.5 text-[11px] leading-relaxed text-ink/50">
               <li className="flex items-start gap-1.5">

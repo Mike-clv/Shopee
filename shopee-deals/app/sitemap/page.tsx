@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, FileText, Map, Store, Tag } from "lucide-react";
+import { ChevronRight, CalendarDays, FileText, Map, Store, Tag } from "lucide-react";
 import { BLOG_POSTS } from "@/lib/blog/posts";
 import { CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { listActiveDeals } from "@/lib/coupons/data";
+import { SALE_EVENT_LANDINGS } from "@/lib/events/content";
 import { LEGAL_PAGES } from "@/lib/legal/content";
 import { OG_IMAGE } from "@/lib/seo";
 import { SITE, merchantLabel } from "@/lib/site";
@@ -96,6 +97,19 @@ export default async function HtmlSitemapPage() {
               { href: "/ve-chung-toi", label: "Về Sansale247" },
               { href: "/lien-he", label: "Liên hệ" },
             ]}
+          />
+        </section>
+
+        <section>
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-ink">
+            <CalendarDays className="h-4 w-4 text-brand" aria-hidden />
+            Sự kiện sale
+          </h2>
+          <LinkList
+            links={SALE_EVENT_LANDINGS.map((event) => ({
+              href: `/su-kien/${event.slug}`,
+              label: event.badge,
+            }))}
           />
         </section>
 

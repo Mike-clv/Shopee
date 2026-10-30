@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { listActiveDeals } from "@/lib/coupons/data";
 import { BLOG_POSTS } from "@/lib/blog/posts";
 import { CATEGORY_SLUGS } from "@/lib/categories";
+import { SALE_EVENT_LANDINGS } from "@/lib/events/content";
 import { LEGAL_PAGES } from "@/lib/legal/content";
 import { SITE, siteUrl } from "@/lib/site";
 
@@ -21,6 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}/danh-muc/${slug}`,
       changeFrequency: "daily" as const,
       priority: 0.6,
+    })),
+    ...SALE_EVENT_LANDINGS.map((event) => ({
+      url: `${base}/su-kien/${event.slug}`,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
     })),
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${base}/sitemap`, changeFrequency: "monthly", priority: 0.2 },

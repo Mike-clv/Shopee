@@ -117,7 +117,7 @@ export const SALE_EVENTS: SaleEvent[] = [
     badge: "SALE 11.11",
     title: "Cơn bão deal 11/11",
     subtitle: "Sale lớn nhất năm — mã sàn, mã shop, điểm x2",
-    href: "/tim-kiem",
+    href: "/su-kien/11-11",
     icon: BadgePercent,
     gradient: "bg-gradient-to-br from-[#c026d3] to-[#701a75]",
   },

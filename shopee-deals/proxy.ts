@@ -40,6 +40,13 @@ const LEGACY_GONE = new Set([
   "/tinh-tra-gop",
 ]);
 
+/**
+ * Old sections that Google indexed as individual pages. Their parent paths
+ * already return 410; nested URLs must do the same instead of falling through
+ * to a plain 404, so crawlers drop them immediately.
+ */
+const LEGACY_GONE_PREFIXES = ["/quan-tam/", "/thuong-hieu/"];
+
 const MERCHANT_ALIASES: Record<string, string> = {
   "tiktok-shop": "tiktokshop",
 };
@@ -68,6 +75,12 @@ function legacyRedirectTarget(pathname: string): string | null {
     pathname === "/san"
   ) {
     return "/tim-kiem";
+  }
+
+  // The old legal page predates the /chinh-sach/ structure and still has
+  // indexed links. Point it at the current terms page instead of a 404.
+  if (pathname === "/dieu-khoan") {
+    return "/chinh-sach/dieu-khoan-su-dung";
   }
 
   // Merchant/category landing pages are real routes now. Only the historical
@@ -203,7 +216,10 @@ export async function proxy(request: NextRequest) {
   const normalized =
     pathname !== "/" ? pathname.replace(/\/+$/, "") : pathname;
 
-  if (LEGACY_GONE.has(normalized)) {
+  if (
+    LEGACY_GONE.has(normalized) ||
+    LEGACY_GONE_PREFIXES.some((prefix) => normalized.startsWith(prefix))
+  ) {
     return withSecurityHeaders(goneResponse(), request);
   }
 

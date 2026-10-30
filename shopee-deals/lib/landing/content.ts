@@ -1,4 +1,6 @@
 import type { Merchant } from "@/lib/site";
+import { categoryFromSlug } from "@/lib/categories";
+import { CATEGORY_EXTRA_FAQS, CATEGORY_SECTIONS } from "./category-sections";
 import {
   MERCHANT_EXTRA_FAQS,
   MERCHANT_SECTIONS,
@@ -22,6 +24,8 @@ export type CategoryLanding = {
   description: string;
   intro: string[];
   highlights: string[];
+  sections: LandingSection[];
+  faqs: LandingFaq[];
 };
 
 /**
@@ -188,7 +192,7 @@ const BASE_MERCHANT_LANDING: Record<Merchant, Omit<MerchantLanding, "sections">>
  * Landing copy for /danh-muc/[slug]. Each category gets a distinct angle so
  * the pages are not thin duplicates of the search filter.
  */
-export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
+const BASE_CATEGORY_LANDING: Record<string, Omit<CategoryLanding, "sections" | "faqs">> = {
   freeship: {
     title: "Deal freeship & mã miễn phí vận chuyển",
     description:
@@ -196,6 +200,7 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Freeship là một trong những yếu tố quyết định khi mua online, nhất là với đơn giá trị nhỏ. Trang này tổng hợp các mã và deal có ưu đãi vận chuyển đang được ghi nhận.",
       "Điều kiện freeship thường phụ thuộc giá trị đơn tối thiểu, khu vực giao hàng, đơn vị vận chuyển và hạn mức của từng tài khoản. Hãy kiểm tra ở bước thanh toán vì chương trình có thể kết thúc trước thời hạn ghi trên website.",
+      "Khi so sánh các ưu đãi vận chuyển, hãy nhìn tổng chi phí thay vì chỉ nhìn nhãn miễn phí ship. Một đơn hàng có thể được giảm một phần phí giao nhưng lại cộng thêm phụ thu cân nặng hoặc phụ phí khu vực, khiến số tiền cuối cùng cao hơn dự kiến. Ngược lại, món nhỏ và nhẹ thường hưởng lợi rõ hơn từ mã freeship vì phí ship chiếm tỷ trọng lớn trong tổng giá. Hãy thử đặt cùng một giỏ hàng với hai địa chỉ khác nhau nếu bạn có nhu cầu giao đến nơi khác, và kiểm tra thời gian giao dự kiến bên cạnh mức phí. Với đơn cần dùng gấp, đừng đánh đổi thời gian chỉ để tiết kiệm vài chục nghìn đồng.",
     ],
     highlights: [
       "Mã freeship và voucher miễn phí vận chuyển",
@@ -211,6 +216,8 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Bách hóa và ăn vặt là nhóm hàng mua lặp lại, nên giá trị đơn và phí ship ảnh hưởng lớn đến tổng chi phí. Trang này gom các deal đang giảm giá để bạn dễ so sánh.",
       "Với thực phẩm, hãy kiểm tra hạn sử dụng, điều kiện bảo quản và nguồn gốc trên trang đích. Website chỉ tổng hợp thông tin khuyến mãi, không bán hoặc vận chuyển hàng.",
+      "Khi mua thực phẩm online, hãy đọc kỹ mô tả về khối lượng, thành phần và điều kiện bảo quản. Với hàng đông lạnh hoặc dễ hỏng, hãy hỏi người bán về thời gian giao và cách giữ nhiệt; thời gian giao dài có thể làm giảm chất lượng dù bao bì còn nguyên. Nếu mua số lượng lớn, hãy tính theo giá trên mỗi kg hoặc mỗi phần để so sánh, thay vì chỉ nhìn giá gói. Kiểm tra hạn dùng trên từng đơn vị trước khi mở và bảo quản theo hướng dẫn in trên bao bì. Với thực phẩm chức năng hoặc đồ ăn kiêng, hãy tham khảo ý kiến chuyên môn nếu bạn có bệnh lý hoặc đang dùng thuốc.",
+      "Với đồ ăn vặt hoặc nguyên liệu khô, hãy kiểm tra bao bì còn kín và không bị móp rách trước khi mua. Sau khi mở, nên chuyển sang hộp kín nếu gói không có khóa zip và ghi ngày mở để dễ theo dõi. Các món có dầu hoặc hạt rang dễ bị oxy hóa, nên mua lượng vừa đủ dùng trong vài tuần thay vì tích trữ quá lâu.",
     ],
     highlights: [
       "Bánh kẹo, đồ ăn vặt, thực phẩm khô",
@@ -226,6 +233,7 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Mỹ phẩm và skincare là nhóm hàng dễ gặp giá ảo hoặc hàng không rõ nguồn gốc. Trang này tổng hợp deal đang giảm giá, nhưng bạn vẫn nên kiểm tra thương hiệu, date và người bán.",
       "Giá tốt chỉ có ý nghĩa khi sản phẩm phù hợp với da và đúng nhu cầu. Hãy đọc thành phần, hướng dẫn sử dụng và chính sách đổi trả trên trang đích trước khi mua.",
+      "Trước khi mua full size, hãy kiểm tra xem sản phẩm có bán dạng mẫu thử hoặc size nhỏ hay không. Với kem chống nắng, serum hoặc sản phẩm chứa hoạt chất, dùng thử giúp bạn phát hiện kích ứng sớm mà không mất nhiều tiền. Khi nhận hàng, hãy đối chiếu tên, nồng độ, dung tích và mã lô với mô tả; nếu bao bì có dấu hiệu mở lại hoặc tem không khớp, hãy liên hệ người bán trước khi dùng. Bảo quản sản phẩm tránh ánh nắng trực tiếp và hơi ẩm, đặc biệt với công thức chứa vitamin C hoặc retinoid vì các hoạt chất này dễ giảm hiệu quả khi gặp nhiệt độ cao.",
     ],
     highlights: [
       "Skincare, makeup, nước hoa và chăm sóc cá nhân",
@@ -256,6 +264,8 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Sách và văn phòng phẩm thường có mức giảm ổn định hơn hàng thời trang hay điện tử. Trang này gom các đầu sách, giáo trình và đồ dùng học tập đang được giảm giá.",
       "Với sách, bạn nên kiểm tra tên tác giả, nhà xuất bản, phiên bản và tình trạng sản phẩm. Với văn phòng phẩm, hãy chú ý số lượng và thời gian giao hàng nếu cần gấp.",
+      "Với sách, giá trị không chỉ nằm ở giá bìa mà còn ở phiên bản, chất lượng giấy và tình trạng sách. Một cuốn sách cũ còn tốt có thể dùng lâu dài, nhưng sách có ghi chú hoặc thiếu phụ lục có thể không phù hợp để học. Khi mua sách ngoại văn hoặc sách dịch, hãy kiểm tra ngôn ngữ, người dịch và nhà xuất bản; cùng một tựa đề có thể có nhiều bản khác nhau. Nếu mua cho khóa học, hãy đối chiếu ISBN với yêu cầu của giảng viên thay vì chỉ nhìn tên sách. Với sách điện tử, kiểm tra định dạng, quyền đọc offline và số thiết bị được phép sử dụng trước khi mua. Đừng quên cộng phí vận chuyển khi so sánh giá giữa các shop, nhất là với đơn chỉ có một cuốn sách mỏng.",
+      "Trước khi đặt, hãy đọc phần mô tả và vài đánh giá gần đây để biết sách còn seal hay đã qua sử dụng, có kèm bookmark hoặc phụ lục không. Với sách tái bản, hãy so sánh số trang và năm in giữa các shop; chênh lệch giá có thể phản ánh phiên bản khác nhau chứ không phải cùng một cuốn. Nếu mua làm quà, nên chọn shop có đóng gói cẩn thận và hỏi trước về tình trạng bìa.",
     ],
     highlights: [
       "Sách, truyện, giáo trình luyện thi",
@@ -271,6 +281,7 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Điện tử là nhóm hàng có giá trị cao, nên cần kiểm tra kỹ trước khi mua. Trang này tổng hợp deal điện thoại, tai nghe, laptop và phụ kiện đang được giảm giá.",
       "Hãy đối chiếu cấu hình, phiên bản, tình trạng hàng và chính sách bảo hành trên trang đích. Giá rẻ bất thường có thể đi kèm hàng cũ, hàng refub hoặc bảo hành ngắn.",
+      "Trước khi chốt một deal điện tử, hãy so sánh cùng một model và cùng dung lượng giữa các shop. Chênh lệch giá có thể đến từ phụ kiện đi kèm, thời hạn bảo hành hoặc nguồn hàng, không chỉ từ mức giảm. Đọc kỹ phần mô tả để biết máy là bản chính hãng, bản nhập khẩu hay hàng trưng bày; hỏi người bán về tình trạng pin nếu là thiết bị đã qua sử dụng. Khi nhận hàng, hãy kiểm tra serial, kích hoạt máy và thử các chức năng cơ bản trong thời gian đổi trả. Lưu hóa đơn, xác nhận đơn hàng và ảnh tem serial để thuận tiện khi cần bảo hành. Với phụ kiện, chỉ mua sạc và cáp có chứng nhận, đúng công suất của thiết bị.",
     ],
     highlights: [
       "Điện thoại, tablet, laptop, tai nghe",
@@ -286,6 +297,8 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Thời trang là nhóm hàng có nhiều biến thể size và mẫu mã, nên tỷ lệ đổi trả cao hơn. Trang này tổng hợp deal quần áo, giày dép và phụ kiện đang giảm giá.",
       "Trước khi mua, hãy xem bảng size, chất liệu, màu thực tế và chính sách đổi trả. Website không giữ hàng và không xử lý đổi size hoặc hoàn tiền.",
+      "Khi đo cơ thể, hãy mặc đồ mỏng và đứng thẳng, giữ thước dây song song với mặt đất. Đo ngực ở điểm đầy nhất, eo ở chỗ nhỏ nhất và hông ở điểm rộng nhất; ghi lại cả số đo cơ thể và số đo của món đồ đang mặc vừa để so với bảng size. Nếu số đo nằm giữa hai size, hãy chọn theo form sản phẩm: đồ ôm nên chọn size lớn hơn, đồ dáng rộng có thể chọn size nhỏ hơn nếu muốn vừa vặn. Với quần áo co giãn, đừng chọn sát quá vì form có thể thay đổi sau vài lần giặt. Cuối cùng, hãy đọc chính sách đổi trả và phí đổi size trước khi đặt, vì một món giảm giá sâu nhưng không vừa có thể tốn thêm chi phí để đổi.",
+      "Chất liệu và cách hoàn thiện cũng ảnh hưởng đến độ bền sau khi giặt. Với đồ có phối ren, kim tuyến hoặc in hình, nên giặt tay hoặc dùng túi lưới và tránh sấy nhiệt cao. Nếu mua đồ sáng màu, hãy giặt riêng lần đầu để tránh phai sang món khác; đồ tối màu nên lộn trái khi giặt để giữ màu lâu hơn.",
     ],
     highlights: [
       "Quần áo, giày dép, túi xách, phụ kiện",
@@ -301,6 +314,8 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Đồ nhà cửa thường được mua theo nhu cầu từng phòng hoặc từng mùa. Trang này gom các deal đồ bếp, chăn gối, lưu trữ và nội thất nhỏ đang giảm giá.",
       "Hãy kiểm tra kích thước, chất liệu, cách lắp đặt và phí vận chuyển trước khi mua. Với đồ cồng kềnh, phí ship có thể làm mất lợi thế của giá giảm.",
+      "Trước khi mua đồ gia dụng hoặc nội thất, hãy đo cả chỗ đặt và đường đi vào nhà. Một món đồ có thể vừa diện tích sử dụng nhưng không qua được cửa thang máy hoặc hành lang hẹp. Với đồ cần lắp ráp, hãy đọc danh sách phụ kiện và hỏi trước về chi phí lắp đặt; một số sản phẩm chỉ giao hàng, không bao gồm công lắp. Kiểm tra điện áp, công suất và loại phích cắm nếu là thiết bị điện, đặc biệt với hàng nhập khẩu. Khi nhận, hãy kiểm tra ngoại quan, đếm đủ phụ kiện và chụp ảnh trước khi ký. Đồ cồng kềnh thường có phí vận chuyển và phí đổi trả riêng, nên hãy tính các khoản này vào tổng chi phí thay vì chỉ so giá niêm yết.",
+      "Với đồ dùng trong bếp hoặc phòng tắm, hãy kiểm tra chất liệu chịu nhiệt, khả năng chống nước và cách vệ sinh trước khi mua. Những chi tiết nhỏ như đường kính nồi, độ dày đáy hoặc kích thước kệ có thể quyết định món đồ có dùng được với không gian hiện tại hay không. Nếu thuê nhà, hãy ưu tiên món dễ tháo lắp và không cần khoan tường.",
     ],
     highlights: [
       "Đồ bếp, chăn gối, lưu trữ, nội thất nhỏ",
@@ -421,6 +436,7 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     intro: [
       "Voucher và mã giảm giá thay đổi liên tục theo chương trình của từng sàn. Trang này tổng hợp các mã đang được ghi nhận, kèm điều kiện và hạn sử dụng khi có thông tin.",
       "Không phải mã nào cũng áp dụng cho mọi tài khoản hoặc mọi đơn hàng. Hãy đọc kỹ điều kiện và kiểm tra ở bước thanh toán; website không bảo đảm mọi mã còn hiệu lực tại thời điểm bạn mua.",
+      "Đọc voucher theo thứ tự ưu tiên sẽ nhanh hơn: hạn sử dụng, giá trị đơn tối thiểu, danh mục hoặc shop áp dụng, rồi mới đến mức giảm. Nếu mức giảm hấp dẫn nhưng điều kiện không khớp với giỏ hàng, mã đó không có giá trị thực tế. Với mã cần bấm nhận trước, hãy nhận sớm và kiểm tra lại trong mục khuyến mãi của tài khoản; mã đã nhận vẫn có thể hết lượt nếu chương trình giới hạn số lượng. Khi thanh toán, hãy chụp lại màn hình tổng tiền trước và sau khi áp mã để đối chiếu nếu cần hỗ trợ. Đừng chia sẻ mã gắn với tài khoản hoặc mã OTP cho bất kỳ ai.",
     ],
     highlights: [
       "Mã giảm giá và voucher theo sàn",
@@ -430,6 +446,25 @@ export const CATEGORY_LANDING: Record<string, CategoryLanding> = {
     ],
   },
 };
+
+/**
+ * Category hubs combine the base copy with the long-form sections and extra
+ * FAQs written for the eight G1.3 categories. The remaining categories keep
+ * their original copy plus the shared four-question FAQ block.
+ */
+export const CATEGORY_LANDING = Object.fromEntries(
+  Object.entries(BASE_CATEGORY_LANDING).map(([slug, base]) => [
+    slug,
+    {
+      ...base,
+      sections: CATEGORY_SECTIONS[slug] ?? [],
+      faqs: [
+        ...categoryFaqs(categoryFromSlug(slug).label),
+        ...(CATEGORY_EXTRA_FAQS[slug] ?? []),
+      ],
+    },
+  ]),
+) as Record<string, CategoryLanding>;
 
 /**
  * Merchant landing pages combine the hand-written base copy with the long-form

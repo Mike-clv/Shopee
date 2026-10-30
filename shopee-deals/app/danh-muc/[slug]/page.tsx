@@ -6,7 +6,7 @@ import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { postsForCategory } from "@/lib/blog/posts";
 import { CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { countSearchDeals, searchDeals } from "@/lib/coupons/data";
-import { categoryFaqs, getCategoryLanding } from "@/lib/landing/content";
+import { getCategoryLanding } from "@/lib/landing/content";
 import { OG_IMAGE } from "@/lib/seo";
 import { SITE, siteUrl } from "@/lib/site";
 
@@ -65,7 +65,7 @@ export default async function CategoryLandingPage(
   const otherCategories = CATEGORY_SLUGS.filter((item) => item !== slug).slice(0, 8);
 
   const url = `${siteUrl()}/danh-muc/${slug}`;
-  const faqs = categoryFaqs(label);
+  const faqs = landing.faqs;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -99,6 +99,22 @@ export default async function CategoryLandingPage(
           acceptedAnswer: { "@type": "Answer", text: faq.answer },
         })),
       },
+      ...(deals.length > 0
+        ? [
+            {
+              "@type": "ItemList",
+              "@id": `${url}#deals`,
+              name: `Deal ${label} đang hoạt động`,
+              numberOfItems: deals.length,
+              itemListElement: deals.map((deal, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                name: deal.title,
+                url: `${siteUrl()}/ma/${deal.id}`,
+              })),
+            },
+          ]
+        : []),
     ],
   };
 
@@ -116,6 +132,7 @@ export default async function CategoryLandingPage(
         description={landing.description}
         intro={landing.intro}
         highlights={landing.highlights}
+        sections={landing.sections}
         stats={[
           { label: "Deal đang hoạt động", value: total.toLocaleString("vi-VN") },
           { label: "Sàn có deal", value: activeMerchants.length.toString() },

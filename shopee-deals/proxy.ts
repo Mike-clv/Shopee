@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPost } from "@/lib/blog/posts";
 import { activeDealExists } from "@/lib/coupons/dealExists";
+import { getLegalPage } from "@/lib/legal/content";
 
 /**
  * Global security headers + legacy SEO routing.
@@ -217,6 +218,13 @@ export async function proxy(request: NextRequest) {
   // can flush a 200. The post list is static, so this is a cheap lookup.
   const blogMatch = normalized.match(/^\/blog\/([^/]+)$/);
   if (blogMatch && !getPost(safeDecode(blogMatch[1]))) {
+    return withSecurityHeaders(notFoundResponse(), request);
+  }
+
+  // Policy pages are a fixed set. Reject unknown slugs before the PPR shell
+  // so they return a real 404 instead of a streamed 200.
+  const legalMatch = normalized.match(/^\/chinh-sach\/([^/]+)$/);
+  if (legalMatch && !getLegalPage(safeDecode(legalMatch[1]))) {
     return withSecurityHeaders(notFoundResponse(), request);
   }
 

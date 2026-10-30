@@ -8,6 +8,7 @@ import { FEATURED_CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { NavTabs } from "@/lib/components/NavTabs";
 import { getCurrentAdmin } from "@/lib/auth";
+import { TRUST_LINKS } from "@/lib/legal/content";
 import { Search, Settings, Sparkles } from "lucide-react";
 
 const inter = Inter({
@@ -317,7 +318,22 @@ function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-9 flex flex-col gap-2 border-t border-line pt-5 text-xs text-ink/40 sm:flex-row sm:items-center sm:justify-between">
+        <nav
+          aria-label="Thông tin website"
+          className="mt-9 flex flex-wrap gap-x-4 gap-y-2 border-t border-line pt-5 text-xs text-ink/45"
+        >
+          {TRUST_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="transition hover:text-brand"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="mt-4 flex flex-col gap-2 text-xs text-ink/40 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {SITE.name}. Không phải website chính thức của Shopee, Tiki, Lazada hay TikTok Shop.</p>
         </div>
       </div>

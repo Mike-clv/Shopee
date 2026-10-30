@@ -2,11 +2,11 @@
 
 - **Ngày lập:** 2026-10-30
 - **Baseline commit:** `66b05f24a31c6667fb95aeeea59cd8a40cb0475f`
-- **Nhánh làm việc:** `seo/p0-fixes`
+- **Nhánh làm việc:** `seo/p2-growth`
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P1 ĐÃ VERIFY PREVIEW + EMAIL CONTACT@ HOẠT ĐỘNG — CHỜ DUYỆT DEPLOY`
+- **Trạng thái:** `P2 ĐÃ CODE + VERIFY LOCAL — CHỜ DUYỆT DEPLOY PRODUCTION`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -506,9 +506,43 @@ pnpm dev
 
 ## 5. P2 — tăng trưởng
 
-- Thêm bài blog đúng search intent; internal link từ deal page → blog → landing page.
-- Theo dõi GSC: Coverage, Enhancements, Core Web Vitals.
-- Backlink/PR; đo lại thứ hạng theo từ khóa mục tiêu.
+### 5.1. Blog + internal link — đã code local (2026-10-30)
+
+- Thêm **6 bài blog mới** đúng search intent:
+  - `ma-giam-gia-shopee-hom-nay` — cách kiểm tra mã Shopee còn sống trước khi mua.
+  - `voucher-freeship-shopee-khong-ap-duoc` — 6 nguyên nhân voucher freeship không áp dụng được.
+  - `mua-sach-tiki-gia-tot` — so giá và chồng mã khi mua sách Tiki.
+  - `lazada-flash-sale-khung-gio` — khung giờ flash sale Lazada và cách giữ giá.
+  - `tiktok-shop-livestream-gia-that` — khi nào giá livestream TikTok Shop giảm thật.
+  - `chuan-bi-sale-11-11` — 7 việc nên làm trước ngày sale 11.11.
+- Cập nhật **4 bài cũ**: tag và CTA chuyển từ `/tim-kiem` sang landing page `/san/{merchant}` hoặc `/danh-muc/{slug}`.
+- Thêm helper `postsForMerchant`, `postsForCategory`, `postsForDeal` trong `lib/blog/posts.ts`.
+- Landing sàn/danh mục và deal page có thêm mục **“Đọc thêm trước khi mua”**; deal page link merchant/category trỏ về landing page khi xác định được.
+- Luồng internal link đã khép kín: **deal page → blog → landing page**.
+- Verify local:
+  - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` — pass.
+  - `/blog` + 10 bài blog — 200; 6 bài mới render đúng.
+  - 8 landing page (`/san/shopee`, `/san/tiki`, `/san/lazada`, `/san/tiktokshop`, `/danh-muc/freeship`, `/danh-muc/book`, `/danh-muc/beauty`, `/danh-muc/voucher`) — 200, có mục đọc thêm và bài liên quan.
+  - 5 deal page thật — 200, có mục đọc thêm và link blog liên quan.
+  - Sitemap local 823 URL, trong đó 10 URL blog (+6 bài mới). Số URL local thấp hơn production vì DB local ít deal hơn; production dự kiến 910 → 916.
+  - 404/301/410 giữ nguyên: `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123` → 404; `/san`, `/danh-muc`, `/ma-giam-gia` → 301 `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` → 410.
+- Commit code: `822e6b7`.
+- **Chưa deploy production** — chờ anh duyệt.
+
+### 5.2. GSC monitoring
+
+- Sau khi deploy production: submit lại `/sitemap.xml`, request indexing 6 URL blog mới.
+- Theo dõi định kỳ GSC: Coverage, Enhancements, Core Web Vitals.
+
+### 5.3. Backlink/PR + đo thứ hạng
+
+- Chưa thực hiện; cần kênh/tài khoản backlink và cách đo thứ hạng theo từ khóa mục tiêu.
+
+### 5.4. Việc cần anh cung cấp nếu muốn làm tiếp
+
+- GA4 Measurement ID + cookie consent (nếu muốn đo analytics).
+- Đánh giá pháp lý 6 trang policy.
+- Danh sách kênh backlink/PR ưu tiên.
 
 ---
 
@@ -549,6 +583,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 14 | - | `report.md` | Ghi nhận preview FAQ/HTML sitemap/schema/OG: 30 route 200, 404/410 đúng, FAQ 13 câu, sitemap 910 URL, OG 1200×630 | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
 | 15 | - | `report.md` | Ghi nhận email `contact@sansale247.io.vn` đã hoạt động: Zoho Mail free, MX/SPF/DKIM/DMARC tại PA, test Gmail 2 chiều | `Resolve-DnsName` ns1.pavietnam.vn; Gmail header SPF/DKIM/DMARC = PASS; Zoho báo xác thực tất cả bản ghi | Hoàn tất |
 | 16 | `947cb6c` | merge `seo/p1-landing-pages` → `main`; `report.md` | Deploy production P1 + GSC | Production `dpl_6VR9tsPhNs7mTtVmyr7mN8dGJZb2`; 30/30 route 200; 404/301/410 đúng; canonical/OG/sitemap 910 URL; GSC sitemap submitted + 2 URL request indexing | Hoàn tất (production) |
+| 17 | `822e6b7` | `lib/blog/posts.ts`, `lib/components/LandingPage.tsx`, `app/blog/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/ma/[id]/page.tsx` | Thêm 6 bài blog P2; internal link deal → blog → landing | `tsc`, `lint`, `build`; 10 blog + 8 landing + 5 deal page 200; sitemap local 823 URL (+6 blog); 404/301/410 giữ nguyên | Hoàn tất (local, chờ duyệt deploy) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

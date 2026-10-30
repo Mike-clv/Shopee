@@ -254,6 +254,7 @@ function FlashDealCard({
             .toUpperCase()}
           width={480}
           height={260}
+          sizes="235px"
           className="h-32 w-full rounded-none bg-muted"
           plateClassName="h-32 w-full rounded-none text-3xl"
         />

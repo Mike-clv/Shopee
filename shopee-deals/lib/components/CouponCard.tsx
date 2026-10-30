@@ -42,6 +42,7 @@ export function CouponCard({ deal, className }: { deal: CouponDeal; className?: 
             initials={(label || deal.merchantName || "S").slice(0, 2).toUpperCase()}
             width={480}
             height={320}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
             eager={deal.isFeatured}
             className="h-24 w-full rounded-none bg-muted sm:h-32"
             plateClassName="h-24 w-full rounded-none text-xl sm:h-32"

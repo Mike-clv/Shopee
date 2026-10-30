@@ -297,7 +297,7 @@ function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-line bg-white">
       <div className="h-1 w-full bg-gradient-to-r from-brand via-[#2f80ed] to-accent" />
-      <div className="mx-auto w-full max-w-7xl px-4 pt-10 pb-24 sm:pb-10">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-10 pb-10">
         <div className="grid gap-8 text-sm sm:grid-cols-12">
           <div className="sm:col-span-5">
             <p className="flex items-center gap-2.5">
@@ -381,7 +381,7 @@ function SiteFooter() {
           </Link>
         </nav>
 
-        <div className="mt-5 flex flex-col gap-2 text-xs leading-relaxed text-ink/40 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-5 flex flex-col gap-2 pr-16 text-xs leading-relaxed text-ink/40 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:pr-0">
           <p>© 2026 {SITE.name}. Không phải website chính thức của Shopee, Tiki, Lazada hay TikTok Shop.</p>
         </div>
       </div>

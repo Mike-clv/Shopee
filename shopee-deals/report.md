@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P0 ĐÃ DEPLOY PRODUCTION + VERIFY + GSC — CHỜ P1`
+- **Trạng thái:** `P0 LIVE PRODUCTION — P1 TRUST PAGES ĐÃ CODE + VERIFY LOCAL — CHƯA PUSH/DEPLOY`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -262,14 +262,45 @@ pnpm dev
 
 ## 4. P1 — sau khi P0 ổn định
 
+### 4.1. Trust pages P1 — đã code local (2026-10-30)
+
+- **Branch:** `seo/p1-trust-pages`.
+- **Route đã thêm:**
+  - `/ve-chung-toi`
+  - `/lien-he`
+  - `/chinh-sach/tiet-lo-affiliate`
+  - `/chinh-sach/chinh-sach-bien-tap`
+  - `/chinh-sach/chinh-sach-bao-mat`
+  - `/chinh-sach/dieu-khoan-su-dung`
+  - `/chinh-sach/mien-tru-trach-nhiem`
+  - `/chinh-sach/cookie`
+- **Code:**
+  - `lib/legal/content.ts`: nội dung 6 trang chính sách + `TRUST_LINKS`.
+  - `lib/components/LegalPage.tsx`: layout chung, breadcrumb, sidebar internal link, ngày cập nhật.
+  - `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`.
+  - `app/chinh-sach/[slug]/page.tsx`: `generateStaticParams` 6 slug, metadata canonical/OG, unknown slug 404.
+  - `proxy.ts`: chặn slug chính sách không tồn tại → 404 thật trước PPR shell.
+  - `app/layout.tsx`: footer thêm 8 link trust pages.
+  - `app/sitemap.ts`: thêm 8 URL trust pages.
+- **Email liên hệ:** `contact@sansale247.io.vn` (fallback trong `SITE.contactEmail`, có thể override bằng `NEXT_PUBLIC_CONTACT_EMAIL`). **Cần anh xác nhận email này có nhận thư.**
+- **Verify local:**
+  - 8/8 trang trả **200**; `/chinh-sach/khong-ton-tai` trả **404**.
+  - `/chinh-sach` và `/gioi-thieu` vẫn **410** (không xung đột route mới).
+  - Footer homepage có link trust pages; sitemap có 8 URL mới.
+  - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass.
+  - Screenshot desktop `/ve-chung-toi` + `/chinh-sach/chinh-sach-bao-mat` hiển thị đúng layout, sidebar, nội dung.
+- **Chưa push/deploy.**
+
+### 4.2. Thứ tự P1 còn lại
+
 1. **Landing page sàn:** `app/san/[merchant]/page.tsx` cho 4 sàn; metadata riêng, canonical self, nội dung unique, FAQ, danh sách deal, link affiliate.
 2. **Landing page danh mục:** `app/danh-muc/[slug]/page.tsx` cho 16 category; tương tự.
 3. **Đổi internal link** từ `/tim-kiem?merchant=` / `?cate=` sang landing page mới ở header/footer/card/breadcrumb.
-4. **Trust pages:** About, Contact, Privacy, Terms, affiliate disclosure.
+4. **FAQ** và trang HTML sitemap.
 5. **Schema/OG:** `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`; `og:image` mặc định.
 6. **Sitemap:** thêm landing pages; kiểm tra lại index.
 
-### 4.1. Checklist một website thương mại/affiliate hoàn chỉnh
+### 4.3. Checklist một website thương mại/affiliate hoàn chỉnh
 
 Đây là checklist P1, không phải P0. Với mô hình của `sansale247` (site giới thiệu deal + link affiliate, **không bán trực tiếp**), không cần cart/checkout/shipping; nhưng cần minh bạch và đủ niềm tin.
 
@@ -278,13 +309,15 @@ pnpm dev
 | Trang | Mục đích | Ghi chú cho `sansale247` |
 |---|---|---|
 | Trang chủ | Định vị site, điều hướng, CTA | Đã có |
-| Giới thiệu (`/gioi-thieu`) | Ai làm, vì sao đáng tin, sứ mệnh | Nên có ảnh/đội ngũ/thông tin liên hệ thật; không dùng profile giả |
-| Liên hệ (`/lien-he`) | Kênh liên hệ, thời gian phản hồi | Email + form; nếu có SĐT/địa chỉ càng tốt |
-| Chính sách bảo mật (`/chinh-sach-bao-mat`) | Thu thập gì, dùng làm gì, lưu bao lâu, chia sẻ ai, quyền xóa/sửa | Theo Nghị định 248/2026: tối thiểu 8 nội dung |
-| Điều khoản sử dụng (`/dieu-khoan`) | Quy tắc dùng site, giới hạn trách nhiệm, IP, luật áp dụng | Cần thiết cho site có link ra ngoài |
-| Tuyên bố affiliate (`/tuyen-bo-affiliate`) | Nói rõ có thể nhận hoa hồng khi mua qua link | Phải đặt **gần link** hoặc ở đầu bài, không chỉ một trang riêng |
-| Chính sách biên tập (`/chinh-sach-bien-tap`) | Ai kiểm tra deal, tần suất cập nhật, tiêu chí chọn deal | Tăng E-E-A-T; rất quan trọng với site deal |
-| FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | Giảm hỗ trợ, tăng internal link |
+| Giới thiệu (`/ve-chung-toi`) | Ai làm, vì sao đáng tin, sứ mệnh | **Đã có** bản P1; cần bổ sung đội ngũ/ảnh thật khi có |
+| Liên hệ (`/lien-he`) | Kênh liên hệ, thời gian phản hồi | **Đã có** email `contact@sansale247.io.vn`; cần xác nhận hộp thư |
+| Chính sách bảo mật (`/chinh-sach/chinh-sach-bao-mat`) | Thu thập gì, dùng làm gì, lưu bao lâu, chia sẻ ai, quyền xóa/sửa | **Đã có**; đủ 8 nhóm nội dung theo Nghị định 248/2026 |
+| Điều khoản sử dụng (`/chinh-sach/dieu-khoan-su-dung`) | Quy tắc dùng site, giới hạn trách nhiệm, IP, luật áp dụng | **Đã có** |
+| Tuyên bố affiliate (`/chinh-sach/tiet-lo-affiliate`) | Nói rõ có thể nhận hoa hồng khi mua qua link | **Đã có**; vẫn cần disclosure gần link/đầu nội dung |
+| Chính sách biên tập (`/chinh-sach/chinh-sach-bien-tap`) | Ai kiểm tra deal, tần suất cập nhật, tiêu chí chọn deal | **Đã có** |
+| FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | **Chưa làm** — P1 tiếp theo |
+| 404 | Trang lỗi có hướng dẫn quay lại | Đã có; noindex/status đúng |
+| Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | **Chưa làm** — P1 tiếp theo |
 | 404 | Trang lỗi có hướng dẫn quay lại | Đã có; cần noindex/status đúng |
 | Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | Tùy chọn, nhưng hữu ích |
 
@@ -372,7 +405,8 @@ git -C D:\web switch backup/pre-seo-20261030
 | 2 | `585791e` | `proxy.ts`, `app/ma/[id]/page.tsx`, `lib/coupons/dealExists.ts` | Proxy chặn deal/blog không tồn tại → 404 thật; `connection()` bỏ Date.now bailout; safe decode path malformed | `tsc`, `lint`, `build`, `pnpm start` + curl matrix, log check | Hoàn tất (local) |
 | 3 | — | `report.md` | Ghi nhận kết quả verify Vercel Preview | Preview deployment `dpl_Gn4h2awtkEBjFjrCZ3jtFpSv4kfr` + matrix 404/301/410 | Hoàn tất (preview) |
 | 4 | `6016324` | merge `seo/p0-fixes` → `main` | Deploy production P0 | Production `dpl_8KVk8m3AZ76UeoC4YaTm6HSGh5SY` + curl matrix 404/301/410, không còn log `Date.now` | Hoàn tất (production) |
-| 5 | — | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
+| 5 | - | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
+| 6 | `89c75fb` | `lib/legal/content.ts`, `lib/components/LegalPage.tsx`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `proxy.ts`, `app/layout.tsx`, `app/sitemap.ts`, `lib/site.ts` | Thêm 8 trust/legal pages; footer + sitemap; 404 thật cho slug chính sách không tồn tại | `tsc`, `lint`, `build`, `pnpm start` + curl 8 URL 200, slug lạ 404, `/chinh-sach` + `/gioi-thieu` 410, footer/sitemap check, screenshot desktop | Hoàn tất (local, chờ preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

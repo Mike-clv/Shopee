@@ -127,20 +127,28 @@ async function Hero() {
           <QuickChip href="/tim-kiem?sort=giam-sau" icon={Zap} label="Siêu sale" />
         </div>
 
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:mt-12 sm:gap-x-9">
-          <span className="text-xs font-medium text-ink/35">Nguồn deal</span>
-          {SITE.merchants.map((merchant) => (
-            <a
-              key={merchant}
-              href={SITE.merchantHomeLinks[merchant]}
-              target="_blank"
-              rel="sponsored noopener"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink/50 transition hover:text-brand"
-            >
-              <MerchantLogo merchant={merchant} size={18} />
-              {SITE.merchantLabels[merchant]}
-            </a>
-          ))}
+        <div className="mt-9 flex flex-col items-center gap-2.5 sm:mt-12 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6">
+          <span className="text-[11px] font-semibold tracking-[0.12em] text-ink/35 uppercase">
+            Nguồn deal
+          </span>
+          <div className="grid w-full max-w-sm grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:max-w-none sm:flex-wrap sm:justify-center sm:gap-3">
+            {SITE.merchants.map((merchant) => (
+              <a
+                key={merchant}
+                href={SITE.merchantHomeLinks[merchant]}
+                target="_blank"
+                rel="sponsored noopener"
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-line/80 bg-white/90 px-3 py-2.5 text-[13px] font-semibold text-ink/65 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition duration-200 hover:-translate-y-0.5 hover:border-brand/35 hover:bg-white hover:text-brand hover:shadow-[0_8px_20px_-8px_rgba(238,77,45,0.35)] focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:outline-none active:translate-y-0 sm:min-h-0 sm:rounded-full sm:px-3.5 sm:py-2"
+              >
+                <MerchantLogo
+                  merchant={merchant}
+                  size={26}
+                  className="transition-transform duration-200 group-hover:scale-110"
+                />
+                {SITE.merchantLabels[merchant]}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </section>

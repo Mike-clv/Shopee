@@ -410,8 +410,8 @@ pnpm dev
 4. ~~FAQ~~ — đã code local.
 5. ~~HTML sitemap~~ — đã code local.
 6. ~~Schema/OG~~ — đã thêm `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`, OG mặc định.
-7. **Preview + production:** commit, push, verify preview, rồi merge/deploy khi anh duyệt.
-8. **Sitemap:** submit lại GSC sau production; kiểm tra index landing pages.
+7. ~~Preview + production~~ — đã deploy production `dpl_6VR9tsPhNs7mTtVmyr7mN8dGJZb2` ngày 30/10/2026.
+8. ~~Sitemap~~ — đã submit lại GSC; request indexing 2 URL mới; landing pages đã indexed sẵn.
 
 ### 4.6. Checklist một website thương mại/affiliate hoàn chỉnh
 
@@ -483,6 +483,27 @@ pnpm dev
 
 ---
 
+### 4.7. Deploy Production P1 + GSC (2026-10-30)
+
+- **Merge:** `seo/p1-landing-pages` → `main` bằng merge commit `947cb6c` (`--no-ff`), push `d025e2f..947cb6c`.
+- **Production deployment:** `dpl_6VR9tsPhNs7mTtVmyr7mN8dGJZb2` (`https://shopee-ccuwmunmq-mamoru09s-projects.vercel.app`), trạng thái **Ready**; alias `https://sansale247.io.vn` và `https://www.sansale247.io.vn`.
+- **Verify production:**
+  - **30/30 route P1 trả 200:** 2 trust + 6 legal + 4 landing sàn + 16 landing danh mục + `/faq` + `/sitemap`.
+  - **404:** `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123`.
+  - **301:** `/san`, `/danh-muc`, `/ma-giam-gia` → `/tim-kiem`.
+  - **410:** `/gioi-thieu`, `/chinh-sach`.
+  - **Canonical:** homepage `https://sansale247.io.vn`; landing `/san/tiktokshop` → `https://sansale247.io.vn/san/tiktokshop`.
+  - **OG image:** `/opengraph-image` trả 200 `image/png`, 68.137 bytes (1200×630).
+  - **Sitemap XML:** 910 URL, có đủ `/ve-chung-toi`, `/lien-he`, `/san/tiktokshop`, `/danh-muc/voucher`, `/chinh-sach/cookie`; `robots.txt` trỏ `https://sansale247.io.vn/sitemap.xml`.
+- **GSC:**
+  - Sitemap `/sitemap.xml`: Submit lại → **"Sitemap submitted successfully"** (bảng đang hiển thị 880 discovered, sẽ cập nhật khi Google đọc lại).
+  - Request indexing: `/ve-chung-toi`, `/lien-he` → **"Indexing requested"**.
+  - Đã kiểm tra sẵn: `/san/shopee`, `/san/tiktokshop`, `/san/lazada`, `/danh-muc/voucher` → **"Page is indexed"** (không cần request).
+  - `/chinh-sach/tiet-lo-affiliate`: **"Discovered — currently not indexed"**; live test treo >3 phút nên chưa request được — để sitemap crawl, có thể request lại sau.
+- **Rollback:** Vercel Instant Rollback về `dpl_8KVk8m3AZ76UeoC4YaTm6HSGh5SY` (P0) nếu cần.
+
+---
+
 ## 5. P2 — tăng trưởng
 
 - Thêm bài blog đúng search intent; internal link từ deal page → blog → landing page.
@@ -527,6 +548,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 13 | `12092ea` | `report.md` | Ghi nhận verify FAQ/HTML sitemap/schema/OG + hash commit | `git show --stat b0e3d45` | Hoàn tất |
 | 14 | - | `report.md` | Ghi nhận preview FAQ/HTML sitemap/schema/OG: 30 route 200, 404/410 đúng, FAQ 13 câu, sitemap 910 URL, OG 1200×630 | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
 | 15 | - | `report.md` | Ghi nhận email `contact@sansale247.io.vn` đã hoạt động: Zoho Mail free, MX/SPF/DKIM/DMARC tại PA, test Gmail 2 chiều | `Resolve-DnsName` ns1.pavietnam.vn; Gmail header SPF/DKIM/DMARC = PASS; Zoho báo xác thực tất cả bản ghi | Hoàn tất |
+| 16 | `947cb6c` | merge `seo/p1-landing-pages` → `main`; `report.md` | Deploy production P1 + GSC | Production `dpl_6VR9tsPhNs7mTtVmyr7mN8dGJZb2`; 30/30 route 200; 404/301/410 đúng; canonical/OG/sitemap 910 URL; GSC sitemap submitted + 2 URL request indexing | Hoàn tất (production) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

@@ -616,8 +616,8 @@ git -C D:\web switch backup/pre-seo-20261030
 | 24 | `a934be2` | `app/page.tsx`, `report.md` | Thêm đường kẻ phân cách nhạt (`border-b border-line/80`, `pb-3`, `mb-4`) dưới hàng tiêu đề section trên home (Deal Shopee/Tiki/Lazada/TikTok Shop, Deal chớp nhoáng, danh mục, blog) để tách header khỏi lưới card và dễ nhận nút "Xem tất cả" | `tsc`, `lint`, `build`; Chrome thật `localhost:3210`: computed `border-bottom: 1px solid` line/80, `padding-bottom: 12px`, divider hiển thị đúng dưới "Deal Shopee"; preview `dpl_AvbFo6JWxzwN8R7BKGS2vNs8KUk8` Ready (`border-line/80` ×36); production `dpl_2Ge8rwguZT1FdqMNvRkeekRM2Pvf` Ready — `sansale247.io.vn` 200, `border-line/80` ×36, divider class ×24 | Hoàn tất (production) |
 | 25 | `fe2de59` | `public/favicon*`, `public/apple-touch-icon.png`, `public/icon-*.png`, `app/layout.tsx`, `report.md` | Bổ sung bộ favicon đầy đủ từ artwork hiện tại: `favicon.ico` đa kích thước (16/32/48/96/144/192, PNG entries), PNG 16/32/48/96/144/192/512, apple-touch 180; khai báo metadata `icons` + dùng `icon-512x512.png` cho JSON-LD Logo. Khắc phục Google còn hiển thị favicon phiên bản web cũ do site thiếu `/favicon.ico` và chỉ có SVG | `tsc`, `lint`, `build`; preview `dpl_Chc6cUkC9xVdPczSgYysSKubdJKj` Ready — HTML có đủ icon links, `/favicon.ico` 15.182 bytes magic ICO, PNG 16/32/180/192/512 đúng `89-50-4E-47`; production `dpl_HmnAJEJ2tPfFY91sjX327XF98wc2` Ready — `sansale247.io.vn` 200, đủ icon links, `/favicon.ico` 15.182 bytes, PNG đúng định dạng | Hoàn tất (production) |
 | 26 | — | Neon project `sansale-db` (không thuộc repo) | Dọn 3 branch preview cũ (`ui/footer-bottom-trim`, `ui/home-brand-strip`, `ui/mobile-footer-back-to-top`) do Neon free giới hạn 10 branches khiến Vercel không provision được DB branch cho preview mới (`One or more integration resources failed to provision`) | Neon console: 10 → 7 branches; redeploy `dpl_Chc6cUkC9xVdPczSgYysSKubdJKj` Ready | Hoàn tất |
-| 27 | `cd3a719` | `lib/analytics.ts`, `lib/components/{Analytics,ConsentBanner,SearchAnalytics,DealViewTracker,TrackedAffiliateLink,CopyButton,CouponCard}.tsx`, `app/layout.tsx`, `app/tim-kiem/page.tsx`, `app/ma/[id]/page.tsx`, `lib/legal/content.ts` | G0.1+G0.2: consent banner lưu lựa chọn `sansale-consent`; GA4 chỉ load khi có `NEXT_PUBLIC_GA_ID` + consent; event `affiliate_click` (copy + link deal), `search_submit`, `filter_apply`, `deal_view`, `page_view`; cập nhật chính sách cookie | `tsc`, `lint`, `build` PASS (57 pages); Chrome thật: trước consent không có `gtag`/script GA, sau consent `gtag=function`, dataLayer nhận `search_submit`/`filter_apply`; `deal_view` bắn trên trang deal; đã thử GA test ID `G-TEST12345` local | Hoàn tất (local — chờ GA4 ID thật) |
-| 28 | `346efc4` | `app/su-kien/[slug]/page.tsx`, `lib/events/content.ts`, `lib/components/EventCountdown.tsx`, `app/sitemap.ts`, `app/sitemap/page.tsx`, `lib/campaigns.ts` | G1.1: landing `/su-kien/11-11` với hero, countdown, top deal 4 sàn, checklist 3 nhóm, 5 guide, 8 FAQ, JSON-LD Event/FAQ/ItemList/Breadcrumb, internal link + sitemap; nội dung 1.925 từ | `tsc`, `lint`, `build` PASS (59 pages, route static); browser 816px: 1.925 từ, 32 deal link, 8 FAQ, JSON-LD đủ, console sạch; CDP 390×844: `overflow=0`, không tràn ngang, consent banner + hero hiển thị đúng; desktop 1440 screenshot chuẩn | Hoàn tất (local) |
+| 27 | `cd3a719` | `lib/analytics.ts`, `lib/components/{Analytics,ConsentBanner,SearchAnalytics,DealViewTracker,TrackedAffiliateLink,CopyButton,CouponCard}.tsx`, `app/layout.tsx`, `app/tim-kiem/page.tsx`, `app/ma/[id]/page.tsx`, `lib/legal/content.ts` | G0.1+G0.2: consent banner lưu lựa chọn `sansale-consent`; GA4 chỉ load khi có `NEXT_PUBLIC_GA_ID` + consent; event `affiliate_click` (copy + link deal), `search_submit`, `filter_apply`, `deal_view`, `page_view`; cập nhật chính sách cookie | `tsc`, `lint`, `build` PASS (57 pages); Chrome thật: trước consent không có `gtag`/script GA, sau consent `gtag=function`, dataLayer nhận `search_submit`/`filter_apply`; `deal_view` bắn trên trang deal; đã thử GA test ID `G-TEST12345` local; preview `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` Ready — HTML 200, không load GA khi chưa consent | Hoàn tất (preview — chờ GA4 ID thật) |
+| 28 | `346efc4` | `app/su-kien/[slug]/page.tsx`, `lib/events/content.ts`, `lib/components/EventCountdown.tsx`, `app/sitemap.ts`, `app/sitemap/page.tsx`, `lib/campaigns.ts` | G1.1: landing `/su-kien/11-11` với hero, countdown, top deal 4 sàn, checklist 3 nhóm, 5 guide, 8 FAQ, JSON-LD Event/FAQ/ItemList/Breadcrumb, internal link + sitemap; nội dung 1.925 từ | `tsc`, `lint`, `build` PASS (59 pages, route static); browser 816px: 1.925 từ, 32 deal link, 8 FAQ, JSON-LD đủ, console sạch; CDP 390×844: `overflow=0`, không tràn ngang, consent banner + hero hiển thị đúng; desktop 1440 screenshot chuẩn; preview `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` Ready — 417.569 chars, canonical + JSON-LD Event/FAQ, sitemap có URL | Hoàn tất (preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 
@@ -638,7 +638,7 @@ git -C D:\web switch backup/pre-seo-20261030
 
 ---
 
-## 9. Kế hoạch tăng trưởng traffic 90 ngày (đề xuất 2026-10-30 — CHỜ ANH DUYỆT)
+## 9. Kế hoạch tăng trưởng traffic 90 ngày (đã duyệt 2026-10-30 — đang triển khai)
 
 > Trạng thái: **Chưa triển khai**. Toàn bộ task trong mục này đang ở trạng thái `Chờ duyệt`.
 > Khi anh duyệt, mỗi task hoàn thành sẽ được cập nhật vào bảng tiến độ §9.7 và thêm dòng tương ứng vào Change log §7.
@@ -758,15 +758,15 @@ git -C D:\web switch backup/pre-seo-20261030
 
 | ID | Task | Trạng thái | Ngày | Commit / Deployment | Bằng chứng |
 |---|---|---|---|---|---|
-| G0.1 | GA4 + consent | Đang làm (chờ GA4 ID thật) | `cd3a719` | — | — |
-| G0.2 | Event tracking | Hoàn tất (local) | `cd3a719` | — | — |
+| G0.1 | GA4 + consent | Đang làm (preview — chờ GA4 ID thật) | `cd3a719` | `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` | Preview 200; consent gate verified local |
+| G0.2 | Event tracking | Hoàn tất (preview) | `cd3a719` | `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` | Preview 200; sự kiện verified local |
 | G0.3 | UTM convention | Chờ duyệt | — | — | — |
 | G0.4 | Audit index | Chờ duyệt | — | — | — |
 | G0.5 | Canonical/sitemap/quality gate | Chờ duyệt | — | — | — |
 | G0.6 | Robots URL | Chờ duyệt | — | — | — |
 | G0.7 | Core Web Vitals | Chờ duyệt | — | — | — |
 | G0.8 | Submit/index | Chờ duyệt | — | — | — |
-| G1.1 | Landing 11.11 | Hoàn tất (local) | `346efc4` | — | — |
+| G1.1 | Landing 11.11 | Hoàn tất (preview) | `346efc4` | `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` | Preview 200; 417.569 chars; canonical/JSON-LD/sitemap OK |
 | G1.2 | 4 merchant hub | Chờ duyệt | — | — | — |
 | G1.3 | 8 category hub | Chờ duyệt | — | — | — |
 | G1.4 | 10 bài blog | Chờ duyệt | — | — | — |

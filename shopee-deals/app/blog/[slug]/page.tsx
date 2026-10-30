@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BlogCard } from "@/lib/components/BlogCard";
+import { OG_IMAGE } from "@/lib/seo";
 import {
   BLOG_POSTS,
   getPost,
@@ -47,7 +48,13 @@ export async function generateMetadata(
     title: post.title,
     description: post.excerpt,
     alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: { title: post.title, description: post.excerpt, type: "article" },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `/blog/${post.slug}`,
+      type: "article",
+      images: [OG_IMAGE],
+    },
   };
 }
 

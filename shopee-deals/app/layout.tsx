@@ -3,11 +3,13 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Be_Vietnam_Pro, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { SITE } from "@/lib/site";
+import { SITE, siteUrl } from "@/lib/site";
+import { OG_IMAGE } from "@/lib/seo";
 import { FEATURED_CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { NavTabs } from "@/lib/components/NavTabs";
 import { getCurrentAdmin } from "@/lib/auth";
+import { TRUST_LINKS } from "@/lib/legal/content";
 import { Search, Settings, Sparkles } from "lucide-react";
 
 const inter = Inter({
@@ -47,8 +49,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
     siteName: SITE.name,
-    title: `${SITE.name} – Mã giảm giá Shopee & deal đa sàn`,
+    title: `${SITE.name} — Mã giảm giá Shopee & deal đa sàn`,
     description: SITE.description,
+    images: [OG_IMAGE],
   },
   robots: { index: true, follow: true },
   // Versioned URL forces browsers (Chrome favicon cache) to re-fetch the icon
@@ -63,12 +66,50 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const base = siteUrl();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${base}/#organization`,
+        name: SITE.name,
+        url: base,
+        logo: `${base}/icon.svg`,
+        email: SITE.contactEmail,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${base}/#website`,
+        url: base,
+        name: SITE.name,
+        description: SITE.description,
+        inLanguage: "vi-VN",
+        publisher: { "@id": `${base}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${base}/tim-kiem?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <html
       lang="vi"
       className={`${inter.variable} ${beVietnamPro.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-paper text-ink">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <SiteHeader />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4">{children}</main>
         <SiteFooter />
@@ -179,7 +220,7 @@ function SiteHeader() {
             {SITE.merchants.map((merchant) => (
               <Link
                 key={merchant}
-                href={`/tim-kiem?merchant=${merchant}`}
+                href={`/san/${merchant}`}
                 className="inline-flex items-center gap-1 text-white/85 transition hover:text-white hover:underline"
               >
                 <MerchantLogo merchant={merchant} size={14} />
@@ -282,7 +323,7 @@ function SiteFooter() {
               {categories.map(({ slug, label, Icon }) => (
                 <li key={slug}>
                   <Link
-                    href={`/tim-kiem?cate=${encodeURIComponent(slug)}`}
+                    href={`/danh-muc/${encodeURIComponent(slug)}`}
                     className="inline-flex items-center gap-1.5 text-ink/55 transition hover:text-brand"
                   >
                     <Icon className="h-3.5 w-3.5 text-ink/35" aria-hidden />
@@ -299,7 +340,7 @@ function SiteFooter() {
               {SITE.merchants.map((merchant) => (
                 <li key={merchant}>
                   <Link
-                    href={`/tim-kiem?merchant=${merchant}`}
+                    href={`/san/${merchant}`}
                     className="inline-flex items-center gap-2 text-ink/55 transition hover:text-brand"
                   >
                     <MerchantLogo merchant={merchant} size={16} />
@@ -317,7 +358,25 @@ function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-9 flex flex-col gap-2 border-t border-line pt-5 text-xs text-ink/40 sm:flex-row sm:items-center sm:justify-between">
+        <nav
+          aria-label="Thông tin website"
+          className="mt-9 flex flex-wrap gap-x-4 gap-y-2 border-t border-line pt-5 text-xs text-ink/45"
+        >
+          {TRUST_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="transition hover:text-brand"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link href="/sitemap" className="transition hover:text-brand">
+            Sitemap
+          </Link>
+        </nav>
+
+        <div className="mt-4 flex flex-col gap-2 text-xs text-ink/40 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {SITE.name}. Không phải website chính thức của Shopee, Tiki, Lazada hay TikTok Shop.</p>
         </div>
       </div>

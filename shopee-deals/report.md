@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P0 ĐÃ DEPLOY PRODUCTION + VERIFY + GSC — CHỜ P1`
+- **Trạng thái:** `P1 ĐÃ VERIFY PREVIEW + EMAIL CONTACT@ HOẠT ĐỘNG — CHỜ DUYỆT DEPLOY`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -262,14 +262,158 @@ pnpm dev
 
 ## 4. P1 — sau khi P0 ổn định
 
-1. **Landing page sàn:** `app/san/[merchant]/page.tsx` cho 4 sàn; metadata riêng, canonical self, nội dung unique, FAQ, danh sách deal, link affiliate.
-2. **Landing page danh mục:** `app/danh-muc/[slug]/page.tsx` cho 16 category; tương tự.
-3. **Đổi internal link** từ `/tim-kiem?merchant=` / `?cate=` sang landing page mới ở header/footer/card/breadcrumb.
-4. **Trust pages:** About, Contact, Privacy, Terms, affiliate disclosure.
-5. **Schema/OG:** `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`; `og:image` mặc định.
-6. **Sitemap:** thêm landing pages; kiểm tra lại index.
+### 4.1. Trust pages P1 — đã code local (2026-10-30)
 
-### 4.1. Checklist một website thương mại/affiliate hoàn chỉnh
+- **Branch:** `seo/p1-trust-pages`.
+- **Route đã thêm:**
+  - `/ve-chung-toi`
+  - `/lien-he`
+  - `/chinh-sach/tiet-lo-affiliate`
+  - `/chinh-sach/chinh-sach-bien-tap`
+  - `/chinh-sach/chinh-sach-bao-mat`
+  - `/chinh-sach/dieu-khoan-su-dung`
+  - `/chinh-sach/mien-tru-trach-nhiem`
+  - `/chinh-sach/cookie`
+- **Code:**
+  - `lib/legal/content.ts`: nội dung 6 trang chính sách + `TRUST_LINKS`.
+  - `lib/components/LegalPage.tsx`: layout chung, breadcrumb, sidebar internal link, ngày cập nhật.
+  - `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`.
+  - `app/chinh-sach/[slug]/page.tsx`: `generateStaticParams` 6 slug, metadata canonical/OG, unknown slug 404.
+  - `proxy.ts`: chặn slug chính sách không tồn tại → 404 thật trước PPR shell.
+  - `app/layout.tsx`: footer thêm 8 link trust pages.
+  - `app/sitemap.ts`: thêm 8 URL trust pages.
+- **Email liên hệ:** `contact@sansale247.io.vn` (fallback trong `SITE.contactEmail`, có thể override bằng `NEXT_PUBLIC_CONTACT_EMAIL`). **Đã hoạt động** — Zoho Mail free, SPF/DKIM/DMARC pass (xem 4.4).
+- **Verify local:**
+  - 8/8 trang trả **200**; `/chinh-sach/khong-ton-tai` trả **404**.
+  - `/chinh-sach` và `/gioi-thieu` vẫn **410** (không xung đột route mới).
+  - Footer homepage có link trust pages; sitemap có 8 URL mới.
+  - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass.
+  - Screenshot desktop `/ve-chung-toi` + `/chinh-sach/chinh-sach-bao-mat` hiển thị đúng layout, sidebar, nội dung.
+- **Đã push branch `seo/p1-trust-pages`:**
+  - `89c75fb` — code trust pages.
+  - `c00d6fe` — log verify + checklist.
+- **Preview deployment:** `6J7XGA8imzMf4ydQtT4kLh6iUeZg` (Vercel, commit `c00d6fe`), trạng thái GitHub **success**.
+- **URL preview:** https://shopee-git-seo-p1-trust-pages-mamoru09s-projects.vercel.app
+- **Verify preview (Chrome đã đăng nhập Vercel, 2026-10-30):**
+  - Fetch nội bộ trên preview: 8/8 trust page **200**; `/chinh-sach/khong-ton-tai` **404**; `/chinh-sach` + `/gioi-thieu` **410**; `/blog/does-not-exist-123` **404**.
+  - Canonical + `og:url` của `/chinh-sach/cookie` trỏ đúng `https://sansale247.io.vn/...`.
+  - Sitemap preview: **8/8** URL trust pages, tổng **888** URL, base đúng `https://sansale247.io.vn`.
+  - Footer homepage có link trust pages; các trang render đúng layout/sidebar/nội dung.
+- **Lưu ý:** preview bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`; verify tự động cần đăng nhập Chrome hoặc Protection Bypass token.
+- **Chưa merge `main`, chưa deploy production.**
+
+### 4.2. Landing pages P1 — đã code local (2026-10-30)
+
+- **Branch:** `seo/p1-landing-pages`, tạo từ `seo/p1-trust-pages`.
+- **Route đã thêm:**
+  - 4 trang sàn: `/san/shopee`, `/san/tiki`, `/san/lazada`, `/san/tiktokshop`.
+  - 16 trang danh mục: `/danh-muc/{freeship,food,beauty,health,book,electronics,fashion,home,baby,sports,auto,pet,toys,jewelry,tools,voucher}`.
+- **Code:**
+  - `lib/landing/content.ts`: nội dung unique cho 4 sàn + 16 danh mục; FAQ dùng chung cho danh mục; type `MerchantLanding`, `CategoryLanding`, `LandingFaq`.
+  - `lib/components/LandingPage.tsx`: layout chung hero, stats, tổng quan, lưới deal, FAQ `<details>`, sidebar, ghi chú affiliate.
+  - `app/san/[merchant]/page.tsx`: `generateStaticParams` 4 sàn; metadata canonical/OG; JSON-LD `CollectionPage` + `BreadcrumbList` + `FAQPage`; 24 deal mới nhất; sidebar sàn khác + danh mục.
+  - `app/danh-muc/[slug]/page.tsx`: `generateStaticParams` 16 danh mục; metadata canonical/OG; JSON-LD tương tự; 24 deal mới nhất; đếm deal theo sàn; sidebar sàn có deal + danh mục khác.
+  - `lib/categories.ts`: thêm `CATEGORY_SLUGS`.
+  - `proxy.ts`: bỏ redirect `/san/:merchant` và `/danh-muc/:slug`; giữ 301 `/san/tiktok-shop` → `/san/tiktokshop`; unknown slug trả 404 thật trước PPR shell; `/san`, `/danh-muc`, `/ma-giam-gia` vẫn 301 `/tim-kiem`.
+  - `app/layout.tsx`, `app/page.tsx`: đổi internal link header/footer/home từ `/tim-kiem?merchant=` / `?cate=` sang `/san/*` / `/danh-muc/*`.
+  - `app/sitemap.ts`: thêm 4 URL sàn + 16 URL danh mục.
+- **Verify local:**
+  - 4/4 trang sàn **200**; 16/16 trang danh mục **200**.
+  - `/san/tiktok-shop` → **301** `/san/tiktokshop`; `/san/foo`, `/danh-muc/foo` → **404**.
+  - `/san`, `/danh-muc`, `/ma-giam-gia` → **301** `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` vẫn **410**.
+  - Canonical + `og:url` đúng trên `/san/shopee` và `/danh-muc/freeship`; JSON-LD có `CollectionPage`, `BreadcrumbList`, `FAQPage`.
+  - Sitemap local: **815 URL**, có đủ 4 sàn + 16 danh mục.
+  - Homepage/header/footer có link `/san/*`, `/danh-muc/*`, trust pages.
+  - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass.
+  - Screenshot desktop `/san/shopee` + `/danh-muc/freeship` hiển thị đúng hero, stats, sidebar.
+- **Lưu ý:** một số danh mục hiện **0 deal** (ví dụ `freeship`); trang vẫn có nội dung + empty state. Nếu kéo dài, cân nhắc `noindex` hoặc loại khỏi sitemap để tránh thin content.
+- **Đã commit `ba23ef6` + docs `76f2d01`; đã push branch `seo/p1-landing-pages`.**
+- **Preview deployment:** `dpl_HJX5sX5UFNefdJfqr8EzuLzHCwQc` (Vercel, trạng thái **Ready**).
+- **URL preview:** https://shopee-git-seo-p1-landing-pages-mamoru09s-projects.vercel.app
+- **Verify preview (Chrome đã đăng nhập Vercel, 2026-10-30):**
+  - 4/4 trang sàn **200**; 16/16 trang danh mục **200**.
+  - `/san/tiktok-shop` → cuối cùng `/san/tiktokshop` (301); `/san/foo`, `/danh-muc/foo` **404**.
+  - `/danh-muc`, `/san` → `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` **410**; `/chinh-sach/khong-ton-tai` **404**.
+  - 8/8 trust pages vẫn **200** trên preview.
+  - Canonical `/san/shopee` = `https://sansale247.io.vn/san/shopee`; JSON-LD có `CollectionPage`, `BreadcrumbList`, `FAQPage`.
+  - Sitemap preview: **908 URL**, có đủ 4 sàn + 16 danh mục.
+  - Screenshot desktop `/san/shopee` + `/danh-muc/food` hiển thị đúng hero, stats, sidebar.
+- **Lưu ý:** preview bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`; console có cảnh báo CSP report-only do Vercel Live iframe, chỉ preview.
+- **Chưa merge `main`, chưa deploy production.**
+
+### 4.3. FAQ + HTML sitemap + schema/OG — đã code local (2026-10-30)
+
+- **Branch:** `seo/p1-landing-pages`.
+- **Route mới:**
+  - `/faq`: trang câu hỏi thường gặp, 4 nhóm / 13 câu.
+  - `/sitemap`: HTML sitemap cho người dùng.
+  - `/opengraph-image`: ảnh OG mặc định 1200×630.
+- **Code:**
+  - `lib/faq/content.ts`: nội dung FAQ + `FAQ_GROUPS`, `FAQ_ITEMS`, `FAQ_UPDATED`.
+  - `app/faq/page.tsx`: metadata canonical/OG, FAQ accordion, sidebar, JSON-LD `FAQPage` 13 câu.
+  - `app/sitemap/page.tsx`: HTML sitemap gồm trang chính, 4 sàn, 16 danh mục, chính sách, blog, 60 deal mới.
+  - `lib/seo.ts` + `app/opengraph-image.tsx`: ảnh OG mặc định; thêm `images: [OG_IMAGE]` vào `openGraph` của các page; deal page ưu tiên ảnh sản phẩm, fallback OG mặc định.
+  - `app/layout.tsx`: JSON-LD `Organization` + `WebSite` (SearchAction), footer thêm link Sitemap.
+  - `lib/legal/content.ts`: `TRUST_LINKS` thêm `/faq`.
+  - `app/sitemap.ts`: thêm `/faq` + `/sitemap`.
+- **Verify local:**
+  - 30/30 route chính **200** (9 trust/FAQ + HTML sitemap + 4 sàn + 16 danh mục).
+  - `/faq`, `/sitemap`, `/opengraph-image` (image/png), `/sitemap.xml` **200**.
+  - FAQ có canonical đúng, `og:image` 1200×630, JSON-LD `Organization`, `WebSite`, `FAQPage` 13 câu.
+  - HTML sitemap có 60 link deal + link `/faq`, `/sitemap.xml`, `/san/shopee`, `/danh-muc/freeship`, `/chinh-sach/cookie`, `/ve-chung-toi`.
+  - Footer homepage có `/faq`, `/sitemap`, `/ve-chung-toi`, `/chinh-sach/cookie`.
+  - XML sitemap local **817 URL**, có `/faq` + `/sitemap`.
+  - `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123` **404**; `/san`, `/danh-muc`, `/ma-giam-gia` **301** `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` **410**.
+  - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass; screenshot desktop `/faq` + `/sitemap` hiển thị đúng.
+- **Lưu ý:** file-based `opengraph-image` không tự thêm `og:image` khi page có `openGraph` explicit; đã sửa bằng `images: [OG_IMAGE]` ở tất cả metadata.
+- **Đã commit `b0e3d45`; docs `12092ea`; đã push branch `seo/p1-landing-pages`.**
+- **Preview deployment:** `dpl_GvkFttf387Nhw6xpdbXkp7iFpycM` (Vercel, trạng thái **Ready**).
+- **URL preview:** https://shopee-git-seo-p1-landing-pages-mamoru09s-projects.vercel.app
+- **Verify preview (Chrome đã đăng nhập Vercel, 2026-10-30):**
+  - 30/30 route chính **200** (9 trust/FAQ + HTML sitemap + 4 sàn + 16 danh mục).
+  - `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123` **404**; `/san`, `/danh-muc` → `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` **410**.
+  - Canonical `/faq` = `https://sansale247.io.vn/faq`; `og:image` = `https://sansale247.io.vn/opengraph-image`; FAQ JSON-LD 13 câu.
+  - `/san/shopee` + `/danh-muc/food` có `CollectionPage`, `BreadcrumbList`, `FAQPage`; `og:image` đúng.
+  - HTML sitemap 60 link deal + link `/faq`; XML sitemap **910 URL**, có `/faq`, `/sitemap`, 4 sàn, 16 danh mục.
+  - `/opengraph-image` trả **200 image/png**.
+  - Screenshot desktop `/faq` + `/sitemap` trên preview hiển thị đúng.
+- **Lưu ý:** preview bật Vercel Authentication (SSO); verify bằng Chrome đã đăng nhập. Console chỉ có cảnh báo CSP report-only do Vercel Live iframe.
+- **Chưa merge `main`, chưa deploy production.**
+
+### 4.4. Email liên hệ — ĐÃ HOẠT ĐỘNG (Zoho Mail free, 2026-10-30)
+
+- **Kết luận:** `contact@sansale247.io.vn` **đã provision và gửi/nhận thành công**, SPF/DKIM/DMARC đều pass.
+- **Nhà cung cấp:** Zoho Mail free (5 user, 5GB/user, webmail + app; **không có IMAP/POP/SMTP** — chỉ dùng webmail/app).
+- **Tài khoản:** owner `Cao Phi Hung`, org id `944647294`, user id `944652771`; recovery email `cleverlearnmike@gmail.com`.
+- **DNS đã thay đổi tại PA** (`https://access.pavietnam.vn/dns`, domain id `2934176`):
+  - MX `@`: `mx.zoho.com` 10, `mx2.zoho.com` 20, `mx3.zoho.com` 50 — đã xóa MX cũ `mail.sansale247.io.vn`.
+  - TXT `@`: `v=spf1 include:zoho.com ~all` (thay `v=spf1 a mx ~all`).
+  - TXT `zmail._domainkey`: DKIM Zoho (`v=DKIM1; k=rsa; p=MIGf...IDAQAB`).
+  - TXT `_dmarc`: `v=DMARC1; p=none; rua=mailto:contact@sansale247.io.vn`.
+  - TXT `@`: `zoho-verification=zb63649413.zmverify.zoho.com`.
+  - **Không đụng** A `@ 216.198.79.1`, CNAME `www`, A `mail`/`ftp`, wildcard A → website vẫn ở Vercel.
+- **Xác thực:**
+  - Zoho admin: `Tất cả các bản ghi đã được xác thực thành công`.
+  - PA authoritative NS (`ns1.pavietnam.vn`): đủ MX/SPF/DKIM/DMARC.
+  - Gmail → `contact@`: nhận lúc 10:29 (30/10/2026).
+  - `contact@` → Gmail: nhận lúc 10:30; Gmail `mailed-by: sansale247.io.vn`, `signed-by: sansale247.io.vn`, TLS 1.3.
+  - Header Gmail: `SPF: PASS` (IP 165.173.180.52), `DKIM: PASS` (`d=sansale247.io.vn`, `s=zmail`), `DMARC: PASS` (`p=NONE`).
+- **Mật khẩu mailbox:** đã đổi trong Zoho admin (không ghi vào repo). Nếu cần reset: Zoho admin → Users → `contact@` → Bảo mật → Đổi mật khẩu.
+- **Lưu ý vận hành:** free plan không gửi được từ Gmail/Outlook client (không SMTP); muốn dùng client phải nâng plan. Với nhu cầu hiện tại (nhận thư liên hệ + reply qua webmail) là đủ.
+- **Trước production:** không còn blocker email; `SITE.contactEmail` giữ `contact@sansale247.io.vn`.
+
+### 4.5. Thứ tự P1 còn lại
+
+1. ~~Landing page sàn~~ — đã code local.
+2. ~~Landing page danh mục~~ — đã code local.
+3. ~~Đổi internal link~~ — đã đổi header/footer/home.
+4. ~~FAQ~~ — đã code local.
+5. ~~HTML sitemap~~ — đã code local.
+6. ~~Schema/OG~~ — đã thêm `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`, OG mặc định.
+7. **Preview + production:** commit, push, verify preview, rồi merge/deploy khi anh duyệt.
+8. **Sitemap:** submit lại GSC sau production; kiểm tra index landing pages.
+
+### 4.6. Checklist một website thương mại/affiliate hoàn chỉnh
 
 Đây là checklist P1, không phải P0. Với mô hình của `sansale247` (site giới thiệu deal + link affiliate, **không bán trực tiếp**), không cần cart/checkout/shipping; nhưng cần minh bạch và đủ niềm tin.
 
@@ -278,15 +422,15 @@ pnpm dev
 | Trang | Mục đích | Ghi chú cho `sansale247` |
 |---|---|---|
 | Trang chủ | Định vị site, điều hướng, CTA | Đã có |
-| Giới thiệu (`/gioi-thieu`) | Ai làm, vì sao đáng tin, sứ mệnh | Nên có ảnh/đội ngũ/thông tin liên hệ thật; không dùng profile giả |
-| Liên hệ (`/lien-he`) | Kênh liên hệ, thời gian phản hồi | Email + form; nếu có SĐT/địa chỉ càng tốt |
-| Chính sách bảo mật (`/chinh-sach-bao-mat`) | Thu thập gì, dùng làm gì, lưu bao lâu, chia sẻ ai, quyền xóa/sửa | Theo Nghị định 248/2026: tối thiểu 8 nội dung |
-| Điều khoản sử dụng (`/dieu-khoan`) | Quy tắc dùng site, giới hạn trách nhiệm, IP, luật áp dụng | Cần thiết cho site có link ra ngoài |
-| Tuyên bố affiliate (`/tuyen-bo-affiliate`) | Nói rõ có thể nhận hoa hồng khi mua qua link | Phải đặt **gần link** hoặc ở đầu bài, không chỉ một trang riêng |
-| Chính sách biên tập (`/chinh-sach-bien-tap`) | Ai kiểm tra deal, tần suất cập nhật, tiêu chí chọn deal | Tăng E-E-A-T; rất quan trọng với site deal |
-| FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | Giảm hỗ trợ, tăng internal link |
-| 404 | Trang lỗi có hướng dẫn quay lại | Đã có; cần noindex/status đúng |
-| Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | Tùy chọn, nhưng hữu ích |
+| Giới thiệu (`/ve-chung-toi`) | Ai làm, vì sao đáng tin, sứ mệnh | **Đã có** bản P1; cần bổ sung đội ngũ/ảnh thật khi có |
+| Liên hệ (`/lien-he`) | Kênh liên hệ, thời gian phản hồi | **Đã có** email `contact@sansale247.io.vn`; hộp thư **đã hoạt động** (Zoho free, SPF/DKIM/DMARC pass) |
+| Chính sách bảo mật (`/chinh-sach/chinh-sach-bao-mat`) | Thu thập gì, dùng làm gì, lưu bao lâu, chia sẻ ai, quyền xóa/sửa | **Đã có**; đủ 8 nhóm nội dung theo Nghị định 248/2026 |
+| Điều khoản sử dụng (`/chinh-sach/dieu-khoan-su-dung`) | Quy tắc dùng site, giới hạn trách nhiệm, IP, luật áp dụng | **Đã có** |
+| Tuyên bố affiliate (`/chinh-sach/tiet-lo-affiliate`) | Nói rõ có thể nhận hoa hồng khi mua qua link | **Đã có**; vẫn cần disclosure gần link/đầu nội dung |
+| Chính sách biên tập (`/chinh-sach/chinh-sach-bien-tap`) | Ai kiểm tra deal, tần suất cập nhật, tiêu chí chọn deal | **Đã có** |
+| FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | **Đã có** 4 nhóm / 13 câu; JSON-LD `FAQPage` |
+| 404 | Trang lỗi có hướng dẫn quay lại | Đã có; noindex/status đúng |
+| Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | **Đã có**; link footer + XML sitemap |
 
 #### B. Trang pháp lý/niềm tin nên bổ sung
 
@@ -372,7 +516,17 @@ git -C D:\web switch backup/pre-seo-20261030
 | 2 | `585791e` | `proxy.ts`, `app/ma/[id]/page.tsx`, `lib/coupons/dealExists.ts` | Proxy chặn deal/blog không tồn tại → 404 thật; `connection()` bỏ Date.now bailout; safe decode path malformed | `tsc`, `lint`, `build`, `pnpm start` + curl matrix, log check | Hoàn tất (local) |
 | 3 | — | `report.md` | Ghi nhận kết quả verify Vercel Preview | Preview deployment `dpl_Gn4h2awtkEBjFjrCZ3jtFpSv4kfr` + matrix 404/301/410 | Hoàn tất (preview) |
 | 4 | `6016324` | merge `seo/p0-fixes` → `main` | Deploy production P0 | Production `dpl_8KVk8m3AZ76UeoC4YaTm6HSGh5SY` + curl matrix 404/301/410, không còn log `Date.now` | Hoàn tất (production) |
-| 5 | — | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
+| 5 | - | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
+| 6 | `89c75fb` | `lib/legal/content.ts`, `lib/components/LegalPage.tsx`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `proxy.ts`, `app/layout.tsx`, `app/sitemap.ts`, `lib/site.ts` | Thêm 8 trust/legal pages; footer + sitemap; 404 thật cho slug chính sách không tồn tại | `tsc`, `lint`, `build`, `pnpm start` + curl 8 URL 200, slug lạ 404, `/chinh-sach` + `/gioi-thieu` 410, footer/sitemap check, screenshot desktop | Hoàn tất (local, chờ preview) |
+| 7 | `c00d6fe` | `report.md` | Ghi nhận verify P1 + checklist trust pages + push preview | `git show --stat c00d6fe`; Vercel status success | Hoàn tất |
+| 8 | `2f6c127` | `report.md` | Ghi nhận verify preview: 8/8 trang 200, 404/410 đúng, canonical + sitemap đúng domain production | Chrome fetch nội bộ trên preview + Vercel status success | Hoàn tất (preview) |
+| 9 | `ba23ef6` | `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `lib/landing/content.ts`, `lib/components/LandingPage.tsx`, `lib/categories.ts`, `proxy.ts`, `app/layout.tsx`, `app/page.tsx`, `app/sitemap.ts`, `report.md` | Thêm 4 landing sàn + 16 landing danh mục; đổi internal link header/footer/home; thêm sitemap; 404 thật cho slug lạ | `tsc`, `lint`, `build`, curl 4+16 trang 200, 301/404/410 matrix, canonical/JSON-LD, sitemap, screenshot desktop | Hoàn tất (local) |
+| 10 | `76f2d01` | `report.md` | Ghi nhận verify landing pages + hash commit | `git show --stat 76f2d01` | Hoàn tất |
+| 11 | `2d991ec` | `report.md` | Ghi nhận verify preview landing pages: 4 sàn + 16 danh mục 200, slug lạ 404, legacy 301/410, canonical/sitemap đúng | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
+| 12 | `b0e3d45` | `lib/faq/content.ts`, `app/faq/page.tsx`, `app/sitemap/page.tsx`, `lib/seo.ts`, `app/opengraph-image.tsx`, `app/layout.tsx`, `lib/legal/content.ts`, `app/sitemap.ts`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `report.md` | Thêm FAQ + HTML sitemap; JSON-LD Organization/WebSite; OG image mặc định + fallback; footer/sitemap link | `tsc`, `lint`, `build`, 30 route 200, FAQ 13 câu JSON-LD, HTML sitemap 60 deal, XML 817 URL, OG 1200×630, screenshot desktop | Hoàn tất (local, chờ preview) |
+| 13 | `12092ea` | `report.md` | Ghi nhận verify FAQ/HTML sitemap/schema/OG + hash commit | `git show --stat b0e3d45` | Hoàn tất |
+| 14 | - | `report.md` | Ghi nhận preview FAQ/HTML sitemap/schema/OG: 30 route 200, 404/410 đúng, FAQ 13 câu, sitemap 910 URL, OG 1200×630 | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
+| 15 | - | `report.md` | Ghi nhận email `contact@sansale247.io.vn` đã hoạt động: Zoho Mail free, MX/SPF/DKIM/DMARC tại PA, test Gmail 2 chiều | `Resolve-DnsName` ns1.pavietnam.vn; Gmail header SPF/DKIM/DMARC = PASS; Zoho báo xác thực tất cả bản ghi | Hoàn tất |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

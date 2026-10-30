@@ -6,6 +6,9 @@ export const SITE = {
   description:
     "Tổng hợp mã giảm giá Shopee và deal hot Tiki, TikTok Shop, Lazada — cập nhật tự động 24/7 qua Accesstrade. Voucher freeship, giảm giá sâu và sản phẩm deal đa sàn.",
   defaultUrl: "http://localhost:3000",
+  /** Public contact address used on trust/legal pages. Override with NEXT_PUBLIC_CONTACT_EMAIL. */
+  contactEmail:
+    process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@sansale247.io.vn",
   // Everything cached under this tag is invalidated when coupons change.
   couponsTag: "coupons",
   adminPath: "/admin",

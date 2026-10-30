@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P2 ĐÃ DEPLOY PRODUCTION — GSC SITEMAP ĐÃ SUBMIT LẠI`
+- **Trạng thái:** `P2 ĐÃ DEPLOY PRODUCTION — GSC SITEMAP ĐÃ SUBMIT LẠI; UI MOBILE FOOTER + BACK TO TOP ĐÃ VERIFY LOCAL, CHỜ DUYỆT`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -557,6 +557,14 @@ pnpm dev
 - Đánh giá pháp lý 6 trang policy.
 - Danh sách kênh backlink/PR ưu tiên.
 
+### 5.5. UI mobile footer + Back to top (2026-10-30)
+
+- Footer mobile: nhóm link thông tin website chuyển từ `flex-wrap` sang grid 2 cột, khoảng cách hàng/cột đều; desktop vẫn giữ flex-wrap.
+- Thêm `lib/components/BackToTop.tsx`: nút tròn cố định góc phải dưới, chỉ hiện sau khi cuộn >600px; cuộn mượt về đầu trang, tôn trọng `prefers-reduced-motion`; có `aria-label` + `title` "Về đầu trang".
+- Thêm padding bottom cho footer mobile để nút không che copyright khi ở cuối trang.
+- Verify local: `tsc` PASS, `lint` PASS, `build` PASS (57 static pages); Playwright 390×844 và 360×800 không overflow ngang (`scrollWidth` 350/360); click nút → `scrollY = 0`; desktop footer vẫn `display: flex`.
+- **Chưa deploy production** — chờ anh duyệt.
+
 ---
 
 ## 6. Rollback
@@ -599,6 +607,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 17 | `822e6b7` | `lib/blog/posts.ts`, `lib/components/LandingPage.tsx`, `app/blog/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/ma/[id]/page.tsx` | Thêm 6 bài blog P2; internal link deal → blog → landing | `tsc`, `lint`, `build`; 10 blog + 8 landing + 5 deal page 200; sitemap local 823 URL (+6 blog); 404/301/410 giữ nguyên | Hoàn tất (local, chờ duyệt deploy) |
 | 18 | - | `report.md` | Ghi nhận verify preview P2 | Preview `dpl_5eeEmRj6Xu3WNsYWwckLnibNj9YV`; 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng | Hoàn tất (preview, chờ duyệt production) |
 | 19 | `685ede2` | merge `seo/p2-growth` → `main`; `report.md` | Deploy production P2 + GSC | Production `dpl_DqRHqTLUtViKcYTRTeXui6qdysDs`; 30/30 P1 + 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng; GSC sitemap submitted | Hoàn tất (production) |
+| 20 | `8a03429` | `app/layout.tsx`, `lib/components/BackToTop.tsx` | Footer mobile grid 2 cột + nút Back to top; giữ desktop flex | `tsc`, `lint`, `build`; Playwright 390×844 + 360×800; không overflow ngang; click → `scrollY=0`; desktop flex | Hoàn tất (local, chờ duyệt production) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { listActiveDeals } from "@/lib/coupons/data";
 import { BLOG_POSTS } from "@/lib/blog/posts";
+import { CATEGORY_SLUGS } from "@/lib/categories";
 import { LEGAL_PAGES } from "@/lib/legal/content";
-import { siteUrl } from "@/lib/site";
+import { SITE, siteUrl } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
@@ -11,6 +12,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/`, changeFrequency: "hourly", priority: 1.0 },
     { url: `${base}/tim-kiem`, changeFrequency: "daily", priority: 0.5 },
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.5 },
+    ...SITE.merchants.map((merchant) => ({
+      url: `${base}/san/${merchant}`,
+      changeFrequency: "daily" as const,
+      priority: 0.7,
+    })),
+    ...CATEGORY_SLUGS.map((slug) => ({
+      url: `${base}/danh-muc/${slug}`,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
+    })),
     { url: `${base}/ve-chung-toi`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${base}/lien-he`, changeFrequency: "monthly", priority: 0.3 },
     ...LEGAL_PAGES.map((page) => ({

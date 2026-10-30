@@ -324,7 +324,7 @@ async function CategoryNav() {
           return (
             <Link
               key={category.slug}
-              href={`/tim-kiem?cate=${encodeURIComponent(category.slug)}`}
+              href={`/danh-muc/${encodeURIComponent(category.slug)}`}
               className="flex min-h-[132px] flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-white p-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md"
             >
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand/10 text-brand">
@@ -361,7 +361,7 @@ async function MerchantSections() {
             title={`Deal ${merchantLabel(merchant)}`}
             icon={<MerchantLogo merchant={merchant} size={26} />}
             meta={`${countFmt.format(counts[merchant] ?? deals.length)} deal`}
-            href={`/tim-kiem?merchant=${merchant}`}
+            href={`/san/${merchant}`}
           />
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {deals.slice(0, 4).map((deal, i) => (

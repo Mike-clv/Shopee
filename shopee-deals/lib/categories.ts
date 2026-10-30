@@ -62,6 +62,9 @@ const CATEGORIES: CategoryDef[] = [
   { slug: "voucher", label: "Mã & Voucher", icon: TicketPercent, accent: BRAND_ACCENT, match: /\bvoucher\b|coupon|mã giảm|khuyến mã|giảm \d|\d+\s*%/i },
 ];
 
+/** Stable list for sitemap/static params and landing-page validation. */
+export const CATEGORY_SLUGS = CATEGORIES.map((category) => category.slug);
+
 const FALLBACK_ICON: LucideIcon = Tag;
 
 /** Keyword-based classification (for titles/names without real category data). */

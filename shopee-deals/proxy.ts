@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPost } from "@/lib/blog/posts";
 import { activeDealExists } from "@/lib/coupons/dealExists";
+import { getCategoryLanding, getMerchantLanding } from "@/lib/landing/content";
 import { getLegalPage } from "@/lib/legal/content";
 
 /**
@@ -61,22 +62,25 @@ function safeDecode(value: string): string {
  * These are permanent (301) because the old URL will never come back.
  */
 function legacyRedirectTarget(pathname: string): string | null {
-  if (pathname === "/danh-muc" || pathname === "/ma-giam-gia") {
+  if (
+    pathname === "/danh-muc" ||
+    pathname === "/ma-giam-gia" ||
+    pathname === "/san"
+  ) {
     return "/tim-kiem";
   }
 
+  // Merchant/category landing pages are real routes now. Only the historical
+  // TikTok alias needs a permanent redirect; unknown slugs fall through to the
+  // route, which returns a real 404.
   const merchantMatch = pathname.match(/^\/san\/([^/]+)$/);
   if (merchantMatch) {
     const requested = safeDecode(merchantMatch[1]);
     const merchant = MERCHANT_ALIASES[requested] ?? requested;
-    return KNOWN_MERCHANTS.has(merchant)
-      ? `/tim-kiem?merchant=${encodeURIComponent(merchant)}`
-      : "/tim-kiem";
-  }
-
-  const categoryMatch = pathname.match(/^\/danh-muc\/([^/]+)$/);
-  if (categoryMatch) {
-    return `/tim-kiem?cate=${encodeURIComponent(safeDecode(categoryMatch[1]))}`;
+    if (merchant !== requested && KNOWN_MERCHANTS.has(merchant)) {
+      return `/san/${merchant}`;
+    }
+    return null;
   }
 
   const legacyDealMatch = pathname.match(/^\/ma-giam-gia\/([^/]+)$/);
@@ -234,6 +238,19 @@ export async function proxy(request: NextRequest) {
       NextResponse.redirect(new URL(redirectTarget, request.url), 301),
       request,
     );
+  }
+
+  // Merchant/category landing pages are static sets. Unknown slugs must 404
+  // before the PPR shell flushes a 200; run this after the TikTok alias
+  // redirect so /san/tiktok-shop still lands on /san/tiktokshop.
+  const merchantMatch = normalized.match(/^\/san\/([^/]+)$/);
+  if (merchantMatch && !getMerchantLanding(safeDecode(merchantMatch[1]))) {
+    return withSecurityHeaders(notFoundResponse(), request);
+  }
+
+  const categoryMatch = normalized.match(/^\/danh-muc\/([^/]+)$/);
+  if (categoryMatch && !getCategoryLanding(safeDecode(categoryMatch[1]))) {
+    return withSecurityHeaders(notFoundResponse(), request);
   }
 
   return withSecurityHeaders(NextResponse.next(), request);

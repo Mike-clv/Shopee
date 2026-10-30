@@ -180,7 +180,7 @@ function SiteHeader() {
             {SITE.merchants.map((merchant) => (
               <Link
                 key={merchant}
-                href={`/tim-kiem?merchant=${merchant}`}
+                href={`/san/${merchant}`}
                 className="inline-flex items-center gap-1 text-white/85 transition hover:text-white hover:underline"
               >
                 <MerchantLogo merchant={merchant} size={14} />
@@ -283,7 +283,7 @@ function SiteFooter() {
               {categories.map(({ slug, label, Icon }) => (
                 <li key={slug}>
                   <Link
-                    href={`/tim-kiem?cate=${encodeURIComponent(slug)}`}
+                    href={`/danh-muc/${encodeURIComponent(slug)}`}
                     className="inline-flex items-center gap-1.5 text-ink/55 transition hover:text-brand"
                   >
                     <Icon className="h-3.5 w-3.5 text-ink/35" aria-hidden />
@@ -300,7 +300,7 @@ function SiteFooter() {
               {SITE.merchants.map((merchant) => (
                 <li key={merchant}>
                   <Link
-                    href={`/tim-kiem?merchant=${merchant}`}
+                    href={`/san/${merchant}`}
                     className="inline-flex items-center gap-2 text-ink/55 transition hover:text-brand"
                   >
                     <MerchantLogo merchant={merchant} size={16} />

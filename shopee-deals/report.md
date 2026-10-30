@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P1 TRUST PAGES ĐÃ PUSH PREVIEW — CHỜ DUYỆT PRODUCTION`
+- **Trạng thái:** `P1 LANDING PAGES ĐÃ CODE + VERIFY LOCAL — CHƯA COMMIT/PUSH PREVIEW`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -302,16 +302,61 @@ pnpm dev
 - **Lưu ý:** preview bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`; verify tự động cần đăng nhập Chrome hoặc Protection Bypass token.
 - **Chưa merge `main`, chưa deploy production.**
 
-### 4.2. Thứ tự P1 còn lại
+### 4.2. Landing pages P1 — đã code local (2026-10-30)
 
-1. **Landing page sàn:** `app/san/[merchant]/page.tsx` cho 4 sàn; metadata riêng, canonical self, nội dung unique, FAQ, danh sách deal, link affiliate.
-2. **Landing page danh mục:** `app/danh-muc/[slug]/page.tsx` cho 16 category; tương tự.
-3. **Đổi internal link** từ `/tim-kiem?merchant=` / `?cate=` sang landing page mới ở header/footer/card/breadcrumb.
+- **Branch:** `seo/p1-landing-pages`, tạo từ `seo/p1-trust-pages`.
+- **Route đã thêm:**
+  - 4 trang sàn: `/san/shopee`, `/san/tiki`, `/san/lazada`, `/san/tiktokshop`.
+  - 16 trang danh mục: `/danh-muc/{freeship,food,beauty,health,book,electronics,fashion,home,baby,sports,auto,pet,toys,jewelry,tools,voucher}`.
+- **Code:**
+  - `lib/landing/content.ts`: nội dung unique cho 4 sàn + 16 danh mục; FAQ dùng chung cho danh mục; type `MerchantLanding`, `CategoryLanding`, `LandingFaq`.
+  - `lib/components/LandingPage.tsx`: layout chung hero, stats, tổng quan, lưới deal, FAQ `<details>`, sidebar, ghi chú affiliate.
+  - `app/san/[merchant]/page.tsx`: `generateStaticParams` 4 sàn; metadata canonical/OG; JSON-LD `CollectionPage` + `BreadcrumbList` + `FAQPage`; 24 deal mới nhất; sidebar sàn khác + danh mục.
+  - `app/danh-muc/[slug]/page.tsx`: `generateStaticParams` 16 danh mục; metadata canonical/OG; JSON-LD tương tự; 24 deal mới nhất; đếm deal theo sàn; sidebar sàn có deal + danh mục khác.
+  - `lib/categories.ts`: thêm `CATEGORY_SLUGS`.
+  - `proxy.ts`: bỏ redirect `/san/:merchant` và `/danh-muc/:slug`; giữ 301 `/san/tiktok-shop` → `/san/tiktokshop`; unknown slug trả 404 thật trước PPR shell; `/san`, `/danh-muc`, `/ma-giam-gia` vẫn 301 `/tim-kiem`.
+  - `app/layout.tsx`, `app/page.tsx`: đổi internal link header/footer/home từ `/tim-kiem?merchant=` / `?cate=` sang `/san/*` / `/danh-muc/*`.
+  - `app/sitemap.ts`: thêm 4 URL sàn + 16 URL danh mục.
+- **Verify local:**
+  - 4/4 trang sàn **200**; 16/16 trang danh mục **200**.
+  - `/san/tiktok-shop` → **301** `/san/tiktokshop`; `/san/foo`, `/danh-muc/foo` → **404**.
+  - `/san`, `/danh-muc`, `/ma-giam-gia` → **301** `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` vẫn **410**.
+  - Canonical + `og:url` đúng trên `/san/shopee` và `/danh-muc/freeship`; JSON-LD có `CollectionPage`, `BreadcrumbList`, `FAQPage`.
+  - Sitemap local: **815 URL**, có đủ 4 sàn + 16 danh mục.
+  - Homepage/header/footer có link `/san/*`, `/danh-muc/*`, trust pages.
+  - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass.
+  - Screenshot desktop `/san/shopee` + `/danh-muc/freeship` hiển thị đúng hero, stats, sidebar.
+- **Lưu ý:** một số danh mục hiện **0 deal** (ví dụ `freeship`); trang vẫn có nội dung + empty state. Nếu kéo dài, cân nhắc `noindex` hoặc loại khỏi sitemap để tránh thin content.
+- **Chưa commit/push/preview.**
+
+### 4.3. Email liên hệ — trạng thái & cách tạo
+
+- **Kết luận:** `contact@sansale247.io.vn` **chưa được provision**, không nhận thư.
+- **Bằng chứng DNS:**
+  - NS: `ns1.pavietnam.vn`, `ns2.pavietnam.vn`, `nsbak.pavietnam.net`.
+  - MX: `mail.sansale247.io.vn` (pref 10).
+  - `mail.sansale247.io.vn` → `112.213.89.150`; PTR `mx89150.superdata.vn`.
+  - SPF: `v=spf1 a mx ~all`; chưa có DMARC; chưa thấy DKIM selector phổ biến.
+- **Bằng chứng dịch vụ:** `https://mail.sansale247.io.vn/`, `/admin`, `/SOGo/`, `/webmail` đều trả trang mặc định PA Web30s: “Bạn đã trỏ IP đến hệ thống Web30s của PA Việt Nam thành công, vui lòng chờ kích hoạt trong 24h.” Port mail 25/110/143/465/587/993/995 filtered/closed; 80/443/2083 mở.
+- **Cách tạo:**
+  1. Đăng nhập cổng khách hàng P.A Việt Nam (`support.pavietnam.vn`) hoặc gọi `1900 9477` / `028 22317777`.
+  2. Kích hoạt dịch vụ **Email Server Pro** (thường tặng kèm domain .vn/.io.vn; giá niêm yết ~72.000đ/tháng).
+  3. Thêm domain `sansale247.io.vn`, tạo mailbox `contact@sansale247.io.vn` trong Mailcow admin (`https://mail.sansale247.io.vn/admin` sau khi kích hoạt).
+  4. Cấu hình DNS: MX `mail.sansale247.io.vn` pref 10; SPF `v=spf1 mx ~all` hoặc theo PA; publish DKIM TXT từ Mailcow; thêm DMARC `_dmarc` (`v=DMARC1; p=none; rua=mailto:contact@sansale247.io.vn`).
+  5. Gửi/nhận thử từ Gmail, kiểm tra header SPF/DKIM/DMARC pass.
+- **Phương án thay thế:** Google Workspace/Microsoft 365 (trả phí), Zoho Mail (free tier), Cloudflare Email Routing (free, chỉ nhận/forward; cần đổi NS sang Cloudflare).
+- **Trước production:** phải chốt email hoạt động hoặc đổi `SITE.contactEmail` / set `NEXT_PUBLIC_CONTACT_EMAIL` sang hộp thư thật.
+
+### 4.4. Thứ tự P1 còn lại
+
+1. ~~Landing page sàn~~ — đã code local.
+2. ~~Landing page danh mục~~ — đã code local.
+3. ~~Đổi internal link~~ — đã đổi header/footer/home.
 4. **FAQ** và trang HTML sitemap.
 5. **Schema/OG:** `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`; `og:image` mặc định.
-6. **Sitemap:** thêm landing pages; kiểm tra lại index.
+6. **Sitemap:** đã thêm landing pages; kiểm tra lại index sau deploy.
 
-### 4.3. Checklist một website thương mại/affiliate hoàn chỉnh
+### 4.5. Checklist một website thương mại/affiliate hoàn chỉnh
 
 Đây là checklist P1, không phải P0. Với mô hình của `sansale247` (site giới thiệu deal + link affiliate, **không bán trực tiếp**), không cần cart/checkout/shipping; nhưng cần minh bạch và đủ niềm tin.
 
@@ -329,8 +374,6 @@ pnpm dev
 | FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | **Chưa làm** — P1 tiếp theo |
 | 404 | Trang lỗi có hướng dẫn quay lại | Đã có; noindex/status đúng |
 | Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | **Chưa làm** — P1 tiếp theo |
-| 404 | Trang lỗi có hướng dẫn quay lại | Đã có; cần noindex/status đúng |
-| Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | Tùy chọn, nhưng hữu ích |
 
 #### B. Trang pháp lý/niềm tin nên bổ sung
 
@@ -419,7 +462,8 @@ git -C D:\web switch backup/pre-seo-20261030
 | 5 | - | `report.md` | Ghi nhận deploy production + GSC sitemap/URL Inspection | GSC: sitemap submitted, 4 URL request indexing, `/gioi-thieu` live test 404 | Hoàn tất |
 | 6 | `89c75fb` | `lib/legal/content.ts`, `lib/components/LegalPage.tsx`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `proxy.ts`, `app/layout.tsx`, `app/sitemap.ts`, `lib/site.ts` | Thêm 8 trust/legal pages; footer + sitemap; 404 thật cho slug chính sách không tồn tại | `tsc`, `lint`, `build`, `pnpm start` + curl 8 URL 200, slug lạ 404, `/chinh-sach` + `/gioi-thieu` 410, footer/sitemap check, screenshot desktop | Hoàn tất (local, chờ preview) |
 | 7 | `c00d6fe` | `report.md` | Ghi nhận verify P1 + checklist trust pages + push preview | `git show --stat c00d6fe`; Vercel status success | Hoàn tất |
-| 8 | - | `report.md` | Ghi nhận verify preview: 8/8 trang 200, 404/410 đúng, canonical + sitemap đúng domain production | Chrome fetch nội bộ trên preview + Vercel status success | Hoàn tất (preview) |
+| 8 | `2f6c127` | `report.md` | Ghi nhận verify preview: 8/8 trang 200, 404/410 đúng, canonical + sitemap đúng domain production | Chrome fetch nội bộ trên preview + Vercel status success | Hoàn tất (preview) |
+| 9 | - | `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `lib/landing/content.ts`, `lib/components/LandingPage.tsx`, `lib/categories.ts`, `proxy.ts`, `app/layout.tsx`, `app/page.tsx`, `app/sitemap.ts`, `report.md` | Thêm 4 landing sàn + 16 landing danh mục; đổi internal link header/footer/home; thêm sitemap; 404 thật cho slug lạ | `tsc`, `lint`, `build`, curl 4+16 trang 200, 301/404/410 matrix, canonical/JSON-LD, sitemap, screenshot desktop | Hoàn tất (local) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

@@ -6,6 +6,7 @@ import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { countSearchDeals, searchDeals } from "@/lib/coupons/data";
 import { categoryFaqs, getCategoryLanding } from "@/lib/landing/content";
+import { OG_IMAGE } from "@/lib/seo";
 import { SITE, siteUrl } from "@/lib/site";
 
 export const instant = false;
@@ -36,6 +37,7 @@ export async function generateMetadata(
       description: landing.description,
       url: `/danh-muc/${slug}`,
       type: "website",
+      images: [OG_IMAGE],
     },
   };
 }

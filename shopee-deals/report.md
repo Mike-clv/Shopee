@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P1 LANDING PAGES ĐÃ PUSH PREVIEW — CÒN FAQ/HTML SITEMAP/SCHEMA TRƯỚC DEPLOY`
+- **Trạng thái:** `P1 FAQ/HTML SITEMAP/SCHEMA/OG ĐÃ CODE + VERIFY LOCAL — CHỜ COMMIT/PREVIEW`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -341,7 +341,34 @@ pnpm dev
 - **Lưu ý:** preview bật Vercel Authentication (SSO), curl ngoài nhận **302** về `vercel.com/sso-api`; console có cảnh báo CSP report-only do Vercel Live iframe, chỉ preview.
 - **Chưa merge `main`, chưa deploy production.**
 
-### 4.3. Email liên hệ — trạng thái & cách tạo
+### 4.3. FAQ + HTML sitemap + schema/OG — đã code local (2026-10-30)
+
+- **Branch:** `seo/p1-landing-pages`.
+- **Route mới:**
+  - `/faq`: trang câu hỏi thường gặp, 4 nhóm / 13 câu.
+  - `/sitemap`: HTML sitemap cho người dùng.
+  - `/opengraph-image`: ảnh OG mặc định 1200×630.
+- **Code:**
+  - `lib/faq/content.ts`: nội dung FAQ + `FAQ_GROUPS`, `FAQ_ITEMS`, `FAQ_UPDATED`.
+  - `app/faq/page.tsx`: metadata canonical/OG, FAQ accordion, sidebar, JSON-LD `FAQPage` 13 câu.
+  - `app/sitemap/page.tsx`: HTML sitemap gồm trang chính, 4 sàn, 16 danh mục, chính sách, blog, 60 deal mới.
+  - `lib/seo.ts` + `app/opengraph-image.tsx`: ảnh OG mặc định; thêm `images: [OG_IMAGE]` vào `openGraph` của các page; deal page ưu tiên ảnh sản phẩm, fallback OG mặc định.
+  - `app/layout.tsx`: JSON-LD `Organization` + `WebSite` (SearchAction), footer thêm link Sitemap.
+  - `lib/legal/content.ts`: `TRUST_LINKS` thêm `/faq`.
+  - `app/sitemap.ts`: thêm `/faq` + `/sitemap`.
+- **Verify local:**
+  - 30/30 route chính **200** (9 trust/FAQ + HTML sitemap + 4 sàn + 16 danh mục).
+  - `/faq`, `/sitemap`, `/opengraph-image` (image/png), `/sitemap.xml` **200**.
+  - FAQ có canonical đúng, `og:image` 1200×630, JSON-LD `Organization`, `WebSite`, `FAQPage` 13 câu.
+  - HTML sitemap có 60 link deal + link `/faq`, `/sitemap.xml`, `/san/shopee`, `/danh-muc/freeship`, `/chinh-sach/cookie`, `/ve-chung-toi`.
+  - Footer homepage có `/faq`, `/sitemap`, `/ve-chung-toi`, `/chinh-sach/cookie`.
+  - XML sitemap local **817 URL**, có `/faq` + `/sitemap`.
+  - `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123` **404**; `/san`, `/danh-muc`, `/ma-giam-gia` **301** `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` **410**.
+  - `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build` pass; screenshot desktop `/faq` + `/sitemap` hiển thị đúng.
+- **Lưu ý:** file-based `opengraph-image` không tự thêm `og:image` khi page có `openGraph` explicit; đã sửa bằng `images: [OG_IMAGE]` ở tất cả metadata.
+- **Chưa commit/push.**
+
+### 4.4. Email liên hệ — trạng thái & cách tạo
 
 - **Kết luận:** `contact@sansale247.io.vn` **chưa được provision**, không nhận thư.
 - **Bằng chứng DNS:**
@@ -359,16 +386,18 @@ pnpm dev
 - **Phương án thay thế:** Google Workspace/Microsoft 365 (trả phí), Zoho Mail (free tier), Cloudflare Email Routing (free, chỉ nhận/forward; cần đổi NS sang Cloudflare).
 - **Trước production:** phải chốt email hoạt động hoặc đổi `SITE.contactEmail` / set `NEXT_PUBLIC_CONTACT_EMAIL` sang hộp thư thật.
 
-### 4.4. Thứ tự P1 còn lại
+### 4.5. Thứ tự P1 còn lại
 
 1. ~~Landing page sàn~~ — đã code local.
 2. ~~Landing page danh mục~~ — đã code local.
 3. ~~Đổi internal link~~ — đã đổi header/footer/home.
-4. **FAQ** và trang HTML sitemap.
-5. **Schema/OG:** `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`; `og:image` mặc định.
-6. **Sitemap:** đã thêm landing pages; kiểm tra lại index sau deploy.
+4. ~~FAQ~~ — đã code local.
+5. ~~HTML sitemap~~ — đã code local.
+6. ~~Schema/OG~~ — đã thêm `Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`, OG mặc định.
+7. **Preview + production:** commit, push, verify preview, rồi merge/deploy khi anh duyệt.
+8. **Sitemap:** submit lại GSC sau production; kiểm tra index landing pages.
 
-### 4.5. Checklist một website thương mại/affiliate hoàn chỉnh
+### 4.6. Checklist một website thương mại/affiliate hoàn chỉnh
 
 Đây là checklist P1, không phải P0. Với mô hình của `sansale247` (site giới thiệu deal + link affiliate, **không bán trực tiếp**), không cần cart/checkout/shipping; nhưng cần minh bạch và đủ niềm tin.
 
@@ -383,9 +412,9 @@ pnpm dev
 | Điều khoản sử dụng (`/chinh-sach/dieu-khoan-su-dung`) | Quy tắc dùng site, giới hạn trách nhiệm, IP, luật áp dụng | **Đã có** |
 | Tuyên bố affiliate (`/chinh-sach/tiet-lo-affiliate`) | Nói rõ có thể nhận hoa hồng khi mua qua link | **Đã có**; vẫn cần disclosure gần link/đầu nội dung |
 | Chính sách biên tập (`/chinh-sach/chinh-sach-bien-tap`) | Ai kiểm tra deal, tần suất cập nhật, tiêu chí chọn deal | **Đã có** |
-| FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | **Chưa làm** — P1 tiếp theo |
+| FAQ (`/faq`) | Giải đáp cách dùng mã, mã hết hạn, hoàn tiền do ai xử lý | **Đã có** 4 nhóm / 13 câu; JSON-LD `FAQPage` |
 | 404 | Trang lỗi có hướng dẫn quay lại | Đã có; noindex/status đúng |
-| Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | **Chưa làm** — P1 tiếp theo |
+| Sitemap HTML (`/sitemap`) | Điều hướng cho người dùng và crawler | **Đã có**; link footer + XML sitemap |
 
 #### B. Trang pháp lý/niềm tin nên bổ sung
 
@@ -477,6 +506,8 @@ git -C D:\web switch backup/pre-seo-20261030
 | 8 | `2f6c127` | `report.md` | Ghi nhận verify preview: 8/8 trang 200, 404/410 đúng, canonical + sitemap đúng domain production | Chrome fetch nội bộ trên preview + Vercel status success | Hoàn tất (preview) |
 | 9 | `ba23ef6` | `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `lib/landing/content.ts`, `lib/components/LandingPage.tsx`, `lib/categories.ts`, `proxy.ts`, `app/layout.tsx`, `app/page.tsx`, `app/sitemap.ts`, `report.md` | Thêm 4 landing sàn + 16 landing danh mục; đổi internal link header/footer/home; thêm sitemap; 404 thật cho slug lạ | `tsc`, `lint`, `build`, curl 4+16 trang 200, 301/404/410 matrix, canonical/JSON-LD, sitemap, screenshot desktop | Hoàn tất (local) |
 | 10 | `76f2d01` | `report.md` | Ghi nhận verify landing pages + hash commit | `git show --stat 76f2d01` | Hoàn tất |
+| 11 | `2d991ec` | `report.md` | Ghi nhận verify preview landing pages: 4 sàn + 16 danh mục 200, slug lạ 404, legacy 301/410, canonical/sitemap đúng | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
+| 12 | - | `lib/faq/content.ts`, `app/faq/page.tsx`, `app/sitemap/page.tsx`, `lib/seo.ts`, `app/opengraph-image.tsx`, `app/layout.tsx`, `lib/legal/content.ts`, `app/sitemap.ts`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `report.md` | Thêm FAQ + HTML sitemap; JSON-LD Organization/WebSite; OG image mặc định + fallback; footer/sitemap link | `tsc`, `lint`, `build`, 30 route 200, FAQ 13 câu JSON-LD, HTML sitemap 60 deal, XML 817 URL, OG 1200×630, screenshot desktop | Hoàn tất (local, chờ preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LegalPage, LegalSection } from "@/lib/components/LegalPage";
 import { LEGAL_PAGES, getLegalPage } from "@/lib/legal/content";
+import { OG_IMAGE } from "@/lib/seo";
 
 export const instant = false;
 
@@ -31,6 +32,7 @@ export async function generateMetadata(
       description: page.description,
       url: `/chinh-sach/${page.slug}`,
       type: "article",
+      images: [OG_IMAGE],
     },
   };
 }

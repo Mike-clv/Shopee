@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Be_Vietnam_Pro, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { SITE } from "@/lib/site";
+import { SITE, siteUrl } from "@/lib/site";
+import { OG_IMAGE } from "@/lib/seo";
 import { FEATURED_CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { NavTabs } from "@/lib/components/NavTabs";
@@ -48,8 +49,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
     siteName: SITE.name,
-    title: `${SITE.name} – Mã giảm giá Shopee & deal đa sàn`,
+    title: `${SITE.name} — Mã giảm giá Shopee & deal đa sàn`,
     description: SITE.description,
+    images: [OG_IMAGE],
   },
   robots: { index: true, follow: true },
   // Versioned URL forces browsers (Chrome favicon cache) to re-fetch the icon
@@ -64,12 +66,50 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const base = siteUrl();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${base}/#organization`,
+        name: SITE.name,
+        url: base,
+        logo: `${base}/icon.svg`,
+        email: SITE.contactEmail,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${base}/#website`,
+        url: base,
+        name: SITE.name,
+        description: SITE.description,
+        inLanguage: "vi-VN",
+        publisher: { "@id": `${base}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${base}/tim-kiem?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <html
       lang="vi"
       className={`${inter.variable} ${beVietnamPro.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-paper text-ink">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <SiteHeader />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4">{children}</main>
         <SiteFooter />
@@ -331,6 +371,9 @@ function SiteFooter() {
               {link.label}
             </Link>
           ))}
+          <Link href="/sitemap" className="transition hover:text-brand">
+            Sitemap
+          </Link>
         </nav>
 
         <div className="mt-4 flex flex-col gap-2 text-xs text-ink/40 sm:flex-row sm:items-center sm:justify-between">

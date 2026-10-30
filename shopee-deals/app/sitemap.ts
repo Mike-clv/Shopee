@@ -22,6 +22,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily" as const,
       priority: 0.6,
     })),
+    { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${base}/sitemap`, changeFrequency: "monthly", priority: 0.2 },
     { url: `${base}/ve-chung-toi`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${base}/lien-he`, changeFrequency: "monthly", priority: 0.3 },
     ...LEGAL_PAGES.map((page) => ({

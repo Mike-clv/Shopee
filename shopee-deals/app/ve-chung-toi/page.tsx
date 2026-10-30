@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/lib/components/LegalPage";
+import { OG_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Về Sansale247",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
       "Website tổng hợp mã giảm giá, voucher và deal đa sàn, cập nhật tự động qua AccessTrade.",
     url: "/ve-chung-toi",
     type: "website",
+    images: [OG_IMAGE],
   },
 };
 

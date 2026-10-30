@@ -11,6 +11,7 @@ import {
 } from "@/lib/coupons/data";
 import type { CouponDeal } from "@/lib/db/schema";
 import { truncateVi, formatDayVi, formatDiscountVi, formatPriceVi } from "@/lib/utils";
+import { OG_IMAGE } from "@/lib/seo";
 import { merchantLabel, siteUrl } from "@/lib/site";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { categoryFromSlug } from "@/lib/categories";
@@ -51,7 +52,7 @@ export async function generateMetadata(
     openGraph: {
       title,
       description: truncateVi(deal.content ?? deal.title, 160),
-      images: deal.image ? [{ url: deal.image }] : undefined,
+      images: deal.image ? [{ url: deal.image }] : [OG_IMAGE],
     },
   };
 }

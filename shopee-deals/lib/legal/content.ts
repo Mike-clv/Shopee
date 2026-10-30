@@ -384,6 +384,7 @@ export function getLegalPage(slug: string): LegalPageContent | undefined {
 export const TRUST_LINKS = [
   { href: "/ve-chung-toi", label: "Về Sansale247" },
   { href: "/lien-he", label: "Liên hệ" },
+  { href: "/faq", label: "Câu hỏi thường gặp" },
   ...LEGAL_PAGES.map((page) => ({
     href: `/chinh-sach/${page.slug}`,
     label: page.title,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { LegalPage, LegalSection } from "@/lib/components/LegalPage";
+import { OG_IMAGE } from "@/lib/seo";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
       "Báo link lỗi, mã hết hạn, yêu cầu dữ liệu cá nhân hoặc góp ý nội dung.",
     url: "/lien-he",
     type: "website",
+    images: [OG_IMAGE],
   },
 };
 

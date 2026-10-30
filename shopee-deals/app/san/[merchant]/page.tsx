@@ -4,6 +4,7 @@ import { LandingPage, LandingSidebarCard, LandingLinkList, LandingAffiliateNote 
 import { categoryFromSlug } from "@/lib/categories";
 import { countDealsPerMerchant, countSearchDeals, listTopCategories, searchDeals } from "@/lib/coupons/data";
 import { getMerchantLanding } from "@/lib/landing/content";
+import { OG_IMAGE } from "@/lib/seo";
 import { SITE, merchantLabel, siteUrl } from "@/lib/site";
 
 export const instant = false;
@@ -34,6 +35,7 @@ export async function generateMetadata(
       description: landing.description,
       url: `/san/${landing.slug}`,
       type: "website",
+      images: [OG_IMAGE],
     },
   };
 }

@@ -422,7 +422,7 @@ function SectionHead({
   linkLabel?: string;
 }) {
   return (
-    <div className="mb-5 flex items-center justify-between gap-3">
+    <div className="mb-4 flex items-center justify-between gap-3 border-b border-line/80 pb-3">
       <h2
         id={id}
         className="flex min-w-0 items-center gap-2 text-xl font-bold font-display text-ink sm:text-2xl"

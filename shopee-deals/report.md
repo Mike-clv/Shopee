@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P1 FAQ/HTML SITEMAP/SCHEMA/OG ĐÃ PUSH PREVIEW — CHỜ DUYỆT DEPLOY`
+- **Trạng thái:** `P1 ĐÃ VERIFY PREVIEW + EMAIL CONTACT@ HOẠT ĐỘNG — CHỜ DUYỆT DEPLOY`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -282,7 +282,7 @@ pnpm dev
   - `proxy.ts`: chặn slug chính sách không tồn tại → 404 thật trước PPR shell.
   - `app/layout.tsx`: footer thêm 8 link trust pages.
   - `app/sitemap.ts`: thêm 8 URL trust pages.
-- **Email liên hệ:** `contact@sansale247.io.vn` (fallback trong `SITE.contactEmail`, có thể override bằng `NEXT_PUBLIC_CONTACT_EMAIL`). **Cần anh xác nhận email này có nhận thư.**
+- **Email liên hệ:** `contact@sansale247.io.vn` (fallback trong `SITE.contactEmail`, có thể override bằng `NEXT_PUBLIC_CONTACT_EMAIL`). **Đã hoạt động** — Zoho Mail free, SPF/DKIM/DMARC pass (xem 4.4).
 - **Verify local:**
   - 8/8 trang trả **200**; `/chinh-sach/khong-ton-tai` trả **404**.
   - `/chinh-sach` và `/gioi-thieu` vẫn **410** (không xung đột route mới).
@@ -380,23 +380,27 @@ pnpm dev
 - **Lưu ý:** preview bật Vercel Authentication (SSO); verify bằng Chrome đã đăng nhập. Console chỉ có cảnh báo CSP report-only do Vercel Live iframe.
 - **Chưa merge `main`, chưa deploy production.**
 
-### 4.4. Email liên hệ — trạng thái & cách tạo
+### 4.4. Email liên hệ — ĐÃ HOẠT ĐỘNG (Zoho Mail free, 2026-10-30)
 
-- **Kết luận:** `contact@sansale247.io.vn` **chưa được provision**, không nhận thư.
-- **Bằng chứng DNS:**
-  - NS: `ns1.pavietnam.vn`, `ns2.pavietnam.vn`, `nsbak.pavietnam.net`.
-  - MX: `mail.sansale247.io.vn` (pref 10).
-  - `mail.sansale247.io.vn` → `112.213.89.150`; PTR `mx89150.superdata.vn`.
-  - SPF: `v=spf1 a mx ~all`; chưa có DMARC; chưa thấy DKIM selector phổ biến.
-- **Bằng chứng dịch vụ:** `https://mail.sansale247.io.vn/`, `/admin`, `/SOGo/`, `/webmail` đều trả trang mặc định PA Web30s: “Bạn đã trỏ IP đến hệ thống Web30s của PA Việt Nam thành công, vui lòng chờ kích hoạt trong 24h.” Port mail 25/110/143/465/587/993/995 filtered/closed; 80/443/2083 mở.
-- **Cách tạo:**
-  1. Đăng nhập cổng khách hàng P.A Việt Nam (`support.pavietnam.vn`) hoặc gọi `1900 9477` / `028 22317777`.
-  2. Kích hoạt dịch vụ **Email Server Pro** (thường tặng kèm domain .vn/.io.vn; giá niêm yết ~72.000đ/tháng).
-  3. Thêm domain `sansale247.io.vn`, tạo mailbox `contact@sansale247.io.vn` trong Mailcow admin (`https://mail.sansale247.io.vn/admin` sau khi kích hoạt).
-  4. Cấu hình DNS: MX `mail.sansale247.io.vn` pref 10; SPF `v=spf1 mx ~all` hoặc theo PA; publish DKIM TXT từ Mailcow; thêm DMARC `_dmarc` (`v=DMARC1; p=none; rua=mailto:contact@sansale247.io.vn`).
-  5. Gửi/nhận thử từ Gmail, kiểm tra header SPF/DKIM/DMARC pass.
-- **Phương án thay thế:** Google Workspace/Microsoft 365 (trả phí), Zoho Mail (free tier), Cloudflare Email Routing (free, chỉ nhận/forward; cần đổi NS sang Cloudflare).
-- **Trước production:** phải chốt email hoạt động hoặc đổi `SITE.contactEmail` / set `NEXT_PUBLIC_CONTACT_EMAIL` sang hộp thư thật.
+- **Kết luận:** `contact@sansale247.io.vn` **đã provision và gửi/nhận thành công**, SPF/DKIM/DMARC đều pass.
+- **Nhà cung cấp:** Zoho Mail free (5 user, 5GB/user, webmail + app; **không có IMAP/POP/SMTP** — chỉ dùng webmail/app).
+- **Tài khoản:** owner `Cao Phi Hung`, org id `944647294`, user id `944652771`; recovery email `cleverlearnmike@gmail.com`.
+- **DNS đã thay đổi tại PA** (`https://access.pavietnam.vn/dns`, domain id `2934176`):
+  - MX `@`: `mx.zoho.com` 10, `mx2.zoho.com` 20, `mx3.zoho.com` 50 — đã xóa MX cũ `mail.sansale247.io.vn`.
+  - TXT `@`: `v=spf1 include:zoho.com ~all` (thay `v=spf1 a mx ~all`).
+  - TXT `zmail._domainkey`: DKIM Zoho (`v=DKIM1; k=rsa; p=MIGf...IDAQAB`).
+  - TXT `_dmarc`: `v=DMARC1; p=none; rua=mailto:contact@sansale247.io.vn`.
+  - TXT `@`: `zoho-verification=zb63649413.zmverify.zoho.com`.
+  - **Không đụng** A `@ 216.198.79.1`, CNAME `www`, A `mail`/`ftp`, wildcard A → website vẫn ở Vercel.
+- **Xác thực:**
+  - Zoho admin: `Tất cả các bản ghi đã được xác thực thành công`.
+  - PA authoritative NS (`ns1.pavietnam.vn`): đủ MX/SPF/DKIM/DMARC.
+  - Gmail → `contact@`: nhận lúc 10:29 (30/10/2026).
+  - `contact@` → Gmail: nhận lúc 10:30; Gmail `mailed-by: sansale247.io.vn`, `signed-by: sansale247.io.vn`, TLS 1.3.
+  - Header Gmail: `SPF: PASS` (IP 165.173.180.52), `DKIM: PASS` (`d=sansale247.io.vn`, `s=zmail`), `DMARC: PASS` (`p=NONE`).
+- **Mật khẩu mailbox:** đã đổi trong Zoho admin (không ghi vào repo). Nếu cần reset: Zoho admin → Users → `contact@` → Bảo mật → Đổi mật khẩu.
+- **Lưu ý vận hành:** free plan không gửi được từ Gmail/Outlook client (không SMTP); muốn dùng client phải nâng plan. Với nhu cầu hiện tại (nhận thư liên hệ + reply qua webmail) là đủ.
+- **Trước production:** không còn blocker email; `SITE.contactEmail` giữ `contact@sansale247.io.vn`.
 
 ### 4.5. Thứ tự P1 còn lại
 
@@ -419,7 +423,7 @@ pnpm dev
 |---|---|---|
 | Trang chủ | Định vị site, điều hướng, CTA | Đã có |
 | Giới thiệu (`/ve-chung-toi`) | Ai làm, vì sao đáng tin, sứ mệnh | **Đã có** bản P1; cần bổ sung đội ngũ/ảnh thật khi có |
-| Liên hệ (`/lien-he`) | Kênh liên hệ, thời gian phản hồi | **Đã có** email `contact@sansale247.io.vn`; cần xác nhận hộp thư |
+| Liên hệ (`/lien-he`) | Kênh liên hệ, thời gian phản hồi | **Đã có** email `contact@sansale247.io.vn`; hộp thư **đã hoạt động** (Zoho free, SPF/DKIM/DMARC pass) |
 | Chính sách bảo mật (`/chinh-sach/chinh-sach-bao-mat`) | Thu thập gì, dùng làm gì, lưu bao lâu, chia sẻ ai, quyền xóa/sửa | **Đã có**; đủ 8 nhóm nội dung theo Nghị định 248/2026 |
 | Điều khoản sử dụng (`/chinh-sach/dieu-khoan-su-dung`) | Quy tắc dùng site, giới hạn trách nhiệm, IP, luật áp dụng | **Đã có** |
 | Tuyên bố affiliate (`/chinh-sach/tiet-lo-affiliate`) | Nói rõ có thể nhận hoa hồng khi mua qua link | **Đã có**; vẫn cần disclosure gần link/đầu nội dung |
@@ -522,6 +526,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 12 | `b0e3d45` | `lib/faq/content.ts`, `app/faq/page.tsx`, `app/sitemap/page.tsx`, `lib/seo.ts`, `app/opengraph-image.tsx`, `app/layout.tsx`, `lib/legal/content.ts`, `app/sitemap.ts`, `app/ve-chung-toi/page.tsx`, `app/lien-he/page.tsx`, `app/chinh-sach/[slug]/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/blog/[slug]/page.tsx`, `app/ma/[id]/page.tsx`, `report.md` | Thêm FAQ + HTML sitemap; JSON-LD Organization/WebSite; OG image mặc định + fallback; footer/sitemap link | `tsc`, `lint`, `build`, 30 route 200, FAQ 13 câu JSON-LD, HTML sitemap 60 deal, XML 817 URL, OG 1200×630, screenshot desktop | Hoàn tất (local, chờ preview) |
 | 13 | `12092ea` | `report.md` | Ghi nhận verify FAQ/HTML sitemap/schema/OG + hash commit | `git show --stat b0e3d45` | Hoàn tất |
 | 14 | - | `report.md` | Ghi nhận preview FAQ/HTML sitemap/schema/OG: 30 route 200, 404/410 đúng, FAQ 13 câu, sitemap 910 URL, OG 1200×630 | Chrome fetch nội bộ trên preview + Vercel status Ready | Hoàn tất (preview) |
+| 15 | - | `report.md` | Ghi nhận email `contact@sansale247.io.vn` đã hoạt động: Zoho Mail free, MX/SPF/DKIM/DMARC tại PA, test Gmail 2 chiều | `Resolve-DnsName` ns1.pavietnam.vn; Gmail header SPF/DKIM/DMARC = PASS; Zoho báo xác thực tất cả bản ghi | Hoàn tất |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

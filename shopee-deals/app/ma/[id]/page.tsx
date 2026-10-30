@@ -173,6 +173,7 @@ async function DealBody({ deal }: { deal: CouponDeal }) {
                   .toUpperCase()}
                 width={112}
                 height={112}
+                sizes="112px"
                 eager
                 className="h-28 w-28 shrink-0 self-start rounded-xl bg-paper ring-1 ring-line"
                 plateClassName="h-28 w-28 shrink-0 self-start rounded-xl bg-paper text-2xl text-ink/25"

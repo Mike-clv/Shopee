@@ -16,6 +16,7 @@ export function DealImage({
   initials,
   width,
   height,
+  sizes,
   className,
   plateClassName,
   eager = false,
@@ -25,6 +26,8 @@ export function DealImage({
   initials: string;
   width: number;
   height: number;
+  /** Rendered width hint for next/image; without it small cards fetch 100vw. */
+  sizes?: string;
   className?: string;
   plateClassName?: string;
   /** Above-the-fold images should load immediately (avoids LCP lazy warning). */
@@ -50,6 +53,7 @@ export function DealImage({
       alt={alt}
       width={width}
       height={height}
+      sizes={sizes}
       className={cn("bg-paper object-cover", className)}
       loading={eager ? "eager" : "lazy"}
       onError={() => setFailed(true)}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LandingPage, LandingSidebarCard, LandingLinkList, LandingAffiliateNote } from "@/lib/components/LandingPage";
+import { postsForMerchant } from "@/lib/blog/posts";
 import { categoryFromSlug } from "@/lib/categories";
 import { countDealsPerMerchant, countSearchDeals, listTopCategories, searchDeals } from "@/lib/coupons/data";
 import { getMerchantLanding } from "@/lib/landing/content";
@@ -107,6 +108,7 @@ export default async function MerchantLandingPage(
         ]}
         deals={deals}
         faqs={landing.faqs}
+        relatedPosts={postsForMerchant(merchant, 3)}
         breadcrumb={[
           { label: "Trang chủ", href: "/" },
           { label: `Deal ${label}` },

@@ -6,7 +6,7 @@ import { BLOG_POSTS } from "@/lib/blog/posts";
 export const metadata: Metadata = {
   title: "Blog & mẹo săn mã giảm giá đa sàn",
   description:
-    "Kinh nghiệm stack voucher Shopee, so giá sách thi, bắt deal TikTok Shop theo trend — mẹo săn deal thực chiến cập nhật theo từng chiến dịch.",
+    "Kinh nghiệm săn mã Shopee, freeship, flash sale Lazada, sách Tiki và livestream TikTok Shop — hướng dẫn thực chiến để mua đúng giá và không bỏ phí voucher.",
   alternates: { canonical: "/blog" },
 };
 

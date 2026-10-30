@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CircleCheck, Copy } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,10 +15,16 @@ export function CopyButton({
   code,
   goPath,
   variant = "row",
+  dealId,
+  merchant,
+  placement = "copy_button",
 }: {
   code: string;
   goPath: string;
   variant?: "row" | "tile";
+  dealId?: string;
+  merchant?: string;
+  placement?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<number | undefined>(undefined);
@@ -41,6 +48,11 @@ export function CopyButton({
     } catch {
       // Clipboard can fail on http/permission denial — the redirect still works.
     } finally {
+      trackEvent("affiliate_click", {
+        deal_id: dealId,
+        merchant,
+        placement,
+      });
       window.open(goPath, "_blank", "noopener,noreferrer");
     }
   };

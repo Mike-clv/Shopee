@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Clock, ExternalLink, Flame } from "lucide-react";
 import { CopyButton } from "./CopyButton";
 import { DealImage } from "./DealImage";
+import { TrackedAffiliateLink } from "./TrackedAffiliateLink";
 import { cn, formatDayVi, formatDiscountVi, formatPriceVi, truncateVi } from "@/lib/utils";
 import { merchantLabel } from "@/lib/site";
 import type { CouponDeal } from "@/lib/db/schema";
@@ -100,17 +101,27 @@ export function CouponCard({ deal, className }: { deal: CouponDeal; className?: 
 
         <div className="mt-auto pt-2">
           {hasCode ? (
-            <CopyButton code={deal.code!} goPath={`/go/${deal.id}`} variant="tile" />
+            <CopyButton
+              code={deal.code!}
+              goPath={`/go/${deal.id}`}
+              variant="tile"
+              dealId={deal.id}
+              merchant={deal.merchant}
+              placement="coupon_card"
+            />
           ) : (
-            <a
+            <TrackedAffiliateLink
               href={`/go/${deal.id}`}
               target="_blank"
               rel="noopener nofollow"
+              dealId={deal.id}
+              merchant={deal.merchant}
+              placement="coupon_card"
               className="flex h-8 items-center justify-center gap-1 rounded-full bg-brand text-[11px] font-semibold text-white transition hover:bg-brand-dark"
             >
               <ExternalLink className="h-3 w-3" aria-hidden />
               Xem deal
-            </a>
+            </TrackedAffiliateLink>
           )}
         </div>
       </div>

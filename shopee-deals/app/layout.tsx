@@ -6,7 +6,9 @@ import "./globals.css";
 import { SITE, siteUrl } from "@/lib/site";
 import { OG_IMAGE } from "@/lib/seo";
 import { FEATURED_CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
+import { Analytics } from "@/lib/components/Analytics";
 import { BackToTop } from "@/lib/components/BackToTop";
+import { ConsentBanner } from "@/lib/components/ConsentBanner";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { NavTabs } from "@/lib/components/NavTabs";
 import { getCurrentAdmin } from "@/lib/auth";
@@ -121,6 +123,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="mx-auto w-full max-w-7xl flex-1 px-4">{children}</main>
         <SiteFooter />
         <BackToTop />
+        <ConsentBanner />
+        <Analytics />
       </body>
     </html>
   );

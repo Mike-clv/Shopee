@@ -616,6 +616,8 @@ git -C D:\web switch backup/pre-seo-20261030
 | 24 | `a934be2` | `app/page.tsx`, `report.md` | Thêm đường kẻ phân cách nhạt (`border-b border-line/80`, `pb-3`, `mb-4`) dưới hàng tiêu đề section trên home (Deal Shopee/Tiki/Lazada/TikTok Shop, Deal chớp nhoáng, danh mục, blog) để tách header khỏi lưới card và dễ nhận nút "Xem tất cả" | `tsc`, `lint`, `build`; Chrome thật `localhost:3210`: computed `border-bottom: 1px solid` line/80, `padding-bottom: 12px`, divider hiển thị đúng dưới "Deal Shopee"; preview `dpl_AvbFo6JWxzwN8R7BKGS2vNs8KUk8` Ready (`border-line/80` ×36); production `dpl_2Ge8rwguZT1FdqMNvRkeekRM2Pvf` Ready — `sansale247.io.vn` 200, `border-line/80` ×36, divider class ×24 | Hoàn tất (production) |
 | 25 | `fe2de59` | `public/favicon*`, `public/apple-touch-icon.png`, `public/icon-*.png`, `app/layout.tsx`, `report.md` | Bổ sung bộ favicon đầy đủ từ artwork hiện tại: `favicon.ico` đa kích thước (16/32/48/96/144/192, PNG entries), PNG 16/32/48/96/144/192/512, apple-touch 180; khai báo metadata `icons` + dùng `icon-512x512.png` cho JSON-LD Logo. Khắc phục Google còn hiển thị favicon phiên bản web cũ do site thiếu `/favicon.ico` và chỉ có SVG | `tsc`, `lint`, `build`; preview `dpl_Chc6cUkC9xVdPczSgYysSKubdJKj` Ready — HTML có đủ icon links, `/favicon.ico` 15.182 bytes magic ICO, PNG 16/32/180/192/512 đúng `89-50-4E-47`; production `dpl_HmnAJEJ2tPfFY91sjX327XF98wc2` Ready — `sansale247.io.vn` 200, đủ icon links, `/favicon.ico` 15.182 bytes, PNG đúng định dạng | Hoàn tất (production) |
 | 26 | — | Neon project `sansale-db` (không thuộc repo) | Dọn 3 branch preview cũ (`ui/footer-bottom-trim`, `ui/home-brand-strip`, `ui/mobile-footer-back-to-top`) do Neon free giới hạn 10 branches khiến Vercel không provision được DB branch cho preview mới (`One or more integration resources failed to provision`) | Neon console: 10 → 7 branches; redeploy `dpl_Chc6cUkC9xVdPczSgYysSKubdJKj` Ready | Hoàn tất |
+| 27 | `cd3a719` | `lib/analytics.ts`, `lib/components/{Analytics,ConsentBanner,SearchAnalytics,DealViewTracker,TrackedAffiliateLink,CopyButton,CouponCard}.tsx`, `app/layout.tsx`, `app/tim-kiem/page.tsx`, `app/ma/[id]/page.tsx`, `lib/legal/content.ts` | G0.1+G0.2: consent banner lưu lựa chọn `sansale-consent`; GA4 chỉ load khi có `NEXT_PUBLIC_GA_ID` + consent; event `affiliate_click` (copy + link deal), `search_submit`, `filter_apply`, `deal_view`, `page_view`; cập nhật chính sách cookie | `tsc`, `lint`, `build` PASS (57 pages); Chrome thật: trước consent không có `gtag`/script GA, sau consent `gtag=function`, dataLayer nhận `search_submit`/`filter_apply`; `deal_view` bắn trên trang deal; đã thử GA test ID `G-TEST12345` local; preview `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` Ready — HTML 200, không load GA khi chưa consent | Hoàn tất (preview — chờ GA4 ID thật) |
+| 28 | `346efc4` | `app/su-kien/[slug]/page.tsx`, `lib/events/content.ts`, `lib/components/EventCountdown.tsx`, `app/sitemap.ts`, `app/sitemap/page.tsx`, `lib/campaigns.ts` | G1.1: landing `/su-kien/11-11` với hero, countdown, top deal 4 sàn, checklist 3 nhóm, 5 guide, 8 FAQ, JSON-LD Event/FAQ/ItemList/Breadcrumb, internal link + sitemap; nội dung 1.925 từ | `tsc`, `lint`, `build` PASS (59 pages, route static); browser 816px: 1.925 từ, 32 deal link, 8 FAQ, JSON-LD đủ, console sạch; CDP 390×844: `overflow=0`, không tràn ngang, consent banner + hero hiển thị đúng; desktop 1440 screenshot chuẩn; preview `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` Ready — 417.569 chars, canonical + JSON-LD Event/FAQ, sitemap có URL | Hoàn tất (preview) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 
@@ -633,3 +635,175 @@ git -C D:\web switch backup/pre-seo-20261030
 
 **Còn lại (P1, chưa cần chốt ngay):**
 - Làm đủ bộ trust pages hay chỉ trước About/Contact/Affiliate Disclosure/Privacy/Terms.
+
+---
+
+## 9. Kế hoạch tăng trưởng traffic 90 ngày (đã duyệt 2026-10-30 — đang triển khai)
+
+> Trạng thái: **Chưa triển khai**. Toàn bộ task trong mục này đang ở trạng thái `Chờ duyệt`.
+> Khi anh duyệt, mỗi task hoàn thành sẽ được cập nhật vào bảng tiến độ §9.7 và thêm dòng tương ứng vào Change log §7.
+
+### 9.1. Baseline & mục tiêu
+
+**Số liệu GSC 28 ngày gần nhất (2026-09-30 → 2026-10-28):**
+
+| Chỉ số | Giá trị |
+|---|---|
+| Organic clicks | 4 |
+| Impressions | 417 |
+| CTR | 1% |
+| Average position | 45.5 |
+| Query có impression | 77 |
+| URL được index | 38 |
+| URL chưa index | 18 (9 duplicate without user-selected canonical, 8 alternate page with proper canonical, 1 blocked by robots.txt) |
+| URL trong sitemap | 916 (873 deal, 10 blog, 4 sàn, 16 danh mục) |
+| Analytics | Chưa có GA4 / pixel / event tracking; chỉ có GSC |
+
+**Top query đáng chú ý:** `tiki promo codes` (43 impressions), `tiki promo code` (27), `mã giảm giá lazada` (10), `mã giảm giá tiki` (8), `mã shopee hôm nay` (8).
+
+**Mục tiêu 90 ngày (có điều kiện, không cam kết tuyệt đối):**
+
+| Chỉ số | Baseline | 90 ngày | 180 ngày |
+|---|---|---|---|
+| URL chất lượng được index | 38 | 80–120 | 200–300 |
+| Organic clicks/28 ngày | 4 | 300–800 | 1.500–4.000 |
+| Referring domains | ~0 | 10–15 | 30–50 |
+| Email/Zalo subscribers | 0 | 500–1.000 | 3.000–5.000 |
+| Affiliate CTR (outbound/session) | Chưa đo | 8–12% | 10–15% |
+| Blog posts | 10 | 30 | 40+ |
+| Merchant hubs đủ sâu | 0 (4 trang mỏng) | 4 | 4 |
+| Category hubs đủ sâu | 0 | 8 | 12–16 |
+
+### 9.2. Nguyên tắc triển khai
+
+1. **Đo lường trước khi tối ưu:** không chạy ads/viết thêm nội dung đại trà khi chưa có GA4 + event affiliate click.
+2. **Chất lượng hơn số lượng:** ưu tiên trang có intent mua và nội dung unique; không cố index toàn bộ 873 deal mỏng.
+3. **Mỗi thay đổi phải có bằng chứng:** `tsc` + `lint` + `build`, kiểm tra local/preview/production, ghi report.
+4. **Không mua backlink spam, không copy nội dung, không che giấu affiliate link.**
+5. **Deploy production phải được anh duyệt**; preview tự động khi push branch.
+6. **Cập nhật report đến đâu ghi đến đó:** mỗi task/milestone cập nhật §9.7; mỗi commit code thêm dòng §7.
+
+### 9.3. Giai đoạn G0 — Đo lường & sửa chất lượng index (Tuần 1–2)
+
+| ID | Việc | Output / file dự kiến | Điều kiện nghiệm thu | Ước lượng |
+|---|---|---|---|---|
+| G0.1 | Cài GA4 + cookie consent | `app/layout.tsx`, `lib/components/Analytics.tsx`, `lib/components/ConsentBanner.tsx`, `lib/legal/content.ts`, `.env.local` (`NEXT_PUBLIC_GA_ID`) | GA4 Realtime nhận `page_view`; từ chối consent → không set cookie `_ga`; đồng ý → có cookie + event; trang chính sách cookie cập nhật | 1–2 ngày |
+| G0.2 | Event tracking hành vi chính | `lib/analytics.ts`, deal card/outbound link, `/go/[id]`, search/filter components | GA4 DebugView thấy `affiliate_click` (merchant, deal_id, placement), `search_submit`, `filter_apply`, `deal_view`, `cta_click`; không lỗi console; `/go` vẫn redirect đúng | 1–2 ngày |
+| G0.3 | Chuẩn hóa UTM | `report.md` (bảng quy ước), link builder nội bộ | 3 link mẫu (Facebook/TikTok/Email) hiển thị đúng source/medium/campaign trong GA4 | 0,5 ngày |
+| G0.4 | Audit 18 URL chưa index + 38 URL đã index | Danh sách URL + nguyên nhân trong §9.8 | Phân loại đủ 4 nhóm lỗi; xác định URL nào sửa canonical, URL nào bỏ khỏi sitemap, URL nào cần content | 1–2 ngày |
+| G0.5 | Sửa canonical + sitemap + quality gate | `app/sitemap.ts`, canonical metadata các route, `proxy.ts` (nếu cần), logic deal hết hạn | Sitemap chỉ chứa URL 200/indexable; deal hết hạn → 410 hoặc `noindex`; không còn nhóm `duplicate without user-selected canonical` sau recrawl | 2–3 ngày |
+| G0.6 | Xử lý 1 URL bị robots.txt chặn | `app/robots.ts` hoặc xác nhận chủ đích | URL quan trọng được mở; URL không quan trọng ghi rõ lý do chặn | 0,5 ngày |
+| G0.7 | Audit Core Web Vitals mobile | Lighthouse/PageSpeed cho home, 1 merchant hub, 1 deal page | Lab mobile: LCP < 2,5s, CLS < 0,1; fix các ảnh thiếu width/height, font, layout shift | 1–2 ngày |
+| G0.8 | Submit lại sitemap + request indexing | GSC | Sitemap submitted; request indexing 10–20 URL ưu tiên (home, 4 sàn, 8 category, 5 blog, 2 deal) | 0,5 ngày |
+
+### 9.4. Giai đoạn G1 — Nội dung & landing pages (Tuần 1–6)
+
+**Fast-track 11.11 (ưu tiên cao nhất vì chỉ còn ~12 ngày):**
+
+| ID | Việc | Output / file dự kiến | Điều kiện nghiệm thu | Ước lượng |
+|---|---|---|---|---|
+| G1.1 | Landing 11.11 | Route mới `/su-kien/11-11` (hoặc `/blog/11-11` nếu anh muốn giữ trong blog), `app/su-kien/[slug]/page.tsx`, `lib/events/content.ts` | 1.500+ từ unique; countdown; top deal theo sàn; checklist săn sale; FAQ schema; internal link; mobile CWV đạt; publish trước 03/11 | 3–4 ngày |
+| G1.2 | Nâng cấp 4 merchant hub | `app/san/[merchant]/page.tsx`, `lib/landing/content.ts` | Mỗi trang 1.500–2.500 từ: voucher hôm nay, cách dùng, FAQ, top deal, link category/blog; target cả query tiếng Anh (`tiki promo codes`, `lazada promo codes`); schema `ItemList` + `FAQPage` + `BreadcrumbList` | 4–5 ngày |
+| G1.3 | 8 category hub | `app/danh-muc/[slug]/page.tsx`, `lib/landing/content.ts` | 8 danh mục có ≥10 deal; 800–1.200 từ/trang; danh mục <10 deal → `noindex` hoặc không đưa vào sitemap | 4–5 ngày |
+| G1.4 | 10 bài blog đầu tiên | `lib/blog/posts.ts`, `app/blog/[slug]/page.tsx` | 1.200–2.000 từ/bài; có bảng/FAQ/ảnh; tác giả + ngày cập nhật; CTA + internal link; 10 bài trong 30 ngày | 10–12 ngày |
+| G1.5 | Content brief template + 10 brief | `report.md` hoặc `docs/content-briefs.md` | Mỗi brief có keyword chính/phụ, intent, outline, internal link, schema, CTA, nguồn, người duyệt | 1–2 ngày |
+| G1.6 | Internal linking + HTML sitemap | Deal card, merchant/category page, `app/sitemap/page.tsx` | Mỗi deal link tới sàn + danh mục + 2 bài blog liên quan; mỗi bài blog link tới 2 merchant hub; HTML sitemap cập nhật | 1–2 ngày |
+| G1.7 | E-E-A-T | `app/ve-chung-toi`, `app/tac-gia/[slug]` (nếu cần), `lib/legal/content.ts` | Có tác giả/ban biên tập, quy trình kiểm duyệt, affiliate disclosure, ngày cập nhật trên bài | 1–2 ngày |
+
+**Danh sách 10 bài blog đề xuất (ưu tiên theo intent):**
+
+1. Cách dùng mã giảm giá Shopee chi tiết: stack voucher, freeship, điều kiện.
+2. Mã giảm giá Tiki tháng 11/2026: voucher mới + cách áp dụng.
+3. Mã giảm giá Lazada: voucher freeship và mã giảm sâu.
+4. TikTok Shop voucher: cách lấy mã và dùng khi thanh toán.
+5. Freeship 0đ: điều kiện, cách săn và lỗi thường gặp.
+6. 11.11 săn sale: checklist trước, trong và sau ngày sale.
+7. 12.12: kế hoạch săn deal theo ngân sách.
+8. So sánh Shopee – Tiki – Lazada: sàn nào rẻ hơn cho từng nhóm hàng.
+9. Cách kiểm tra giá tốt, tránh “tăng giá ảo” trước sale.
+10. Tổng hợp deal 1k/9k/99k: mua gì đáng, tránh gì.
+
+### 9.5. Giai đoạn G2 — Phân phối, authority & giữ chân (Tuần 3–12)
+
+| ID | Việc | Output / kênh | Điều kiện nghiệm thu | Ước lượng |
+|---|---|---|---|---|
+| G2.1 | Facebook Page + group | Fanpage “Săn sale & voucher”, group cộng đồng | 1–2 post/ngày; template deal card; link có UTM; tuân thủ quy định affiliate | 3–5 ngày setup |
+| G2.2 | TikTok / Reels / Shorts | Kênh TikTok + cross-post | 3–5 video/tuần (15–30s); format deal trong 30 giây; link bio → site | 3–5 ngày setup |
+| G2.3 | Zalo OA | Official Account | Verify OA; broadcast 2–3 lần/tuần; menu nhận voucher; có consent | 3–5 ngày |
+| G2.4 | Email marketing | Brevo/Mailchimp/Resend + form capture | Double opt-in; welcome sequence 3 email; 2–3 email/tuần; đo open/click; tuân thủ privacy | 3–4 ngày |
+| G2.5 | Backlink/PR | Guest post, blog tài chính/lifestyle, báo, KOL micro | 10–15 link chất lượng trong 90 ngày; không mua link spam; có nội dung thật | 10–15 ngày |
+| G2.6 | Paid test | Facebook/TikTok retargeting + Google brand | Ngân sách test 3–5 triệu/tháng; CPA không vượt hoa hồng dự kiến; có UTM + dashboard | 2–3 ngày setup |
+| G2.7 | Seasonal 12.12 / Black Friday / Tết | Landing pages + campaign | 12.12 và Black Friday publish trước 3–4 tuần; refresh hàng ngày trong cao điểm; Tết publish trước 4 tuần | 5–7 ngày |
+| G2.8 | CRO | Home, merchant hub, deal page | Sticky CTA; CTA above-fold; A/B test 2–3 biến thể; trust signals (số deal, cập nhật, disclosure) | 3–5 ngày |
+| G2.9 | Community/UGC | Group + social | Cho phép user gửi deal; kiểm duyệt; ưu đãi mã độc quyền | Ongoing |
+
+### 9.6. Lịch 12 tuần (mốc bàn giao)
+
+| Tuần | Thời gian | Việc chính | Mốc |
+|---|---|---|---|
+| 1 | 30/10–05/11 | G0.1–G0.3; G1.1 landing 11.11; bắt đầu G1.2 | GA4 + consent live local; 11.11 landing publish trước 03/11 |
+| 2 | 06/11–12/11 | G1.1 refresh daily; G0.4–G0.8; G1.2 | 11.11 campaign live; sitemap/index fixes submitted |
+| 3 | 13/11–19/11 | G1.2 hoàn tất; G1.3 bắt đầu; 4 bài blog; G2.1–G2.4 setup | 4 merchant hub + 4 blog mới; social/email sẵn sàng |
+| 4 | 20/11–26/11 | G1.3; 3 bài blog; Black Friday landing; G2.5 bắt đầu | 8 category hub; Black Friday live trước 27/11 |
+| 5 | 27/11–03/12 | Black Friday refresh; 12.12 landing; 3 bài blog | 12.12 publish trước 03/12 |
+| 6 | 04/12–10/12 | 12.12 refresh; G2.6 paid test; backlink 5 | Paid test có dữ liệu 7 ngày |
+| 7 | 11/12–17/12 | 12.12 campaign; email/Zalo; CRO | 12.12 traffic peak; báo cáo tuần |
+| 8 | 18/12–24/12 | Giáng sinh/Năm mới; 3 bài blog; backlink 5 | 30 blog posts; 10 backlink |
+| 9 | 25/12–31/12 | Review 90 ngày; Tết landing; tối ưu kênh có ROI | Báo cáo 90 ngày |
+| 10 | 01/01–07/01 | Tết campaign; scale content | Tết landing live trước Tết 4 tuần |
+| 11 | 08/01–14/01 | Tết refresh; email/Zalo; CRO | Báo cáo tuần |
+| 12 | 15/01–31/01 | Tổng kết; kế hoạch 180 ngày | Báo cáo tổng kết + next plan |
+
+### 9.7. Bảng tiến độ triển khai (cập nhật sau mỗi task)
+
+| ID | Task | Trạng thái | Ngày | Commit / Deployment | Bằng chứng |
+|---|---|---|---|---|---|
+| G0.1 | GA4 + consent | Đang làm (preview — chờ GA4 ID thật) | `cd3a719` | `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` | Preview 200; consent gate verified local |
+| G0.2 | Event tracking | Hoàn tất (preview) | `cd3a719` | `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` | Preview 200; sự kiện verified local |
+| G0.3 | UTM convention | Chờ duyệt | — | — | — |
+| G0.4 | Audit index | Chờ duyệt | — | — | — |
+| G0.5 | Canonical/sitemap/quality gate | Chờ duyệt | — | — | — |
+| G0.6 | Robots URL | Chờ duyệt | — | — | — |
+| G0.7 | Core Web Vitals | Chờ duyệt | — | — | — |
+| G0.8 | Submit/index | Chờ duyệt | — | — | — |
+| G1.1 | Landing 11.11 | Hoàn tất (preview) | `346efc4` | `dpl_9CkRkko8yNEt7wSMdx5zt8nrLuKx` | Preview 200; 417.569 chars; canonical/JSON-LD/sitemap OK |
+| G1.2 | 4 merchant hub | Chờ duyệt | — | — | — |
+| G1.3 | 8 category hub | Chờ duyệt | — | — | — |
+| G1.4 | 10 bài blog | Chờ duyệt | — | — | — |
+| G1.5 | Content briefs | Chờ duyệt | — | — | — |
+| G1.6 | Internal linking | Chờ duyệt | — | — | — |
+| G1.7 | E-E-A-T | Chờ duyệt | — | — | — |
+| G2.1 | Facebook | Chờ duyệt | — | — | — |
+| G2.2 | TikTok/Reels | Chờ duyệt | — | — | — |
+| G2.3 | Zalo OA | Chờ duyệt | — | — | — |
+| G2.4 | Email | Chờ duyệt | — | — | — |
+| G2.5 | Backlink/PR | Chờ duyệt | — | — | — |
+| G2.6 | Paid test | Chờ duyệt | — | — | — |
+| G2.7 | Seasonal | Chờ duyệt | — | — | — |
+| G2.8 | CRO | Chờ duyệt | — | — | — |
+| G2.9 | Community/UGC | Chờ duyệt | — | — | — |
+
+**Quy ước trạng thái:** `Chờ duyệt` → `Đang làm` → `Hoàn tất (local)` → `Hoàn tất (preview)` → `Hoàn tất (production)`.
+**Quy ước báo cáo:** mỗi lần hoàn thành task, cập nhật dòng §9.7 + thêm dòng §7 với commit hash, file, verify, trạng thái. Không gộp nhiều task vào một dòng nếu verify khác nhau.
+
+### 9.8. Việc cần anh chốt trước khi triển khai
+
+1. **Duyệt kế hoạch này** (hoặc yêu cầu chỉnh sửa phạm vi/thứ tự).
+2. **GA4 Measurement ID** (`G-…`) hoặc cho phép em hướng dẫn tạo property; cần email/quyền admin.
+3. **Email provider:** em đề xuất **Brevo** (free tier đủ giai đoạn đầu, có automation + double opt-in) — anh đồng ý hay dùng Mailchimp/Resend?
+4. **Ngân sách paid test:** 3–5 triệu/tháng trong 2 tháng đầu — có duyệt không?
+5. **Quyền truy cập** Facebook Page/group, Zalo OA, TikTok (email/password hoặc thêm em làm admin).
+6. **Người duyệt nội dung + tone giọng:** anh duyệt trực tiếp hay giao ai?
+7. **Route landing 11.11:** dùng `/su-kien/11-11` (sạch, mở rộng cho 12.12/Tết) hay `/blog/11-11` (giữ trong blog)?
+8. **Ảnh sản phẩm:** dùng ảnh từ feed AccessTrade/merchant — anh xác nhận được phép dùng theo điều khoản affiliate không?
+9. **Thời gian phản hồi duyệt content:** cần chốt để kịp 11.11 (publish trước 03/11).
+
+### 9.9. Rủi ro & phụ thuộc
+
+- **Google index chậm:** thay đổi canonical/sitemap cần 2–8 tuần để phản ánh; không thể cam kết traffic ngay.
+- **11.11 sát ngày:** nếu chưa duyệt trước 01/11, landing 11.11 sẽ khó kịp; có thể chuyển trọng tâm sang 12.12.
+- **Thiếu quyền truy cập** Facebook/Zalo/TikTok sẽ chặn G2.
+- **GA4/consent** cần cập nhật chính sách cookie/privacy trước khi bật — không được bật tracking trước consent.
+- **Paid test** cần ngân sách và theo dõi CPA; nếu hoa hồng thấp hơn CPA, dừng và chuyển sang organic.
+- **Nội dung affiliate** phải có disclosure; không hứa hẹn giá/khuyến mãi không kiểm chứng.
+- **Neon free 10 branches** có thể chặn preview mới; trước mỗi story branch cần kiểm tra số branch và dọn preview cũ nếu cần.

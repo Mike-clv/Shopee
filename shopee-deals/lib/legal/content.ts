@@ -343,8 +343,9 @@ export const LEGAL_PAGES: LegalPageContent[] = [
       {
         heading: "Cookie website sử dụng",
         paragraphs: [
-          "Hiện tại, website chỉ dùng cookie phiên cần thiết cho quản trị viên khi đăng nhập khu vực admin. Người đọc thông thường không cần đăng nhập và website không chủ động đặt cookie quảng cáo hoặc cookie cá nhân hóa.",
-          "Nếu trong tương lai website bổ sung công cụ phân tích hoặc quảng cáo, chính sách này sẽ được cập nhật và thông báo phù hợp trước khi áp dụng.",
+          "Hiện tại, website dùng cookie phiên cần thiết cho quản trị viên khi đăng nhập khu vực admin. Người đọc thông thường không cần đăng nhập.",
+          "Khi bạn đồng ý đo lường, website dùng Google Analytics 4 để ghi nhận lượt xem trang, từ khóa tìm kiếm và lượt bấm link affiliate. Dữ liệu được dùng để cải thiện nội dung; chúng tôi không bán dữ liệu cá nhân. Nếu bạn chọn \"Chỉ cookie cần thiết\", GA4 không được tải và không có dữ liệu đo lường nào được gửi.",
+          "Lựa chọn của bạn được lưu trong localStorage của trình duyệt. Bạn có thể đổi lại bất cứ lúc nào bằng cách xóa dữ liệu trang hoặc dùng cài đặt trình duyệt.",
         ],
       },
       {

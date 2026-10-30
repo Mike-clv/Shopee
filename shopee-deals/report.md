@@ -6,7 +6,7 @@
 - **Backup Git:**
   - Branch: `backup/pre-seo-20261030` (trỏ đúng baseline)
   - Annotated tag: `pre-seo-20261030` (trỏ đúng baseline)
-- **Trạng thái:** `P2 ĐÃ CODE + VERIFY LOCAL — CHỜ DUYỆT DEPLOY PRODUCTION`
+- **Trạng thái:** `P2 ĐÃ VERIFY PREVIEW — CHỜ DUYỆT DEPLOY PRODUCTION`
 - **Nguyên tắc:** mỗi bước thay đổi = một commit riêng; mỗi commit phải có dòng tương ứng trong mục **Change log** bên dưới.
 
 ---
@@ -527,6 +527,11 @@ pnpm dev
   - Sitemap local 823 URL, trong đó 10 URL blog (+6 bài mới). Số URL local thấp hơn production vì DB local ít deal hơn; production dự kiến 910 → 916.
   - 404/301/410 giữ nguyên: `/san/foo`, `/danh-muc/foo`, `/chinh-sach/khong-ton-tai`, `/blog/does-not-exist-123` → 404; `/san`, `/danh-muc`, `/ma-giam-gia` → 301 `/tim-kiem`; `/gioi-thieu`, `/chinh-sach` → 410.
 - Commit code: `822e6b7`.
+- Verify Vercel Preview:
+  - Deployment `dpl_5eeEmRj6Xu3WNsYWwckLnibNj9YV`, alias `https://shopee-git-seo-p2-growth-mamoru09s-projects.vercel.app`, trạng thái **Ready**.
+  - `/blog` + 10 bài blog, 8 landing page, 3 deal page thật → **200**.
+  - 404/301/410 giữ nguyên trên preview.
+  - Sitemap preview **916 URL**, trong đó **10 URL blog**; canonical bài mới = `https://sansale247.io.vn/blog/...`.
 - **Chưa deploy production** — chờ anh duyệt.
 
 ### 5.2. GSC monitoring
@@ -584,6 +589,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | 15 | - | `report.md` | Ghi nhận email `contact@sansale247.io.vn` đã hoạt động: Zoho Mail free, MX/SPF/DKIM/DMARC tại PA, test Gmail 2 chiều | `Resolve-DnsName` ns1.pavietnam.vn; Gmail header SPF/DKIM/DMARC = PASS; Zoho báo xác thực tất cả bản ghi | Hoàn tất |
 | 16 | `947cb6c` | merge `seo/p1-landing-pages` → `main`; `report.md` | Deploy production P1 + GSC | Production `dpl_6VR9tsPhNs7mTtVmyr7mN8dGJZb2`; 30/30 route 200; 404/301/410 đúng; canonical/OG/sitemap 910 URL; GSC sitemap submitted + 2 URL request indexing | Hoàn tất (production) |
 | 17 | `822e6b7` | `lib/blog/posts.ts`, `lib/components/LandingPage.tsx`, `app/blog/page.tsx`, `app/san/[merchant]/page.tsx`, `app/danh-muc/[slug]/page.tsx`, `app/ma/[id]/page.tsx` | Thêm 6 bài blog P2; internal link deal → blog → landing | `tsc`, `lint`, `build`; 10 blog + 8 landing + 5 deal page 200; sitemap local 823 URL (+6 blog); 404/301/410 giữ nguyên | Hoàn tất (local, chờ duyệt deploy) |
+| 18 | - | `report.md` | Ghi nhận verify preview P2 | Preview `dpl_5eeEmRj6Xu3WNsYWwckLnibNj9YV`; 10 blog + 8 landing + 3 deal page 200; sitemap 916 URL; 404/301/410 đúng | Hoàn tất (preview, chờ duyệt production) |
 
 > Mỗi commit code tiếp theo phải thêm một dòng vào bảng này **trước khi** commit, ghi rõ file, mục đích, cách verify và kết quả.
 

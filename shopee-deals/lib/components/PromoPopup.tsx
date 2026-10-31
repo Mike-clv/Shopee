@@ -50,7 +50,6 @@ export function PromoPopup() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="promo-11-11-title"
-        aria-describedby="promo-11-11-description"
         className="relative w-full max-w-3xl"
         onClick={(event) => event.stopPropagation()}
       >
@@ -91,12 +90,6 @@ export function PromoPopup() {
 
         <p id="promo-11-11-title" className="sr-only">
           Ưu đãi Shopee 11.11
-        </p>
-        <p
-          id="promo-11-11-description"
-          className="mt-2 text-center text-[11px] leading-relaxed text-white/70"
-        >
-          Liên kết tiếp thị — Sansale247 có thể nhận hoa hồng, bạn không phải trả thêm.
         </p>
       </div>
     </div>

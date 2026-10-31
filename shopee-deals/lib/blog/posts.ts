@@ -14,6 +14,7 @@ import { stackVoucherPost } from "./articles/stack-voucher";
 import { toeicIeltsPost } from "./articles/toeic-ielts";
 import { tiktokSellerPost } from "./articles/tiktok-seller";
 import { routinePost } from "./articles/routine";
+import { EDITORIAL_TEAM } from "./author";
 import type { BlogPost } from "./post-types";
 
 export type {
@@ -34,7 +35,7 @@ export function postDateLabel(iso: string): string {
   return viDay.format(new Date(iso));
 }
 
-export const BLOG_POSTS: BlogPost[] = [
+const RAW_POSTS: BlogPost[] = [
   shopeeMaPost,
   freeshipPost,
   sachTikiPost,
@@ -46,6 +47,16 @@ export const BLOG_POSTS: BlogPost[] = [
   tiktokSellerPost,
   routinePost,
 ];
+
+/**
+ * Point every article at the public editorial profile. Article files keep the
+ * display name and role; the canonical author URL lives here so a future team
+ * rename only has to change one file.
+ */
+export const BLOG_POSTS: BlogPost[] = RAW_POSTS.map((post) => ({
+  ...post,
+  author: { ...post.author, href: EDITORIAL_TEAM.href },
+}));
 
 export function getPost(slug: string): BlogPost | undefined {
   return BLOG_POSTS.find((post) => post.slug === slug);

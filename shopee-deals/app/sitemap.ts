@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listActiveDeals } from "@/lib/coupons/data";
+import { EDITORIAL_TEAM } from "@/lib/blog/author";
 import { BLOG_POSTS } from "@/lib/blog/posts";
 import { CATEGORY_SLUGS } from "@/lib/categories";
 import { SALE_EVENT_LANDINGS } from "@/lib/events/content";
@@ -31,6 +32,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${base}/sitemap`, changeFrequency: "monthly", priority: 0.2 },
     { url: `${base}/ve-chung-toi`, changeFrequency: "monthly", priority: 0.3 },
+    {
+      url: `${base}${EDITORIAL_TEAM.href}`,
+      lastModified: new Date(EDITORIAL_TEAM.updated),
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
     { url: `${base}/lien-he`, changeFrequency: "monthly", priority: 0.3 },
     ...LEGAL_PAGES.map((page) => ({
       url: `${base}/chinh-sach/${page.slug}`,

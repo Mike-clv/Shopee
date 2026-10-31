@@ -23,7 +23,7 @@ export default function AboutPage() {
     <LegalPage
       title="Về Sansale247"
       description="Sansale247 giúp bạn tìm mã giảm giá còn hiệu lực và deal đáng mua từ các sàn lớn, với thông tin rõ ràng và minh bạch về link affiliate."
-      updated="2026-10-30"
+      updated="2026-10-31"
       current="/ve-chung-toi"
     >
       <LegalSection
@@ -82,14 +82,36 @@ export default function AboutPage() {
         }}
       />
 
+      <LegalSection
+        section={{
+          heading: "Ban biên tập và quy trình kiểm duyệt",
+          paragraphs: [
+            "Nội dung hướng dẫn, so sánh và phân tích trên Sansale247 do Ban biên tập Sansale247 thực hiện. Nhóm kiểm tra nguồn khuyến mãi, điều kiện áp dụng và quyền lợi thực tế trước khi đăng, đồng thời ghi rõ ngày cập nhật trên từng bài.",
+            "Khi giá, điều kiện hoặc chính sách của sàn thay đổi, nội dung được rà soát và đính chính. Hoa hồng affiliate không quyết định việc một deal được đăng hoặc thứ hạng hiển thị.",
+          ],
+        }}
+      >
+        <Link
+          href="/tac-gia/ban-bien-tap"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-brand transition hover:text-brand-dark"
+        >
+          Xem hồ sơ ban biên tập và tiêu chí kiểm duyệt
+          <span aria-hidden>→</span>
+        </Link>
+      </LegalSection>
+
       <p className="text-sm leading-relaxed text-ink/55">
         Xem thêm{" "}
         <Link href="/chinh-sach/tiet-lo-affiliate" className="font-semibold text-brand hover:text-brand-dark">
           Tiết lộ affiliate
-        </Link>{" "}
-        và{" "}
+        </Link>
+        ,{" "}
         <Link href="/chinh-sach/chinh-sach-bien-tap" className="font-semibold text-brand hover:text-brand-dark">
           Chính sách biên tập
+        </Link>{" "}
+        và{" "}
+        <Link href="/tac-gia/ban-bien-tap" className="font-semibold text-brand hover:text-brand-dark">
+          Hồ sơ ban biên tập
         </Link>{" "}
         để hiểu rõ cách website hoạt động.
       </p>

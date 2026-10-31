@@ -13,12 +13,14 @@ export function LegalPage({
   description,
   updated,
   current,
+  eyebrow = "Thông tin website",
   children,
 }: {
   title: string;
   description: string;
   updated: string;
   current: string;
+  eyebrow?: string;
   children: ReactNode;
 }) {
   return (
@@ -39,7 +41,7 @@ export function LegalPage({
           <header className="border-b border-line pb-6">
             <p className="inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/5 px-2.5 py-1 font-mono text-[10px] font-semibold tracking-[0.12em] text-brand uppercase">
               <ShieldCheck className="h-3 w-3" aria-hidden />
-              Thông tin website
+              {eyebrow}
             </p>
             <h1 className="mt-4 max-w-3xl font-display text-3xl leading-tight font-bold tracking-tight text-balance text-ink sm:text-4xl">
               {title}
@@ -105,7 +107,13 @@ export function LegalPage({
   );
 }
 
-export function LegalSection({ section }: { section: Section }) {
+export function LegalSection({
+  section,
+  children,
+}: {
+  section: Section;
+  children?: ReactNode;
+}) {
   return (
     <section>
       <h2 className="font-display text-[20px] font-bold tracking-tight text-ink">
@@ -135,6 +143,7 @@ export function LegalSection({ section }: { section: Section }) {
           ))}
         </ul>
       ) : null}
+      {children ? <div className="mt-3">{children}</div> : null}
     </section>
   );
 }

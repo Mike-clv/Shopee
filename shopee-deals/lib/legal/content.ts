@@ -15,6 +15,7 @@ export type LegalPageContent = {
 };
 
 const UPDATED = "2026-10-30";
+const EDITORIAL_UPDATED = "2026-10-31";
 
 export const LEGAL_PAGES: LegalPageContent[] = [
   {
@@ -65,7 +66,7 @@ export const LEGAL_PAGES: LegalPageContent[] = [
     title: "Chính sách biên tập",
     description:
       "Cách Sansale247 thu thập, kiểm tra và cập nhật mã giảm giá, deal và nội dung trên website.",
-    updated: UPDATED,
+    updated: EDITORIAL_UPDATED,
     sections: [
       {
         heading: "Mục tiêu biên tập",
@@ -87,6 +88,13 @@ export const LEGAL_PAGES: LegalPageContent[] = [
         paragraphs: [
           "Phần lớn deal được đồng bộ tự động qua AccessTrade theo lịch. Hệ thống kiểm tra trạng thái, thời hạn và một số trường dữ liệu bắt buộc trước khi hiển thị.",
           "Các nội dung quan trọng như bài hướng dẫn, chính sách và thông tin thương hiệu được biên tập thủ công. Với deal có dấu hiệu bất thường, website có thể tạm ẩn để kiểm tra lại.",
+        ],
+      },
+      {
+        heading: "Ai chịu trách nhiệm nội dung",
+        paragraphs: [
+          "Ban biên tập Sansale247 chịu trách nhiệm về nội dung hướng dẫn, so sánh và phân tích được xuất bản trên website. Hồ sơ ban biên tập, phạm vi kiểm duyệt và nguyên tắc affiliate được công khai tại /tac-gia/ban-bien-tap.",
+          "Mỗi bài viết hiển thị tên ban biên tập và ngày cập nhật gần nhất. Khi nguồn hoặc điều kiện khuyến mãi thay đổi, nội dung được rà soát lại; ngày cập nhật chỉ thay đổi sau khi đã kiểm tra, không dùng để tạo cảm giác bài mới.",
         ],
       },
       {
@@ -384,6 +392,7 @@ export function getLegalPage(slug: string): LegalPageContent | undefined {
 
 export const TRUST_LINKS = [
   { href: "/ve-chung-toi", label: "Về Sansale247" },
+  { href: "/tac-gia/ban-bien-tap", label: "Ban biên tập" },
   { href: "/lien-he", label: "Liên hệ" },
   { href: "/faq", label: "Câu hỏi thường gặp" },
   ...LEGAL_PAGES.map((page) => ({

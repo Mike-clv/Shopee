@@ -121,8 +121,14 @@ function PostBody({ post }: { post: BlogPost }) {
         image: [`${siteUrl()}${OG_IMAGE.url}`],
         author: {
           "@type": "Organization",
+          "@id": `${siteUrl()}${post.author.href}#team`,
           name: post.author.name,
           url: `${siteUrl()}${post.author.href}`,
+          parentOrganization: {
+            "@type": "Organization",
+            name: "Sansale247",
+            url: siteUrl(),
+          },
         },
         publisher: {
           "@type": "Organization",
@@ -379,6 +385,17 @@ function PostBody({ post }: { post: BlogPost }) {
                   {post.author.name}
                 </Link>
                 . Bài viết được cập nhật ngày {postDateLabel(post.updated)}.
+              </p>
+              <p className="mt-1">
+                Quy trình: đối chiếu nguồn, kiểm tra điều kiện khuyến mãi và
+                cập nhật khi thông tin thay đổi.{" "}
+                <Link
+                  href={post.author.href}
+                  className="font-semibold text-ink/70 underline decoration-brand/30 underline-offset-2 transition hover:text-brand"
+                >
+                  Xem hồ sơ ban biên tập
+                </Link>
+                .
               </p>
               <p className="mt-1">
                 Sansale247 tổng hợp khuyến mãi công khai và có thể nhận hoa

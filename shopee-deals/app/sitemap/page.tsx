@@ -95,6 +95,7 @@ export default async function HtmlSitemapPage() {
               { href: "/blog", label: "Blog" },
               { href: "/faq", label: "Câu hỏi thường gặp" },
               { href: "/ve-chung-toi", label: "Về Sansale247" },
+              { href: "/tac-gia/ban-bien-tap", label: "Ban biên tập" },
               { href: "/lien-he", label: "Liên hệ" },
             ]}
           />

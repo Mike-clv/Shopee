@@ -125,7 +125,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteFooter />
         <BackToTop />
         <ConsentBanner />
-        <PromoPopup />
+        <Suspense fallback={null}>
+          <PromoPopup />
+        </Suspense>
         <Analytics />
       </body>
     </html>

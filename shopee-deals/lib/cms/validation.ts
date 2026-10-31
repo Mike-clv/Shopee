@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CMS_PAGE_TYPES } from "@/lib/db/schema";
+import { isSafePromoUrl } from "./promo-popup";
 import { CMS_POST_ICONS } from "./types";
 
 const httpOrPath = z
@@ -120,6 +121,51 @@ export const pageInputSchema = z.object({
   body: z.array(sectionSchema).default([]),
   meta: pageMetaSchema,
 });
+
+/**
+ * Popup fields are optional while the popup is off, but an enabled popup must
+ * have a safe image URL and destination. The action fills defaults for blank
+ * optional fields so re-enabling later still works.
+ */
+export const promoPopupInputSchema = z
+  .object({
+    enabled: z.boolean(),
+    imageUrl: z.string().trim().max(2048).default(""),
+    href: z.string().trim().max(2048).default(""),
+    alt: z.string().trim().max(300).default(""),
+    title: z.string().trim().max(200).default(""),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.enabled) return;
+
+    if (!value.imageUrl) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["imageUrl"],
+        message: "Cần ảnh banner khi bật popup",
+      });
+    } else if (!isSafePromoUrl(value.imageUrl)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["imageUrl"],
+        message: "Ảnh phải là URL http(s) hoặc đường dẫn bắt đầu bằng /",
+      });
+    }
+
+    if (!value.href) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["href"],
+        message: "Cần link đích khi bật popup",
+      });
+    } else if (!isSafePromoUrl(value.href)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["href"],
+        message: "Link phải là URL http(s) hoặc đường dẫn bắt đầu bằng /",
+      });
+    }
+  });
 
 export type PostInput = z.infer<typeof postInputSchema>;
 export type PageInput = z.infer<typeof pageInputSchema>;

@@ -12,7 +12,8 @@ import {
 import { assertAdminSession } from "@/lib/auth";
 import { adminEmail } from "@/lib/session";
 import { CMS_CACHE_TAG } from "@/lib/cms/data";
-import { pageInputSchema, postInputSchema } from "@/lib/cms/validation";
+import { DEFAULT_PROMO_POPUP } from "@/lib/cms/promo-popup";
+import { pageInputSchema, postInputSchema, promoPopupInputSchema } from "@/lib/cms/validation";
 
 export type CmsActionState = { error?: string; ok?: string };
 
@@ -347,6 +348,20 @@ export async function saveSettingsAction(
 ): Promise<CmsActionState> {
   await assertAdminSession();
   try {
+    const popupInput = promoPopupInputSchema.safeParse({
+      enabled: formData.get("promoPopupEnabled") === "on",
+      imageUrl: text(formData, "promoPopupImageUrl"),
+      href: text(formData, "promoPopupHref"),
+      alt: text(formData, "promoPopupAlt"),
+      title: text(formData, "promoPopupTitle"),
+    });
+    if (!popupInput.success) {
+      return {
+        error:
+          popupInput.error.issues[0]?.message ?? "Cài đặt popup không hợp lệ.",
+      };
+    }
+
     const db = await getDatabase();
     const keys = ["siteName", "siteDescription", "contactEmail", "affiliateNote"];
     for (const key of keys) {
@@ -359,6 +374,22 @@ export async function saveSettingsAction(
           set: { value: { text: value }, updatedAt: new Date() },
         });
     }
+
+    const promoPopup = {
+      ...popupInput.data,
+      imageUrl: popupInput.data.imageUrl || DEFAULT_PROMO_POPUP.imageUrl,
+      href: popupInput.data.href || DEFAULT_PROMO_POPUP.href,
+      alt: popupInput.data.alt || DEFAULT_PROMO_POPUP.alt,
+      title: popupInput.data.title || DEFAULT_PROMO_POPUP.title,
+    };
+    await db
+      .insert(siteSettings)
+      .values({ key: "promoPopup", value: promoPopup, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: { value: promoPopup, updatedAt: new Date() },
+      });
+
     await audit({ action: "update", entity: "settings", summary: "Cập nhật cài đặt website" });
     revalidatePublicContent();
     return { ok: "Đã lưu cài đặt." };

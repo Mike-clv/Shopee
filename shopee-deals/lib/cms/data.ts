@@ -14,6 +14,11 @@ import {
 } from "@/lib/db/schema";
 import type { BlogPost } from "@/lib/blog/post-types";
 import { cmsRowToPost } from "./mappers";
+import {
+  DEFAULT_PROMO_POPUP,
+  normalizePromoPopup,
+  type PromoPopupSettings,
+} from "./promo-popup";
 import type { CmsEntrySummary } from "./types";
 
 /** Public CMS reads are tagged so a publish/update can invalidate them. */
@@ -204,6 +209,15 @@ export async function getSiteSetting<T>(
     .where(eq(siteSettings.key, key))
     .limit(1);
   return (row?.value as T | undefined) ?? fallback;
+}
+
+/** Cached public read for the entrance popup; invalidated by CMS writes. */
+export async function getPromoPopupSettings(): Promise<PromoPopupSettings> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CMS_CACHE_TAG);
+  const stored = await getSiteSetting<unknown>("promoPopup", DEFAULT_PROMO_POPUP);
+  return normalizePromoPopup(stored);
 }
 
 export async function listAuditLogs(limit = 40): Promise<ContentAuditLog[]> {

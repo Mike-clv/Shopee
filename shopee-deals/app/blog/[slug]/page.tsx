@@ -15,13 +15,12 @@ import {
 import { BlogCard } from "@/lib/components/BlogCard";
 import { OG_IMAGE } from "@/lib/seo";
 import {
-  BLOG_POSTS,
-  getPost,
   merchantLinksForPost,
   postDateLabel,
   relatedPostsFor,
   type BlogPost,
 } from "@/lib/blog/posts";
+import { getAnyPublishedPost, listAllPublishedPosts } from "@/lib/cms/blog";
 import { merchantLabel, siteUrl } from "@/lib/site";
 
 // Allow params to be validated before streaming so unknown slugs return a real
@@ -30,19 +29,20 @@ import { merchantLabel, siteUrl } from "@/lib/site";
 export const instant = false;
 
 /**
- * Posts live in code, so their slugs are known at build time. Declaring them
- * lets Next prerender every article instead of hitting the "params accessed
- * outside Suspense" blocking-prerender error under Cache Components.
+ * Static posts plus published CMS posts. The DB read happens during build so
+ * every current article is still prerendered; new CMS posts fall back to the
+ * dynamic path below.
  */
-export function generateStaticParams() {
-  return BLOG_POSTS.map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  const posts = await listAllPublishedPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata(
   props: PageProps<"/blog/[slug]">,
 ): Promise<Metadata> {
   const { slug } = await props.params;
-  const post = getPost(slug);
+  const post = await getAnyPublishedPost(slug);
   if (!post) {
     return {
       title: "Bài viết không tồn tại",
@@ -70,7 +70,7 @@ export default async function BlogPostPage(
   props: PageProps<"/blog/[slug]">,
 ) {
   const { slug } = await props.params;
-  const post = getPost(slug);
+  const post = await getAnyPublishedPost(slug);
   if (!post) notFound();
 
   return (

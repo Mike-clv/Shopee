@@ -4,7 +4,7 @@ import { LandingPage, LandingSidebarCard, LandingLinkList, LandingAffiliateNote 
 import { postsForMerchant } from "@/lib/blog/posts";
 import { categoryFromSlug } from "@/lib/categories";
 import { countDealsPerMerchant, countSearchDeals, listTopCategories, searchDeals } from "@/lib/coupons/data";
-import { getMerchantLanding } from "@/lib/landing/content";
+import { resolveMerchantLanding } from "@/lib/cms/pages";
 import { OG_IMAGE } from "@/lib/seo";
 import { SITE, merchantLabel, siteUrl } from "@/lib/site";
 
@@ -18,7 +18,7 @@ export async function generateMetadata(
   props: PageProps<"/san/[merchant]">,
 ): Promise<Metadata> {
   const { merchant } = await props.params;
-  const landing = getMerchantLanding(merchant);
+  const landing = await resolveMerchantLanding(merchant);
 
   if (!landing) {
     return {
@@ -45,7 +45,7 @@ export default async function MerchantLandingPage(
   props: PageProps<"/san/[merchant]">,
 ) {
   const { merchant } = await props.params;
-  const landing = getMerchantLanding(merchant);
+  const landing = await resolveMerchantLanding(merchant);
   if (!landing) notFound();
 
   const label = merchantLabel(merchant);

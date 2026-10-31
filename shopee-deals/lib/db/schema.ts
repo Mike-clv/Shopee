@@ -1,4 +1,16 @@
-import { pgTable, text, timestamp, boolean, integer, bigint, real, uuid, uniqueIndex, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  integer,
+  bigint,
+  real,
+  uuid,
+  jsonb,
+  uniqueIndex,
+  index,
+} from "drizzle-orm/pg-core";
 
 /**
  * Coupon/deal rows. `externalId` is the Accesstrade offer id for synced rows,
@@ -120,8 +132,120 @@ export const syncLogs = pgTable(
   (t) => [index("sync_logs_started_idx").on(t.startedAt)],
 );
 
+// ---------------------------------------------------------------------------
+// CMS — content the editorial team can manage without a deploy.
+// ---------------------------------------------------------------------------
+
+export const CMS_KINDS = ["post", "page"] as const;
+export const CMS_STATUSES = ["draft", "published"] as const;
+export const CMS_PAGE_TYPES = [
+  "merchant",
+  "category",
+  "event",
+  "legal",
+  "about",
+  "faq",
+  "contact",
+  "custom",
+] as const;
+
+/**
+ * One row per managed piece of editorial content. `body` and `meta` are typed
+ * at the application layer (see lib/cms/types.ts) and validated with zod
+ * before every write, so the database only stores shapes the renderers know.
+ *
+ * Static content still lives in code. A row with the same `path` overrides it,
+ * which lets the team edit existing pages without a migration/deploy and keeps
+ * the code fallback for fresh environments.
+ */
+export const cmsEntries = pgTable(
+  "cms_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kind: text("kind", { enum: CMS_KINDS }).notNull(),
+    slug: text("slug").notNull(),
+    path: text("path").notNull(),
+    title: text("title").notNull(),
+    excerpt: text("excerpt"),
+    body: jsonb("body").notNull().default([]),
+    meta: jsonb("meta").notNull().default({}),
+    status: text("status", { enum: CMS_STATUSES }).notNull().default("draft"),
+    seoTitle: text("seo_title"),
+    seoDescription: text("seo_description"),
+    coverImage: text("cover_image"),
+    coverAlt: text("cover_alt"),
+    isFeatured: boolean("is_featured").notNull().default(false),
+    publishedAt: timestamp("published_at", { mode: "date", withTimezone: true }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("cms_entries_path_idx").on(t.path),
+    uniqueIndex("cms_entries_kind_slug_idx").on(t.kind, t.slug),
+    index("cms_entries_status_idx").on(t.status),
+    index("cms_entries_updated_idx").on(t.updatedAt),
+  ],
+);
+
+export const mediaAssets = pgTable(
+  "media_assets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    url: text("url").notNull(),
+    alt: text("alt").notNull().default(""),
+    caption: text("caption"),
+    mime: text("mime"),
+    width: integer("width"),
+    height: integer("height"),
+    sizeBytes: integer("size_bytes"),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("media_assets_url_idx").on(t.url)],
+);
+
+export const siteSettings = pgTable("site_settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").notNull().default({}),
+  updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const contentAuditLogs = pgTable(
+  "content_audit_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actor: text("actor").notNull(),
+    action: text("action").notNull(),
+    entity: text("entity").notNull(),
+    entityId: text("entity_id"),
+    summary: text("summary").notNull(),
+    before: jsonb("before"),
+    after: jsonb("after"),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("content_audit_logs_created_idx").on(t.createdAt)],
+);
+
 export type CouponDeal = typeof couponDeals.$inferSelect;
 export type NewCouponDeal = typeof couponDeals.$inferInsert;
 export type SyncLog = typeof syncLogs.$inferSelect;
 export type CampaignBanner = typeof campaignBanners.$inferSelect;
 export type NewCampaignBanner = typeof campaignBanners.$inferInsert;
+export type CmsEntry = typeof cmsEntries.$inferSelect;
+export type NewCmsEntry = typeof cmsEntries.$inferInsert;
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type NewMediaAsset = typeof mediaAssets.$inferInsert;
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type ContentAuditLog = typeof contentAuditLogs.$inferSelect;

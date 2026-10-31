@@ -6,7 +6,7 @@ import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { postsForCategory } from "@/lib/blog/posts";
 import { CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { countSearchDeals, searchDeals } from "@/lib/coupons/data";
-import { getCategoryLanding } from "@/lib/landing/content";
+import { resolveCategoryLanding } from "@/lib/cms/pages";
 import { OG_IMAGE } from "@/lib/seo";
 import { SITE, siteUrl } from "@/lib/site";
 
@@ -20,7 +20,7 @@ export async function generateMetadata(
   props: PageProps<"/danh-muc/[slug]">,
 ): Promise<Metadata> {
   const { slug } = await props.params;
-  const landing = getCategoryLanding(slug);
+  const landing = await resolveCategoryLanding(slug);
 
   if (!landing) {
     return {
@@ -47,7 +47,7 @@ export default async function CategoryLandingPage(
   props: PageProps<"/danh-muc/[slug]">,
 ) {
   const { slug } = await props.params;
-  const landing = getCategoryLanding(slug);
+  const landing = await resolveCategoryLanding(slug);
   if (!landing) notFound();
 
   const label = categoryFromSlug(slug).label;

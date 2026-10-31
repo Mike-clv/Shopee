@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listActiveDeals } from "@/lib/coupons/data";
 import { EDITORIAL_TEAM } from "@/lib/blog/author";
-import { BLOG_POSTS } from "@/lib/blog/posts";
+import { listAllPublishedPosts } from "@/lib/cms/blog";
 import { CATEGORY_SLUGS } from "@/lib/categories";
 import { SALE_EVENT_LANDINGS } from "@/lib/events/content";
 import { LEGAL_PAGES } from "@/lib/legal/content";
@@ -9,7 +9,10 @@ import { SITE, siteUrl } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const deals = await listActiveDeals({ limit: 1000 });
+  const [deals, posts] = await Promise.all([
+    listActiveDeals({ limit: 1000 }),
+    listAllPublishedPosts(),
+  ]);
   return [
     { url: `${base}/`, changeFrequency: "hourly", priority: 1.0 },
     { url: `${base}/tim-kiem`, changeFrequency: "daily", priority: 0.5 },
@@ -45,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.3,
     })),
-    ...BLOG_POSTS.map((post) => ({
+    ...posts.map((post) => ({
       url: `${base}/blog/${post.slug}`,
       lastModified: new Date(post.updated),
       changeFrequency: "weekly" as const,

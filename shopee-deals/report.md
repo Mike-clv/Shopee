@@ -750,7 +750,36 @@ git -C D:\web switch backup/pre-seo-20261030
 5. Bổ sung mục “Ban biên tập và quy trình kiểm duyệt” trên `/ve-chung-toi`, thêm `/tac-gia/ban-bien-tap` vào `TRUST_LINKS`, HTML sitemap và XML sitemap.
 6. Verify: `tsc`, `lint`, `build`; kiểm tra 10 URL blog có author link mới + schema author `@id`; `/tac-gia/ban-bien-tap` 200, canonical, AboutPage/Organization/BreadcrumbList; `/ve-chung-toi`, `/sitemap` có link; mobile 390×844 `overflow=0`.
 
-### 9.5. Giai đoạn G2 — Phân phối, authority & giữ chân (Tuần 3–12)
+### 9.5. Cpanel quản trị nội dung (ưu tiên hiện tại — thay cho G2.7 tạm hoãn)
+
+**Mục tiêu:** Xây Cpanel tại `/admin` đủ chức năng để quản lý toàn bộ nội dung hiển thị công khai: deal, banner, bài blog, trang landing/sự kiện/pháp lý, media, cài đặt site, SEO và nhật ký thao tác. Không thay đổi URL/canonical/schema hiện có; nội dung code vẫn là fallback khi DB chưa có bản ghi.
+
+**Kiến trúc chốt:**
+1. Mở rộng DB bằng 4 bảng: `cms_entries` (bài viết + trang nội dung, `kind=post|page`, `body/meta` JSONB, `status=draft|published`, SEO, cover, lịch đăng), `media_assets` (thư viện ảnh URL, alt, kích thước), `site_settings` (key/value JSONB), `content_audit_logs` (ai làm gì, trước/sau).
+2. Tách admin thành layout sidebar + các route: `/admin` (dashboard), `/admin/deals`, `/admin/banners`, `/admin/blog`, `/admin/pages`, `/admin/media`, `/admin/settings`, `/admin/audit`.
+3. Blog công khai đọc bản `published` từ DB, merge với 10 bài code hiện tại; bài DB mới dùng dynamic route và có trong sitemap. Trang landing/category/merchant/event/legal dùng override DB nếu có, fallback nội dung code.
+4. Mọi mutation dùng server action + `assertAdminSession()` + validate zod; ghi audit log; `updateTag("cms")` để làm mới cache. Không render HTML thô từ admin, chỉ render block JSON đã kiểm soát.
+5. Media MVP quản lý ảnh bằng URL (http/https hoặc `/images/...`), có alt/caption; upload file để phase sau khi chọn provider (Vercel Blob/Cloudinary), tránh thêm dependency nặng lúc này.
+
+**Phases triển khai:**
+- **P1 — Nền tảng & admin shell:** schema + migration `0003_cms.sql`; `lib/cms/types.ts`, `lib/cms/data.ts`, `lib/cms/validation.ts`; sidebar/admin layout; dashboard thống kê; chuyển deal/banner sang route riêng, giữ nguyên chức năng cũ.
+- **P2 — Blog CMS:** danh sách/lọc/sửa/xoá, tạo bài, block editor (đoạn văn/H2/tip/list/table), cover, tag, tác giả, CTA, FAQ, SEO, draft/publish; preview bài; public `/blog` + `/blog/[slug]` đọc DB; sitemap gồm bài DB.
+- **P3 — Trang nội dung:** quản lý override cho 4 merchant hub, 16 category hub, sự kiện 11.11, 6 trang pháp lý và `/ve-chung-toi`; form SEO + intro + highlights + sections + FAQ; route public merge override.
+- **P4 — Media, settings, audit, SEO:** thư viện media, cài đặt site/popup/affiliate, nhật ký thao tác, trang SEO kiểm tra sitemap/canonical/robots.
+- **P5 — Kiểm thử & bàn giao:** `tsc`, `lint`, `build`; test CRUD từng module; verify public pages không đổi canonical/schema; mobile 390×844; preview; chờ duyệt production.
+
+**Nghiệm thu:** CRUD đủ 5 nhóm nội dung (deal, banner, blog, page, media); publish/draft có hiệu lực công khai; mọi mutation có audit; không lộ route admin; `tsc/lint/build` pass; 10 blog + 16 category + 4 merchant + 11.11 + 6 legal vẫn 200, canonical/schema đúng; mobile overflow 0.
+
+**Nhật ký triển khai Cpanel:**
+- `2026-10-31` — Khảo sát admin hiện tại (chỉ deal/banner), schema 3 bảng, blog hardcode. Chốt kiến trúc 4 bảng CMS + 8 route admin; ghi kế hoạch này trước khi sửa code. Chưa thay đổi code.
+- `2026-10-31` — **P1 xong (code):** thêm 4 bảng `cms_entries`, `media_assets`, `site_settings`, `content_audit_logs` + migration `drizzle/0003_fixed_susan_delgado.sql`; tạo `lib/cms/{types,validation,icons,mappers,data,registry,pages,blog,post-form,page-form}.ts`; server actions `app/actions/cms.ts` (lưu/xoá bài, trang, reset override, media, settings, audit); admin shell + sidebar và 11 route `/admin`, `/admin/deals`, `/admin/banners`, `/admin/blog`, `/admin/blog/new`, `/admin/blog/edit`, `/admin/pages`, `/admin/pages/edit`, `/admin/media`, `/admin/settings`, `/admin/audit`.
+- `2026-10-31` — **Tích hợp public:** blog index/detail/home teaser, XML + HTML sitemap, landing sàn/danh mục/sự kiện/pháp lý đọc bản ghi CMS `published` và fallback nội dung code; canonical/schema giữ nguyên.
+- `2026-10-31` — **Sự cố & fix:** (1) `"use cache"` trả `BlogPost` chứa icon Lucide (function) làm `/` và `/blog` lỗi 500, bài mới 404 → tách cache chỉ trả row thuần, map `BlogPost` ngoài cache; (2) public page vẫn stale sau publish → thêm `revalidatePublicContent()` gọi `updateTag("cms")` + `revalidatePath` cho `/`, `/blog`, `/sitemap`, `/sitemap.xml`, path bài/trang; (3) PGlite local bị corrupt khi build/force-stop server → đã backup `.db-pglite-corrupt-20261031-140002` và `.db-pglite-corrupt-20261031-141208`, build lại DB sạch; (4) nghi vấn PGlite tạo client riêng theo worker Turbopack → chuyển `lib/db/index.ts` sang global singleton `globalForDb.__sansaleDbBundle`.
+- `2026-10-31` — **Verify:** `pnpm exec tsc --noEmit` PASS; `pnpm lint` PASS; `pnpm build` PASS (Next 16.4.3, 70/70 static pages, đủ route admin). Với session admin: 11 route admin trả 200; các route public trọng yếu trả 200. E2E Playwright tạo + publish bài `Bài kiểm tra CMS` thành công, audit ghi nhận `Tạo bài`/`Cập nhật bài`; trang sửa hiển thị đúng title/slug/path và trạng thái `published`.
+- `2026-10-31` — **Đang kiểm chứng:** public `/blog`, `/blog/bai-kiem-tra-cms`, `/`, `/sitemap.xml` chưa thấy bài mới ngay sau publish trên `next start` + PGlite local; đang kiểm tra tiếp bằng `pnpm dev`/Postgres local để loại trừ giới hạn worker của PGlite. Trên production dùng Neon nên không bị giới hạn này; sẽ xác minh lại trên preview trước khi bàn giao. Chưa commit/push/preview.
+- `2026-10-31` — **Kết luận kiểm chứng local:** chạy `pnpm dev` cổng 3501 với PGlite riêng `.db-pglite-dev`; publish bài test thành công nhưng `/blog`, trang chi tiết, `/`, `/sitemap.xml` vẫn không thấy bài, trong khi `/admin/blog/edit` thấy trạng thái `published`. Sau khi dừng server, query trực tiếp PGlite thấy đúng row `published`, nên đây là giới hạn PGlite tạo client/snapshot riêng theo route bundle/worker của Turbopack, không phải lỗi cache/invalidation. Production dùng Neon nên sẽ xác minh lại trên preview; ghi nhận giới hạn local-only này trong báo cáo.
+
+### 9.5.1. Giai đoạn G2 — Phân phối, authority & giữ chân (Tuần 3–12)
 
 | ID | Việc | Output / kênh | Điều kiện nghiệm thu | Ước lượng |
 |---|---|---|---|---|
@@ -806,7 +835,7 @@ git -C D:\web switch backup/pre-seo-20261030
 | G2.4 | Email | Chờ duyệt | — | — | — |
 | G2.5 | Backlink/PR | Chờ duyệt | — | — | — |
 | G2.6 | Paid test | Chờ duyệt | — | — | — |
-| G2.7 | Seasonal | Chờ duyệt | — | — | — |
+| G2.7 | Seasonal | Tạm hoãn — chờ sát sự kiện | — | — | Theo yêu cầu 2026-10-31: giữ nguyên kế hoạch, chỉ triển khai khi gần 12.12/Black Friday/Tết; ưu tiên Cpanel nội dung trước |
 | G2.8 | CRO | Chờ duyệt | — | — | — |
 | G2.9 | Community/UGC | Chờ duyệt | — | — | — |
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BlogCard } from "@/lib/components/BlogCard";
-import { BLOG_POSTS } from "@/lib/blog/posts";
+import { listAllPublishedPosts } from "@/lib/cms/blog";
 
 export const metadata: Metadata = {
   title: "Blog & mẹo săn mã giảm giá đa sàn",
@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/blog" },
 };
 
-export default function BlogIndexPage() {
+export default async function BlogIndexPage() {
+  const posts = await listAllPublishedPosts();
   return (
     <div className="py-8">
       <header className="border-b border-line pb-6">
@@ -22,12 +23,12 @@ export default function BlogIndexPage() {
           tiếp theo.
         </p>
         <p className="mt-3 font-mono text-[10px] text-ink/35">
-          {BLOG_POSTS.length} bài viết
+          {posts.length} bài viết
         </p>
       </header>
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {BLOG_POSTS.map((post) => (
+        {posts.map((post) => (
           <BlogCard key={post.slug} post={post} />
         ))}
       </div>

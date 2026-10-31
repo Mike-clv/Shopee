@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LegalPage, LegalSection } from "@/lib/components/LegalPage";
-import { LEGAL_PAGES, getLegalPage } from "@/lib/legal/content";
+import { LEGAL_PAGES } from "@/lib/legal/content";
+import { resolveLegalPage } from "@/lib/cms/pages";
 import { OG_IMAGE } from "@/lib/seo";
 
 export const instant = false;
@@ -14,7 +15,7 @@ export async function generateMetadata(
   props: PageProps<"/chinh-sach/[slug]">,
 ): Promise<Metadata> {
   const { slug } = await props.params;
-  const page = getLegalPage(slug);
+  const page = await resolveLegalPage(slug);
 
   if (!page) {
     return {
@@ -41,7 +42,7 @@ export default async function LegalPageRoute(
   props: PageProps<"/chinh-sach/[slug]">,
 ) {
   const { slug } = await props.params;
-  const page = getLegalPage(slug);
+  const page = await resolveLegalPage(slug);
 
   if (!page) notFound();
 

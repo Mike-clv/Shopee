@@ -224,6 +224,46 @@ export async function addBannerAction(
   return { ok: "Đã thêm banner." };
 }
 
+export async function updateBannerAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await assertAdminSession();
+  const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f-]{36}$/.test(id)) return { error: "Banner không hợp lệ." };
+
+  const imageRaw = String(formData.get("imageUrl") ?? "").trim();
+  const linkRaw = String(formData.get("linkUrl") ?? "").trim();
+  const imageUrl = safeHttpUrl(imageRaw);
+  if (!imageUrl) return { error: "Ảnh banner không hợp lệ (cần http(s))." };
+
+  let linkUrl: string | null = null;
+  if (linkRaw) {
+    if (linkRaw.startsWith("/") && !linkRaw.startsWith("//")) linkUrl = linkRaw;
+    else {
+      const parsed = safeHttpUrl(linkRaw);
+      if (!parsed) return { error: "Link banner không hợp lệ." };
+      linkUrl = parsed.toString();
+    }
+  }
+
+  const db = await getDatabase();
+  await db
+    .update(campaignBanners)
+    .set({
+      title: String(formData.get("title") ?? "").trim() || null,
+      imageUrl: imageUrl.toString(),
+      linkUrl,
+      merchant: String(formData.get("merchant") ?? "").trim() || "shopee",
+      sortOrder: Number(formData.get("sortOrder") ?? 0) || 0,
+      isActive: formData.get("isActive") === "on",
+      updatedAt: new Date(),
+    })
+    .where(eq(campaignBanners.id, id));
+  updateTag(SITE.couponsTag);
+  return { ok: "Đã cập nhật banner." };
+}
+
 export async function toggleBannerAction(formData: FormData): Promise<void> {
   await assertAdminSession();
   const id = String(formData.get("id") ?? "");

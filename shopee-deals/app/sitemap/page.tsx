@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, CalendarDays, FileText, Map, Store, Tag } from "lucide-react";
-import { BLOG_POSTS } from "@/lib/blog/posts";
+import { listAllPublishedPosts } from "@/lib/cms/blog";
 import { CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { listActiveDeals } from "@/lib/coupons/data";
 import { SALE_EVENT_LANDINGS } from "@/lib/events/content";
@@ -53,7 +53,10 @@ function LinkList({
 }
 
 export default async function HtmlSitemapPage() {
-  const deals = await listActiveDeals({ limit: 60 });
+  const [deals, posts] = await Promise.all([
+    listActiveDeals({ limit: 60 }),
+    listAllPublishedPosts(),
+  ]);
 
   return (
     <div className="py-8">
@@ -159,7 +162,7 @@ export default async function HtmlSitemapPage() {
             Bài viết
           </h2>
           <LinkList
-            links={BLOG_POSTS.map((post) => ({
+            links={posts.map((post) => ({
               href: `/blog/${post.slug}`,
               label: post.title,
               meta: post.tag.label,

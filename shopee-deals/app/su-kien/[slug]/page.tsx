@@ -13,9 +13,10 @@ import { BlogCard } from "@/lib/components/BlogCard";
 import { CouponCard } from "@/lib/components/CouponCard";
 import { EventCountdown } from "@/lib/components/EventCountdown";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
-import { BLOG_POSTS } from "@/lib/blog/posts";
+import { listAllPublishedPosts } from "@/lib/cms/blog";
 import { countSearchDeals, searchDeals } from "@/lib/coupons/data";
-import { getSaleEventLanding, SALE_EVENT_LANDINGS } from "@/lib/events/content";
+import { SALE_EVENT_LANDINGS } from "@/lib/events/content";
+import { resolveSaleEventLanding } from "@/lib/cms/pages";
 import { OG_IMAGE } from "@/lib/seo";
 import { SITE, merchantLabel, siteUrl } from "@/lib/site";
 
@@ -31,7 +32,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const event = getSaleEventLanding(slug);
+  const event = await resolveSaleEventLanding(slug);
   if (!event) {
     return { title: "Sự kiện không tồn tại", robots: { index: false, follow: false } };
   }
@@ -55,7 +56,7 @@ export default async function SaleEventPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = getSaleEventLanding(slug);
+  const event = await resolveSaleEventLanding(slug);
   if (!event) notFound();
 
   const merchantDeals = await Promise.all(
@@ -70,7 +71,8 @@ export default async function SaleEventPage({
   const totalDeals = merchantDeals.reduce((sum, item) => sum + item.count, 0);
   const activeMerchants = merchantDeals.filter((item) => item.count > 0).length;
 
-  const relatedPosts = BLOG_POSTS.filter((post) =>
+  const allPosts = await listAllPublishedPosts();
+  const relatedPosts = allPosts.filter((post) =>
     ["chuan-bi-sale-11-11", "stack-voucher-shopee-3-lop", "voucher-freeship-shopee-khong-ap-duoc"].includes(
       post.slug,
     ),

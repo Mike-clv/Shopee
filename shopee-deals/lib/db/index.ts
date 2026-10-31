@@ -20,7 +20,14 @@ type DbBundle = {
   dispose: () => Promise<void>;
 };
 
-let bundlePromise: Promise<DbBundle> | null = null;
+/**
+ * Next.js can instantiate this module separately for each route/server bundle.
+ * Keeping the handle on globalThis guarantees one PGlite/Postgres client per
+ * Node process, so admin writes and public reads see the same database.
+ */
+const globalForDb = globalThis as typeof globalThis & {
+  __sansaleDbBundle?: Promise<DbBundle>;
+};
 
 async function migratePglite(db: Database): Promise<void> {
   const { migrate } = await import("drizzle-orm/pglite/migrator");
@@ -109,16 +116,16 @@ async function createBundle(): Promise<DbBundle> {
  * Cached queries should call this before their first read.
  */
 export function getDatabase(): Promise<Database> {
-  if (!bundlePromise) {
-    bundlePromise = createBundle()
+  if (!globalForDb.__sansaleDbBundle) {
+    globalForDb.__sansaleDbBundle = createBundle()
       .then(async (bundle) => {
         await bundle.migrate();
         return bundle;
       })
       .catch((error) => {
-        bundlePromise = null;
+        globalForDb.__sansaleDbBundle = undefined;
         throw error;
       });
   }
-  return bundlePromise.then((b) => b.db);
+  return globalForDb.__sansaleDbBundle.then((b) => b.db);
 }

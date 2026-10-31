@@ -35,7 +35,7 @@ import {
 } from "@/lib/components/PromoBanners";
 import { BlogCard } from "@/lib/components/BlogCard";
 import { CouponCard } from "@/lib/components/CouponCard";
-import { BLOG_POSTS } from "@/lib/blog/posts";
+import { listAllPublishedPosts } from "@/lib/cms/blog";
 
 export const metadata: Metadata = {
   title: "Mã giảm giá Shopee, Tiki, Lazada & TikTok Shop mới nhất",
@@ -388,7 +388,8 @@ async function MerchantSections() {
   );
 }
 
-function BlogTeaser() {
+async function BlogTeaser() {
+  const posts = await listAllPublishedPosts();
   return (
     <section aria-labelledby="blog-heading" className="py-2">
       <SectionHead
@@ -399,7 +400,7 @@ function BlogTeaser() {
         linkLabel="Tất cả bài viết"
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {BLOG_POSTS.slice(0, 3).map((post) => (
+        {posts.slice(0, 3).map((post) => (
           <BlogCard key={post.slug} post={post} />
         ))}
       </div>

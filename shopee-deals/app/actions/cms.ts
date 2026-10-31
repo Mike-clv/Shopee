@@ -26,6 +26,11 @@ function revalidatePublicContent(paths: string[] = []) {
   for (const path of new Set(["/", "/blog", "/sitemap", "/sitemap.xml", ...paths])) {
     revalidatePath(path);
   }
+  // Dynamic blog routes need the route pattern + type to invalidate every
+  // cached slug (including a 404 cached before the post was published).
+  if (paths.some((path) => path.startsWith("/blog/"))) {
+    revalidatePath("/blog/[slug]", "page");
+  }
 }
 
 function text(formData: FormData, key: string): string {

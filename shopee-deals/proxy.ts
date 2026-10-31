@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPost } from "@/lib/blog/posts";
+import { publishedCmsPostExists } from "@/lib/cms/exists";
 import { activeDealExists } from "@/lib/coupons/dealExists";
 import { getCategoryLanding, getMerchantLanding } from "@/lib/landing/content";
 import { getLegalPage } from "@/lib/legal/content";
@@ -104,7 +105,9 @@ function legacyRedirectTarget(pathname: string): string | null {
   return null;
 }
 
-function notFoundResponse(): NextResponse {
+function notFoundResponse(
+  cacheControl = "public, max-age=60",
+): NextResponse {
   const html = `<!doctype html>
 <html lang="vi">
 <head>
@@ -136,7 +139,7 @@ function notFoundResponse(): NextResponse {
     status: 404,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "public, max-age=60",
+      "Cache-Control": cacheControl,
     },
   });
 }
@@ -235,10 +238,15 @@ export async function proxy(request: NextRequest) {
   }
 
   // Same reason as deals: reject an unknown blog slug before the PPR shell
-  // can flush a 200. The post list is static, so this is a cheap lookup.
+  // can flush a 200. Static posts short-circuit; CMS-only slugs need a cheap
+  // published-row lookup. A no-store 404 prevents a stale cached 404 from
+  // hiding a slug that is published later.
   const blogMatch = normalized.match(/^\/blog\/([^/]+)$/);
-  if (blogMatch && !getPost(safeDecode(blogMatch[1]))) {
-    return withSecurityHeaders(notFoundResponse(), request);
+  if (blogMatch) {
+    const slug = safeDecode(blogMatch[1]);
+    if (!getPost(slug) && !(await publishedCmsPostExists(slug))) {
+      return withSecurityHeaders(notFoundResponse("no-store"), request);
+    }
   }
 
   // Policy pages are a fixed set. Reject unknown slugs before the PPR shell

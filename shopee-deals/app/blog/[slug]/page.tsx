@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import {
   ArrowRight,
@@ -44,6 +45,9 @@ export async function generateMetadata(
   const { slug } = await props.params;
   const post = await getAnyPublishedPost(slug);
   if (!post) {
+    // Unknown/not-yet-published slugs must not be persisted as static 404s.
+    // A transient 404 would otherwise overwrite the post entry once it publishes.
+    await connection();
     return {
       title: "Bài viết không tồn tại",
       robots: { index: false, follow: false },
@@ -70,6 +74,9 @@ export default async function BlogPostPage(
   props: PageProps<"/blog/[slug]">,
 ) {
   const { slug } = await props.params;
+  // Render blog details per-request so a newly published slug (or a cached
+  // 404 from before publishing) is never served stale from the route cache.
+  await connection();
   const post = await getAnyPublishedPost(slug);
   if (!post) notFound();
 

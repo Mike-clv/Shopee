@@ -37,7 +37,7 @@ export default async function EditPage(props: Props) {
 
   if (!initial) notFound();
 
-  const isOverride = Boolean(entry && path === "" && getStaticPageSeed(entry.path));
+  const isOverride = Boolean(entry && getStaticPageSeed(entry.path));
 
   return (
     <div className="space-y-4">

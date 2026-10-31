@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -8,6 +9,7 @@ import {
   Clock3,
   Lightbulb,
   ShieldCheck,
+  UserRound,
 } from "lucide-react";
 import { BlogCard } from "@/lib/components/BlogCard";
 import { OG_IMAGE } from "@/lib/seo";
@@ -53,6 +55,9 @@ export async function generateMetadata(
       description: post.excerpt,
       url: `/blog/${post.slug}`,
       type: "article",
+      publishedTime: post.date,
+      modifiedTime: post.updated,
+      authors: [post.author.name],
       images: [OG_IMAGE],
     },
   };
@@ -92,17 +97,81 @@ function PostSkeleton() {
 function PostBody({ post }: { post: BlogPost }) {
   const related = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
   const Icon = post.icon;
+  const postUrlPath = `/blog/${post.slug}`;
+  const absoluteUrl = `${siteUrl()}${postUrlPath}`;
 
   // Structured data — stringified with "<" escaped, same rule as deal pages
   // so no content can break out of the script tag.
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.excerpt,
-    datePublished: post.date,
-    author: { "@type": "Organization", name: "Mã Giảm Giá Đa Sàn" },
-    mainEntityOfPage: `${siteUrl()}/blog/${post.slug}`,
+    "@graph": [
+      {
+        "@type": "BlogPosting",
+        "@id": `${absoluteUrl}#article`,
+        headline: post.title,
+        description: post.excerpt,
+        datePublished: post.date,
+        dateModified: post.updated,
+        inLanguage: "vi-VN",
+        articleSection: post.tag.label,
+        image: [`${siteUrl()}${OG_IMAGE.url}`],
+        author: {
+          "@type": "Organization",
+          name: post.author.name,
+          url: `${siteUrl()}${post.author.href}`,
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "Sansale247",
+          url: siteUrl(),
+          logo: {
+            "@type": "ImageObject",
+            url: `${siteUrl()}/icon-512x512.png`,
+          },
+        },
+        mainEntityOfPage: { "@id": absoluteUrl },
+      },
+      ...(post.faqs.length > 0
+        ? [
+            {
+              "@type": "FAQPage",
+              "@id": `${absoluteUrl}#faq`,
+              mainEntity: post.faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer,
+                },
+              })),
+            },
+          ]
+        : []),
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${absoluteUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Trang chủ",
+            item: siteUrl(),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Blog",
+            item: `${siteUrl()}/blog`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: post.tag.label,
+            item: `${siteUrl()}${post.tag.href}`,
+          },
+        ],
+      },
+    ],
   };
 
   return (
@@ -155,10 +224,42 @@ function PostBody({ post }: { post: BlogPost }) {
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink/55">
           {post.excerpt}
         </p>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink/45">
+          <Link
+            href={post.author.href}
+            className="inline-flex items-center gap-1.5 font-semibold text-ink/65 transition hover:text-brand"
+          >
+            <UserRound className="h-3.5 w-3.5" aria-hidden />
+            {post.author.name}
+          </Link>
+          <span aria-hidden className="text-ink/20">
+            ·
+          </span>
+          <span>{post.author.title}</span>
+          <span aria-hidden className="text-ink/20">
+            ·
+          </span>
+          <span>Cập nhật {postDateLabel(post.updated)}</span>
+        </div>
       </header>
 
+      <figure className="mt-6 overflow-hidden rounded-2xl border border-line bg-white">
+        <Image
+          src={post.cover.src}
+          alt={post.cover.alt}
+          width={post.cover.width}
+          height={post.cover.height}
+          unoptimized
+          priority
+          className="h-auto w-full"
+        />
+        <figcaption className="border-t border-line px-4 py-2.5 text-[11px] leading-relaxed text-ink/40">
+          {post.cover.caption}
+        </figcaption>
+      </figure>
+
       <div className="mt-6 grid gap-5 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+        <div className="min-w-0 lg:col-span-3">
           <div className="space-y-4">
             {post.body.map((block, index) => {
               if (block.kind === "h2") {
@@ -182,7 +283,9 @@ function PostBody({ post }: { post: BlogPost }) {
                       className="mt-0.5 h-4 w-4 shrink-0 text-brand"
                     />
                     <p className="text-sm leading-relaxed text-ink/70">
-                      <strong className="font-semibold text-ink">Mẹo nhanh: </strong>
+                      <strong className="font-semibold text-ink">
+                        Mẹo nhanh:{" "}
+                      </strong>
                       {block.text}
                     </p>
                   </aside>
@@ -206,12 +309,78 @@ function PostBody({ post }: { post: BlogPost }) {
                   </ul>
                 );
               }
+              if (block.kind === "table") {
+                return (
+                  <div
+                    key={index}
+                    className="overflow-x-auto rounded-xl border border-line"
+                  >
+                    <table className="w-full min-w-[540px] border-collapse text-left text-[13px]">
+                      {block.caption ? (
+                        <caption className="border-b border-line bg-ink/[0.03] px-4 py-2.5 text-left text-[11px] font-semibold text-ink/55">
+                          {block.caption}
+                        </caption>
+                      ) : null}
+                      <thead>
+                        <tr className="bg-ink/[0.03]">
+                          {block.headers.map((header) => (
+                            <th
+                              key={header}
+                              scope="col"
+                              className="border-b border-line px-4 py-2.5 font-semibold text-ink/70"
+                            >
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line">
+                        {block.rows.map((row, rowIndex) => (
+                          <tr key={rowIndex}>
+                            {row.map((cell, cellIndex) => (
+                              <td
+                                key={cellIndex}
+                                className="px-4 py-2.5 align-top leading-relaxed text-ink/60"
+                              >
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              }
               return (
                 <p key={index} className="text-[14.5px] leading-7 text-ink/65">
                   {block.text}
                 </p>
               );
             })}
+          </div>
+
+          <div className="mt-7 flex items-start gap-3 rounded-xl border border-line bg-white px-4 py-3.5">
+            <UserRound
+              aria-hidden
+              className="mt-0.5 h-4 w-4 shrink-0 text-brand"
+            />
+            <div className="text-xs leading-relaxed text-ink/50">
+              <p>
+                Biên tập và kiểm duyệt bởi{" "}
+                <Link
+                  href={post.author.href}
+                  className="font-semibold text-ink/70 underline decoration-brand/30 underline-offset-2 transition hover:text-brand"
+                >
+                  {post.author.name}
+                </Link>
+                . Bài viết được cập nhật ngày {postDateLabel(post.updated)}.
+              </p>
+              <p className="mt-1">
+                Sansale247 tổng hợp khuyến mãi công khai và có thể nhận hoa
+                hồng từ link tiếp thị liên kết; giá bạn trả không thay đổi.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -253,6 +422,35 @@ function PostBody({ post }: { post: BlogPost }) {
           </div>
         </aside>
       </div>
+
+      {post.faqs.length > 0 && (
+        <section aria-labelledby="post-faq" className="mt-10">
+          <div className="mb-4 border-b border-line pb-3">
+            <h2
+              id="post-faq"
+              className="font-display text-xl font-bold tracking-tight text-ink"
+            >
+              Câu hỏi thường gặp
+            </h2>
+          </div>
+          <div className="divide-y divide-line rounded-2xl border border-line bg-white">
+            {post.faqs.map((faq) => (
+              <details key={faq.question} className="group px-5 py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
+                  {faq.question}
+                  <ChevronRight
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 text-ink/35 transition-transform group-open:rotate-90"
+                  />
+                </summary>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink/60">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section aria-labelledby="more-posts" className="mt-10">

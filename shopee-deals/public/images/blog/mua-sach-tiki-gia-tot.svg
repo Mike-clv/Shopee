@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Mua sách Tiki giá tốt hơn So giá và chồng mã">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#26364d"/>
+      <stop offset="1" stop-color="#151f2d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1050" cy="110" r="230" fill="#ffffff" opacity="0.08"/>
+  <circle cx="130" cy="560" r="290" fill="#ffffff" opacity="0.06"/>
+  <path d="M840 0 1200 360V0Z" fill="#ffffff" opacity="0.05"/>
+  <text x="72" y="98" fill="#ffffff" opacity="0.72" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" letter-spacing="4">SANSALE247</text>
+  <text x="72" y="224" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700">Mua sách Tiki</text>
+  <text x="72" y="304" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700">giá tốt hơn</text>
+  <text x="72" y="384" fill="#ffffff" opacity="0.86" font-family="Arial, Helvetica, sans-serif" font-size="36">So giá và chồng mã</text>
+  <rect x="72" y="500" width="76" height="4" rx="2" fill="#ffffff" opacity="0.7"/>
+  <text x="72" y="552" fill="#ffffff" opacity="0.68" font-family="Arial, Helvetica, sans-serif" font-size="21">Tổng hợp deal · Kiểm tra điều kiện · Không hứa giảm giá</text>
+</svg>

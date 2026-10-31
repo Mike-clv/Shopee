@@ -9,6 +9,7 @@ import {
   Clock3,
   Lightbulb,
   ShieldCheck,
+  Store,
   UserRound,
 } from "lucide-react";
 import { BlogCard } from "@/lib/components/BlogCard";
@@ -16,10 +17,12 @@ import { OG_IMAGE } from "@/lib/seo";
 import {
   BLOG_POSTS,
   getPost,
+  merchantLinksForPost,
   postDateLabel,
+  relatedPostsFor,
   type BlogPost,
 } from "@/lib/blog/posts";
-import { siteUrl } from "@/lib/site";
+import { merchantLabel, siteUrl } from "@/lib/site";
 
 // Allow params to be validated before streaming so unknown slugs return a real
 // 404 instead of a 200 soft-404. Cache Components still prerenders the known
@@ -95,7 +98,8 @@ function PostSkeleton() {
 }
 
 function PostBody({ post }: { post: BlogPost }) {
-  const related = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
+  const related = relatedPostsFor(post, 2);
+  const relatedMerchants = merchantLinksForPost(post);
   const Icon = post.icon;
   const postUrlPath = `/blog/${post.slug}`;
   const absoluteUrl = `${siteUrl()}${postUrlPath}`;
@@ -418,6 +422,33 @@ function PostBody({ post }: { post: BlogPost }) {
                 <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                 Link chuyển hướng affiliate — giúp duy trì website miễn phí.
               </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-line bg-white p-5">
+            <p className="font-mono text-[9px] font-semibold tracking-[0.14em] text-ink/40 uppercase">
+              Sàn liên quan
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-ink/55">
+              So sánh deal cùng chủ đề trên các sàn đang có ưu đãi.
+            </p>
+            <div className="mt-3 grid gap-2">
+              {relatedMerchants.map((merchant) => (
+                <Link
+                  key={merchant}
+                  href={`/san/${merchant}`}
+                  className="group/merchant flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm font-semibold text-ink/70 transition hover:border-brand/40 hover:text-brand"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Store className="h-4 w-4 text-brand" aria-hidden />
+                    Xem deal {merchantLabel(merchant)}
+                  </span>
+                  <ChevronRight
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 text-ink/30 transition-transform group-hover/merchant:translate-x-0.5"
+                  />
+                </Link>
+              ))}
             </div>
           </div>
         </aside>

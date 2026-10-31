@@ -69,6 +69,65 @@ export function postsForCategory(category: string, limit = 3): BlogPost[] {
   ).slice(0, limit);
 }
 
+const MERCHANT_FALLBACK: Record<string, string> = {
+  shopee: "lazada",
+  tiki: "shopee",
+  lazada: "shopee",
+  tiktokshop: "shopee",
+};
+
+function merchantSlugFromHref(href: string): string | null {
+  return href.match(/^\/san\/([a-z]+)$/)?.[1] ?? null;
+}
+
+/**
+ * Two merchant hubs a post should link to. The tag and hinted CTAs usually
+ * name one merchant; the fallback keeps every article linked to a second hub
+ * without inventing a merchant the copy does not mention.
+ */
+export function merchantLinksForPost(post: BlogPost): string[] {
+  const found = [post.tag.href, ...post.hintedCtas.map((cta) => cta.href)]
+    .map(merchantSlugFromHref)
+    .filter((slug): slug is string => Boolean(slug));
+  const unique = [...new Set(found)];
+  if (unique.length >= 2) return unique.slice(0, 2);
+  const primary = unique[0] ?? "shopee";
+  const fallback = MERCHANT_FALLBACK[primary] ?? "shopee";
+  return [...new Set([primary, fallback])].slice(0, 2);
+}
+
+/**
+ * Related posts by shared tag, CTA and category, then newest. This keeps the
+ * internal-link block topical instead of always showing the latest two posts.
+ */
+export function relatedPostsFor(post: BlogPost, limit = 2): BlogPost[] {
+  const postCtas = new Set(post.hintedCtas.map((cta) => cta.href));
+  const postCategories = new Set(
+    [post.tag.href, ...postCtas]
+      .map((href) => href.match(/^\/danh-muc\/([a-z-]+)$/)?.[1])
+      .filter((slug): slug is string => Boolean(slug)),
+  );
+
+  return BLOG_POSTS.filter((candidate) => candidate.slug !== post.slug)
+    .map((candidate) => {
+      const candidateCtas = candidate.hintedCtas.map((cta) => cta.href);
+      const candidateCategories = [candidate.tag.href, ...candidateCtas]
+        .map((href) => href.match(/^\/danh-muc\/([a-z-]+)$/)?.[1])
+        .filter((slug): slug is string => Boolean(slug));
+      let score = 0;
+      if (candidate.tag.href === post.tag.href) score += 3;
+      if (candidateCtas.some((href) => postCtas.has(href))) score += 2;
+      if (candidateCategories.some((slug) => postCategories.has(slug))) score += 1;
+      return { candidate, score };
+    })
+    .sort(
+      (a, b) =>
+        b.score - a.score || b.candidate.date.localeCompare(a.candidate.date),
+    )
+    .slice(0, limit)
+    .map(({ candidate }) => candidate);
+}
+
 /**
  * Pick a short reading list for a deal. Merchant matches come first, then
  * category matches; unknown deals fall back to the newest posts.

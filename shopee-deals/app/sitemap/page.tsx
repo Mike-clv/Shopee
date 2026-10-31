@@ -161,7 +161,7 @@ export default async function HtmlSitemapPage() {
             links={BLOG_POSTS.map((post) => ({
               href: `/blog/${post.slug}`,
               label: post.title,
-              meta: post.date,
+              meta: post.tag.label,
             }))}
           />
         </section>

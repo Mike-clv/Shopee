@@ -9,6 +9,7 @@ import { FEATURED_CATEGORY_SLUGS, categoryFromSlug } from "@/lib/categories";
 import { Analytics } from "@/lib/components/Analytics";
 import { BackToTop } from "@/lib/components/BackToTop";
 import { ConsentBanner } from "@/lib/components/ConsentBanner";
+import { PromoPopup } from "@/lib/components/PromoPopup";
 import { MerchantLogo } from "@/lib/components/MerchantLogo";
 import { NavTabs } from "@/lib/components/NavTabs";
 import { getCurrentAdmin } from "@/lib/auth";
@@ -124,6 +125,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteFooter />
         <BackToTop />
         <ConsentBanner />
+        <PromoPopup />
         <Analytics />
       </body>
     </html>

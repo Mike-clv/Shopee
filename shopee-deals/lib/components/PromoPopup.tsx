@@ -15,20 +15,10 @@ import { SITE } from "@/lib/site";
  */
 export function PromoPopup() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const shownRef = useRef(false);
-
-  useEffect(() => {
-    if (shownRef.current) return;
-    if (pathname.startsWith("/admin") || pathname.startsWith("/login")) return;
-
-    const timer = window.setTimeout(() => {
-      shownRef.current = true;
-      setOpen(true);
-    }, 700);
-    return () => window.clearTimeout(timer);
-  }, [pathname]);
+  const hidden =
+    pathname.startsWith("/admin") || pathname.startsWith("/login");
 
   useEffect(() => {
     if (!open) return;
@@ -48,7 +38,7 @@ export function PromoPopup() {
     };
   }, [open]);
 
-  if (!open) return null;
+  if (hidden || !open) return null;
 
   return (
     <div
@@ -84,7 +74,7 @@ export function PromoPopup() {
               placement: "popup_11_11",
             })
           }
-          className="block overflow-hidden rounded-2xl border border-white/30 bg-white shadow-[0_28px_80px_-20px_rgba(15,23,42,0.6)] transition hover:brightness-[1.02] focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+          className="block overflow-hidden rounded-2xl border border-white/30 bg-[#f04b23] shadow-[0_28px_80px_-20px_rgba(15,23,42,0.6)] transition hover:brightness-[1.02] focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
           aria-label="Mở Shopee 11.11 qua liên kết tiếp thị"
         >
           <Image
@@ -93,6 +83,8 @@ export function PromoPopup() {
             height={675}
             alt="Shopee 11.11 - Tiệc sale mở màn: siêu rẻ từ 1.000đ, triệu phụ voucher giảm đến 50%, freeship 0đ"
             sizes="(max-width: 768px) 92vw, 768px"
+            priority
+            unoptimized
             className="h-auto w-full"
           />
         </a>
